@@ -1119,6 +1119,7 @@ function App({
     setPhase('edit')
     setTraceSteps([])
     setTraceIndex(0)
+    setEpoch(0)
     setCurrentLoss(null)
     setLossReports([])
     setInferenceResult(undefined)

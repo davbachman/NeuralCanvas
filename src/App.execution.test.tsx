@@ -37,6 +37,21 @@ function savedProject(graph: GraphModel, epoch: number): string {
 afterEach(() => vi.restoreAllMocks())
 
 describe('execution ownership and reports', () => {
+  it('resets epochs and loss history when parameters are randomized', async () => {
+    render(<App initialGraph={createModelPreset('linear')} />)
+    startTraining()
+    await waitFor(() => expect(screen.getByText('Completed 1 epoch.')).toBeInTheDocument())
+    expect(screen.getByText('Epoch 1')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Randomize parameters/i }))
+    expect(screen.getByText('Epoch 0')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'Reporting' }))
+    expect(screen.queryByRole('list', { name: 'Reported losses' })).not.toBeInTheDocument()
+    startTraining()
+    await waitFor(() => expect(screen.getByText('Completed 1 epoch.')).toBeInTheDocument())
+    const history = screen.getByRole('list', { name: 'Reported losses' })
+    expect(within(history).getAllByRole('listitem').map(item => item.querySelector('span')?.textContent)).toEqual(['Epoch 0', 'Epoch 1'])
+  })
+
   it('lets WebGL users choose the loss reporting interval and passes it to training', async () => {
     const graph = createModelPreset('linear')
     graph.training = { ...DEFAULT_TRAINING, engine: 'tensor', backend: 'webgl', patience: 0 }
