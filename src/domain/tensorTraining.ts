@@ -274,6 +274,7 @@ export class TensorGraph {
     if (!rows.length || !Number.isInteger(batchSize) || batchSize < 1) throw Error('Evaluation needs examples and a positive batch size.')
     const dataset = datasetForNode(this.source)
     const predictions: DatasetPrediction[] = []
+    const exampleIndices = new Map(this.examples.map((example, index) => [example, index]))
     let sum = 0, hits = 0, scored = 0
     const display = (value: number, isClass: boolean) => isClass
       ? dataset.classLabels?.[value] ?? dataset.vocabulary?.[value] ?? String(value)
@@ -297,7 +298,7 @@ export class TensorGraph {
           const predicted = result.kind==='categorical' ? scores.indexOf(Math.max(...scores)) : result.kind==='binary' ? Number(scores[0] >= .5) : scores[0]
           if (isClass) { scored++; hits += Number(predicted === actual) }
           predictions.push({
-            example: `${example.label ?? `Example ${offset + exampleIndex + 1}`}${example.target.data.length > 1 ? ` · output ${position + 1}` : ''}`,
+            example: `${exampleIndices.has(example) ? `Dataset row ${exampleIndices.get(example)}` : example.label ?? 'Example'}${example.target.data.length > 1 ? ` · output ${position + 1}` : ''}`,
             actual: display(actual, isClass), predicted: display(predicted, isClass),
             ...(isClass ? { correct: predicted === actual } : {}),
           })

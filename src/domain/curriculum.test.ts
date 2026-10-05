@@ -9,6 +9,8 @@ import {evaluateDataset} from './datasetTraining'
 import {parseCustomCsv} from './customCsv'
 import {buildTextModel} from '../test/textModels'
 import {generatePyTorchExport} from './pytorchExport'
+import {createModelPreset} from './modelPresets'
+import {datasetExamplesForNode} from './datasets'
 
 beforeAll(async()=>{await tf.setBackend('cpu');await tf.ready()})
 afterEach(()=>expect(tf.memory().numTensors).toBe(0))
@@ -67,7 +69,7 @@ it('L1 chooses zero subgradient at zero and excludes unselected biases',()=>{
 
 it.each(['regression','binary-classification'] as const)('minibatch inference decodes %s and excludes penalty',async task=>{
  const {graph,add,reshape,linear}=builder()
- const csv=parseCustomCsv('x,target,split\n1,0,train\n2,1,train\n3,1,test\n4,0,test\n','numeric.csv');csv.task=task
+ const csv=parseCustomCsv('x,target,split\n1,0,test\n2,1,train\n3,1,test\n4,0,train\n','numeric.csv');csv.task=task
  add('data','dataset',{dataset:'custom-csv',customCsv:csv,datasetMode:'sample'})
  let prediction=linear('output',reshape('x',add('input','input',{},[['data',0]]),[1,1]),1,1)
  if(task==='binary-classification')prediction=add('probability','activation',{activation:'sigmoid'},[prediction])
@@ -78,7 +80,21 @@ it.each(['regression','binary-classification'] as const)('minibatch inference de
   expect(actual.loss).toBeCloseTo(expected.loss,5)
   expect(actual.accuracy).toBe(expected.accuracy)
   expect(actual.rows).toEqual(expected.rows)
+  expect(actual.rows.map(row=>row.example)).toEqual(['Dataset row 0','Dataset row 2'])
+  const reversed=await model.inference(model.examples.filter(row=>row.split==='test').reverse(),1)
+  expect(reversed.rows.map(row=>row.example)).toEqual(['Dataset row 2','Dataset row 0'])
+  const training=await model.inference(model.examples.filter(row=>row.split==='train'),1)
+  expect(training.rows.map(row=>row.example)).toEqual(['Dataset row 1','Dataset row 3'])
  }finally{model.dispose()}
+})
+it.each(['sample','batch'] as const)('trace inference keeps dataset row numbers in %s mode',mode=>{
+ const graph=createModelPreset('linear'),source=graph.nodes.find(node=>node.type==='dataset')!
+ source.params.datasetMode=mode
+ const examples=datasetExamplesForNode(source)
+ for(const split of ['train','test'] as const) {
+  const expected=examples.flatMap((example,index)=>example.split===split?[`Dataset row ${index}`]:[])
+  expect(evaluateDataset(graph,source.id,split).rows.map(row=>row.example)).toEqual(expected)
+ }
 })
 it('all-position language inference preserves decoded targets and row counts',async()=>{
  const data=prepareTextDocuments([{text:'alice was here. alice was there.',split:'train'},{text:'alice is here.',split:'test'}],'alice.txt',{task:'language',tokenizer:'character',maxLength:4,stride:1})

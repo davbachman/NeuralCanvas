@@ -102,7 +102,7 @@ function* evaluateDatasetSteps(graph: GraphModel, id: string, split: 'train' | '
         if (matched !== undefined) { correct += Number(matched); predictions++ }
         const exampleIndex = batch ? indices[row] : index
         rows.push({
-          example: `${examples[exampleIndex]?.label ?? `Example ${exampleIndex + 1}`}${target.data.length > 1 && !batch ? ` · output ${row + 1}` : ''}`,
+          example: `Dataset row ${exampleIndex}${target.data.length > 1 && !batch ? ` · output ${row + 1}` : ''}`,
           actual: displayPrediction(actual, scored, dataset.classLabels, dataset.vocabulary),
           predicted: displayPrediction(predicted, scored, dataset.classLabels, dataset.vocabulary),
           ...(matched === undefined ? {} : { correct: matched }),
