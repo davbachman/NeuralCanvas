@@ -769,7 +769,7 @@ function App({
         if (!isCurrent()) return
         controller.signal.throwIfAborted()
         const result = await trainTensorGraph(graph, {
-          epochs:epochCount,batchSize,settings:training,signal:controller.signal,epochOffset:startEpoch,shuffle:shuffleEachEpoch,
+          epochs:epochCount,reportEvery:reportInterval,batchSize,settings:training,signal:controller.signal,epochOffset:startEpoch,shuffle:shuffleEachEpoch,
           onBackend:(backend,fallback)=>{if(!isCurrent())return;setTrainingStatus('Training on '+backend);if(fallback)setReportingWarning('Using '+backend+'. '+fallback)},
           onProgress:(done,total)=>{if(isCurrent())setTrainingStatus('Training '+done+' / '+total+' examples')},
           onReport:report=>{if(isCurrent())setLossReports(reports=>appendLossReport(reports,{epoch:report.epoch,loss:report.train.loss,heldOutLoss:report.validation.loss}))},
@@ -1688,12 +1688,12 @@ function App({
               <label className="run-field">Gradient norm limit (0 = off)<input aria-label="Gradient norm limit" disabled={isTraining} type="number" min="0" step="0.1" value={training.clipNorm} onChange={event=>setTraining({clipNorm:Number(event.target.value)})}/></label>
               <label className="run-field">Early stopping patience (0 = off)<input aria-label="Early stopping patience" disabled={isTraining} type="number" min="0" step="1" value={training.patience} onChange={event=>setTraining({patience:Number(event.target.value)})}/></label>
               <label className="run-field">Minimum validation improvement<input aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>
-              <p className="run-intro">Tensor runs use padded batches and report every epoch. Early stopping uses the held-out split as validation and restores its best checkpoint. Adam moments start fresh for each run. Step remains a single-example SGD calculation.</p>
+              <p className="run-intro">Tensor runs use padded batches and report at the selected interval. Early stopping checks validation every epoch. Early stopping uses the held-out split as validation and restores its best checkpoint. Adam moments start fresh for each run. Step remains a single-example SGD calculation.</p>
             </>}
           </>}
           <div className="run-number-grid">
             <label className="run-field">Epochs per run<input type="number" min="1" max="100000" step="1" value={epochsPerRun} onChange={event => setEpochsPerRun(event.target.value)} /></label>
-            <label className="run-field">Report loss every<input type="number" min="1" max="100000" step="1" value={reportEvery} disabled={tensorTraining || isTraining} onChange={event => setReportEvery(event.target.value)} /><span>epochs</span></label>
+            <label className="run-field">Report loss every<input type="number" min="1" max="100000" step="1" value={reportEvery} disabled={isTraining} onChange={event => setReportEvery(event.target.value)} /><span>epochs</span></label>
           </div>
           {trainingDataset ? <>
             <label className="run-field">Examples per update<input type="number" min="1" max={trainingExampleCount} step="1" value={batchSizeInput} placeholder={String(defaultBatchSize)} onChange={event => setBatchSizeInput(event.target.value)} disabled={isTraining} /></label>

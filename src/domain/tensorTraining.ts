@@ -375,13 +375,15 @@ export class TensorOptimizer {
 }
 
 export interface TensorTrainOptions {
-  epochs:number; batchSize:number; settings?:TrainingSettings; signal?:AbortSignal; epochOffset?:number; shuffle?:boolean
+  epochs:number; batchSize:number; reportEvery?:number; settings?:TrainingSettings; signal?:AbortSignal; epochOffset?:number; shuffle?:boolean
   onBackend?:(backend:string,fallback:string)=>void
   onProgress?:(done:number,total:number)=>void
   onReport?:(report:TensorReport)=>void
 }
 export async function trainTensorGraph(graph:GraphModel,options:TensorTrainOptions) {
   const settings=options.settings??{...DEFAULT_TRAINING,engine:'tensor'}
+  const reportEvery=options.reportEvery??1
+  if(!Number.isInteger(reportEvery)||reportEvery<1||reportEvery>100000) throw Error('Choose a reporting interval from 1 to 100000 epochs.')
   if(!isTrainingSettings(settings)||!Number.isInteger(options.epochs)||options.epochs<1||!Number.isInteger(options.batchSize)||options.batchSize<1) throw Error('Choose valid training settings, epochs and batch size.')
   const selected=await selectTensorBackend(graph,settings.backend,settings)
   options.onBackend?.(selected.backend,selected.fallback)
@@ -393,11 +395,14 @@ export async function trainTensorGraph(graph:GraphModel,options:TensorTrainOptio
     if(!train.length||!validation.length||options.batchSize>train.length) throw Error('Use training and validation examples and a batch size no larger than the training set.')
     let bestLoss=Infinity,stale=0
     best=await model.snapshot()
-    const report=async(epoch:number)=>{
-      const trainMetrics=await model.evaluate(train,options.batchSize,options.signal),val=await model.evaluate(validation,options.batchSize,options.signal)
-      if(!Number.isFinite(trainMetrics.loss)||!Number.isFinite(val.loss)) throw Error('Training diverged. Lower the learning rate.')
+    const report=async(epoch:number,publish=true)=>{
+      const val=await model.evaluate(validation,options.batchSize,options.signal)
+      if(!Number.isFinite(val.loss)) throw Error('Training diverged. Lower the learning rate.')
       const improved=val.loss<bestLoss-settings.minDelta
       if(improved){bestLoss=val.loss;bestEpoch=epoch;best=await model.snapshot();stale=0}else stale++
+      if(!publish && !(settings.patience>0&&stale>=settings.patience)) return
+      const trainMetrics=await model.evaluate(train,options.batchSize,options.signal)
+      if(!Number.isFinite(trainMetrics.loss)) throw Error('Training diverged. Lower the learning rate.')
       const result={epoch:epoch+(options.epochOffset??0),train:trainMetrics,validation:val,improved}
       reports.push(result);options.onReport?.(result)
     }
@@ -417,7 +422,8 @@ export async function trainTensorGraph(graph:GraphModel,options:TensorTrainOptio
         await new Promise(resolve=>setTimeout(resolve,0))
       }
       completed=epoch
-      await report(epoch)
+      const due=epoch%reportEvery===0 || epoch===options.epochs
+      if(due || settings.patience>0) await report(epoch,due)
       if(settings.patience>0&&stale>=settings.patience) break
     }
     return {graph:settings.patience>0?best:await model.snapshot(),reports,completed,bestEpoch,backend:selected.backend,stopped:false}

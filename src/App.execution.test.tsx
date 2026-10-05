@@ -6,6 +6,7 @@ import { formatNumber, runTrainingStep } from './domain/engine'
 import { createStarterGraph } from './domain/examples'
 import { createModelPreset } from './domain/modelPresets'
 import { createProjectStateFile } from './domain/session'
+import { DEFAULT_TRAINING } from './domain/trainingSettings'
 import type { GraphModel } from './domain/types'
 
 function deferred<T>() {
@@ -36,6 +37,22 @@ function savedProject(graph: GraphModel, epoch: number): string {
 afterEach(() => vi.restoreAllMocks())
 
 describe('execution ownership and reports', () => {
+  it('lets WebGL users choose the loss reporting interval and passes it to training', async () => {
+    const graph = createModelPreset('linear')
+    graph.training = { ...DEFAULT_TRAINING, engine: 'tensor', backend: 'webgl', patience: 0 }
+    const tensorTraining = await import('./domain/tensorTraining')
+    const train = vi.spyOn(tensorTraining, 'trainTensorGraph').mockResolvedValue({ graph, reports: [], completed: 5, bestEpoch: 5, backend: 'webgl', stopped: false })
+    render(<App initialGraph={graph} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    const interval = screen.getByLabelText(/Report loss every/)
+    expect(interval).toBeEnabled()
+    fireEvent.change(interval, { target: { value: '3' } })
+    fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '5' } })
+    fireEvent.click(screen.getByRole('button', { name: /Run 5 epochs/ }))
+    await waitFor(() => expect(train).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ reportEvery: 3, epochs: 5 })))
+    await waitFor(() => expect(screen.getByText(/Completed after 5 epochs on webgl/)).toBeInTheDocument())
+  })
+
   it('adds single updates to the same dataset loss curves as epoch runs', async () => {
     const graph = createModelPreset('linear')
     const updated = runTrainingStep(graph).graph

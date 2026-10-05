@@ -55,6 +55,18 @@ describe('batched tensor compiler',()=>{
   for(const id of Object.keys(original)) original[id].data.forEach((n,i)=>expect(best[id].data[i]).toBeCloseTo(n,6))
   expect(JSON.stringify(parameterValues(graph))).toBe(before)
  })
+ it.each([0,2])('honors reporting intervals without changing early stopping, patience %i',async patience=>{
+  const graph=buildTextModel(data(),'counts-linear',4)
+  const published:number[]=[]
+  const result=await trainTensorGraph(graph,{epochs:5,reportEvery:3,epochOffset:10,batchSize:2,settings:{...DEFAULT_TRAINING,engine:'tensor',backend:'cpu',patience,minDelta:100},onReport:report=>published.push(report.epoch)})
+  expect(result.completed).toBe(patience?2:5)
+  expect(published).toEqual(patience?[10,12]:[10,13,15])
+  expect(result.reports.map(report=>report.epoch)).toEqual(published)
+  if(patience) expect(result.bestEpoch).toBe(0)
+ })
+ it.each([0,-1,1.5,NaN,100001])('rejects invalid reporting interval %s',async reportEvery=>{
+  await expect(trainTensorGraph(buildTextModel(data(),'counts-linear',4),{epochs:1,batchSize:2,reportEvery})).rejects.toThrow('reporting interval')
+ })
  it('rejects unsupported nodes before allocating variables',()=>{
   const graph=buildTextModel(data(),'mean',4)
   graph.nodes.find(n=>n.id==='mean-review')!.params.axis=1
