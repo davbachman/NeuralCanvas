@@ -1,0 +1,4 @@
+.learning-rate-heading { display: flex; align-items: center; gap: 4px; }
+.learning-rate-value { border: 0; padding: 0; background: transparent; color: inherit; font: inherit; cursor: text; }
+.learning-rate-value:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.run-field input.learning-rate-input { min-width: 0; width: 100px; }

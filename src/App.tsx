@@ -1,3 +1,4 @@
+import { LearningRateControl } from './components/LearningRateControl'
 import {DEFAULT_TRAINING, type TrainingSettings} from './domain/trainingSettings'
 import { mergePreservingLayout, ungroupPreservingLayout } from './domain/mergeLayout'
 import { DatasetWorkbench } from './components/DatasetWorkbench'
@@ -1703,7 +1704,7 @@ function App({
           {isTraining ? <button type="button" className="run-epochs-button" onClick={() => trainingController.current?.abort()}>Stop training</button>
             : <button type="button" className="run-epochs-button primary-button" aria-keyshortcuts="Shift+Enter" onClick={() => void runEpochs()} disabled={!canRunEpochs}>Run {validRunSettings ? epochCount : '—'} {epochCount === 1 ? 'epoch' : 'epochs'} <kbd aria-hidden="true">⇧ Return</kbd></button>}
           {tensorTraining && <label className="run-field">Exact learning rate<input aria-label="Exact learning rate" type="number" min="0.000001" step="0.0001" disabled={isTraining} value={graph.learningRate} onChange={event=>updateLearningRate(Number(event.target.value))}/></label>}
-          <label className="run-field">Learning rate · η = {graph.learningRate.toString()}<input type="range" min={tensorTraining ? "0.0001" : "0.001"} max="0.5" step={tensorTraining ? "0.0001" : "0.001"} value={graph.learningRate} onChange={event => updateLearningRate(Number(event.target.value))} disabled={isTraining} /></label>
+          <LearningRateControl value={graph.learningRate} tensorTraining={tensorTraining} disabled={isTraining} onChange={updateLearningRate}/>
           <div className="run-metrics"><span>Epoch {epoch}</span><span>Current loss {formatNumber(currentLoss ?? undefined)}</span></div>
           {trainingStatus && <p className="run-status" role="status">{trainingStatus}</p>}
         </section>
