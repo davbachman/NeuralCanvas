@@ -214,7 +214,23 @@ export class TensorGraph {
           value=tf.softmax(scores);break
         }
         case 'layer-norm': {if(args[0].axes.at(-1)!=='feature')throw Error('Tensor training normalizes feature axes only.');const {mean,variance}=tf.moments(a,-1,true);value=tf.add(tf.mul(tf.mul(tf.sub(a,mean),tf.rsqrt(tf.add(variance,node.params.epsilon??1e-5))),b),c);break}
-        case 'concat': {const axis=(node.params.axis??1)+(axes[0]==='batch'?1:0);if(axes[axis]==='token')throw Error('Tensor training currently concatenates features, not padded token sequences.');value=tf.concat(tensors,axis);break}
+        case 'concat': {
+          const axis=node.params.axis??1
+          const ranks=args.map(arg=>arg.value.rank-Number(arg.axes[0]==='batch'))
+          // Dataset scalars become one-row columns; vectors become columns too,
+          // matching the trace engine's axis-1 concatenation convention.
+          const columns=axis===1 && ranks.some(rank=>rank<2) && ranks.every(rank=>rank<=2) &&
+            args.every(arg=>!arg.axes.includes('token'))
+          const inputs=columns?args.map((arg,index)=>{
+            if(ranks[index]===2) return arg.value
+            const batch=arg.axes[0]==='batch'
+            return arg.value.reshape([...(batch?[count]:[]),ranks[index]===0?1:arg.value.shape.at(-1)!,1])
+          }):tensors
+          if(columns) axes=[...(axes[0]==='batch'?['batch' as const]:[]),'feature','feature']
+          const actualAxis=axis+Number(axes[0]==='batch')
+          if(axes[actualAxis]==='token')throw Error('Tensor training currently concatenates features, not padded token sequences.')
+          value=tf.concat(inputs,actualAxis);break
+        }
         default:throw Error('Unsupported tensor operation '+kind)
       }
       values.set(node.id,{value,axes})

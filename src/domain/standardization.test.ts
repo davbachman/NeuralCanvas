@@ -5,9 +5,11 @@ import { parseCustomCsv } from './customCsv'
 import {fitStandardizer} from './standardizationFit'
 import { isStandardizationStats, standardize } from './standardization'
 import { backwardPass, forwardPass, parameterValues, validateGraph } from './engine'
-import { TensorGraph, tf } from './tensorTraining'
+import { TensorGraph, tf, selectTensorBackend } from './tensorTraining'
 import { createProjectStateFile, parseProjectStateFile } from './session'
 import { generatePyTorchExport } from './pytorchExport'
+import {withDatasetIndices} from './datasetTraining'
+import {DEFAULT_TRAINING} from './trainingSettings'
 
 beforeAll(async () => { await tf.setBackend('cpu'); await tf.ready() })
 afterEach(() => expect(tf.memory().numTensors).toBe(0))
@@ -56,8 +58,9 @@ it.each(['batch', undefined] as const)('fits directly concatenated columns in %s
  expect(await fitStandardizer(graph,'standard')).toEqual(stats)
 })
 
-it('matches traced and accelerated values and all parameter gradients',async()=>{
+it.each(['matrix','vector'])('matches traced and accelerated values and all parameter gradients for %s inputs',async kind=>{
  const graph=fixture()
+ if(kind==='vector') for(const node of graph.nodes) if(node.id==='a'||node.id==='b') node.params.shape=[1]
  const source=graph.nodes.find(n=>n.id==='data')!
  source.params.customCsv=parseCustomCsv('a,b,y,split\n1,7,2,train\n3,17,4,train\n1000,900,5,test\n','features.csv')
  graph.nodes.find(n=>n.id==='standard')!.params.standardization=await fitStandardizer(graph,'standard')
@@ -147,4 +150,29 @@ it('reuses numeric examples and invalidates cached rows when the CSV is replaced
  expect(changed).not.toBe(original)
  expect(changed[0].split).toBe('test')
  expect(original[0].split).toBe('train')
+})
+
+it.each([1,2,3])('trains directly concatenated dataset columns with a reshaped target, batch %i',async size=>{
+ const {graph,add,linear}=builder()
+ const csv=parseCustomCsv('y,a,b,split\n2,1,7,train\n4,3,17,train\n5,8,2,test\n','direct-training.csv');csv.targetColumn=0
+ add('data','dataset',{dataset:'custom-csv',customCsv:csv,datasetMode:'batch'})
+ add('joined','concat',{axis:1},[['data',1],['data',2]])
+ add('standard','standardize',{},['joined'])
+ const output=linear('output','standard',2,1)
+ add('target','tensor-transform',{transform:'reshape',shape:[-1,1]},[['data',0]])
+ add('loss','loss',{loss:'mse'},[output,'target'])
+ graph.nodes.find(node=>node.id==='standard')!.params.standardization=await fitStandardizer(graph,'standard')
+ expect((await selectTensorBackend(graph,'cpu',{...DEFAULT_TRAINING,optimizer:'sgd'})).backend).toBe('cpu')
+ const traced=backwardPass(forwardPass(withDatasetIndices(graph,'data',Array.from({length:size},(_,i)=>i))).graph)
+ const model=new TensorGraph(graph)
+ try {
+  const result=model.gradients(model.examples.slice(0,size))
+  try {
+   expect((await result.loss.data())[0]).toBeCloseTo(traced.loss!,4)
+   for(const [id,variable] of model.variables) {
+    const expected=traced.graph.nodes.find(node=>node.id===id)!.grad!.data
+    Array.from(await result.grads[variable.name].data()).forEach((value,i)=>expect(value,id).toBeCloseTo(expected[i],4))
+   }
+  }finally{tf.dispose([result.loss,...Object.values(result.grads)])}
+ }finally{model.dispose()}
 })
