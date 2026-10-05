@@ -218,6 +218,8 @@ export interface ValidationIssue {
 }
 
 export interface TensorValue {
+  /** Original dataset example indices for an explicitly assembled batch. */
+  exampleIndices?: number[]
   shape: number[]
   data: number[]
   /** Exact masking metadata consumed by softmax, independent of display sentinels. */

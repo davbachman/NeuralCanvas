@@ -27,6 +27,7 @@ export function withDatasetIndices(graph: GraphModel, id: string, indices: numbe
   const targetSlot = datasetTargetSlotForNode(source)
   const values = Array.from({ length: datasetOutputCountForNode(source) }, (_, slot) => ({
     shape: [indices.length],
+    exampleIndices: [...indices],
     data: indices.map(index => {
       const example = examples[index]
       if (!example) throw new Error('A batch contains an unknown dataset example.')

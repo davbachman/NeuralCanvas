@@ -47,3 +47,7 @@ Place **Standardize features** after assembling numeric inputs and before traina
 ## Automatically detected inputs
 
 Dataset outputs contributing to the prediction side of a Loss (or Cross entropy) block are detected as inputs, including paths through Standardize features, Arithmetic, and other operations. Dataset Details lists the connected inputs and updates when wiring changes. Unused columns and target columns are excluded. One- and two-feature visualizations use these inputs without requiring separate Input blocks; preprocessing remains part of the prediction.
+
+## Original dataset rows in the Data tab
+
+When a tensor row represents an example, the Data tab labels it with the original zero-based row number from Dataset rows. Split selection, mini-batching, and shuffling preserve these numbers and their order. The labels follow columns through Concatenate, Standardize, Matrix product, bias addition, and Softmax. Slicing and reshaping preserve them only when the example axis is preserved. A reduction over examples removes the labels; a per-example reduction over features keeps them. Parameters, token positions, image rows, and custom experiments without known row identities retain tensor indices or their existing semantic labels.

@@ -30,6 +30,7 @@ export function isTensorValue(value: unknown): value is TensorValue {
     candidate.shape.every((dimension) => Number.isInteger(dimension) && dimension >= 0) &&
     candidate.data.every((entry) => typeof entry === 'number' && Number.isFinite(entry)) &&
     tensorSize(candidate.shape) === candidate.data.length &&
+    (candidate.exampleIndices === undefined || (Array.isArray(candidate.exampleIndices) && candidate.exampleIndices.length === candidate.shape[0] && candidate.exampleIndices.every(index => Number.isInteger(index) && index >= 0))) &&
     (candidate.excluded === undefined || (Array.isArray(candidate.excluded) && candidate.excluded.length === candidate.data.length && candidate.excluded.every((entry) => typeof entry === 'boolean')))
   )
 }
@@ -41,7 +42,7 @@ export function toTensor(value: TensorValue | number | undefined, fallback = 0):
 }
 
 export function cloneTensor(value: TensorValue): TensorValue {
-  return { shape: [...value.shape], data: [...value.data], ...(value.excluded ? { excluded: [...value.excluded] } : {}) }
+  return { shape: [...value.shape], data: [...value.data], ...(value.exampleIndices ? { exampleIndices: [...value.exampleIndices] } : {}), ...(value.excluded ? { excluded: [...value.excluded] } : {}) }
 }
 
 export function tensorSize(shape: number[]): number {

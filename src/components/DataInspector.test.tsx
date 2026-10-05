@@ -3,9 +3,54 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { tensorValue } from '../domain/tensor'
 import type { GraphModel } from '../domain/types'
+import { exampleRowsModel } from '../test/exampleRowsModel'
+import { backwardPass, forwardPass } from '../domain/engine'
+import { withDatasetIndices } from '../domain/datasetTraining'
 import { DataInspector } from './DataInspector'
 
 describe('DataInspector', () => {
+  it('shows original dataset rows on outputs, input signals, wires, gradients, and group outputs', async () => {
+    const user = userEvent.setup()
+    const graph = backwardPass(forwardPass(withDatasetIndices(exampleRowsModel().graph, 'data', [4,1,3])).graph).graph
+    const node = graph.nodes.find(node => node.id === 'biased')!
+    const {container, rerender} = render(<DataInspector graph={graph} node={node}/>)
+    const rowNumbers = () => within(container.querySelector('.data-value-table') as HTMLElement).getAllByRole('rowheader').map(row => row.textContent)
+    expect(rowNumbers()).toEqual(['4','1','3'])
+    expect(screen.getByRole('columnheader', {name:'Dataset row'})).toBeInTheDocument()
+    await user.click(screen.getByRole('button', {name:/Dataset row 1, column 0:/}))
+    expect(container.querySelector('.data-exact span')).toHaveTextContent('Dataset row 1 · [1, 0]')
+    await user.click(screen.getByRole('tab', {name:'← Gradient'}))
+    expect(rowNumbers()).toEqual(['4','1','3'])
+    await user.selectOptions(screen.getByRole('combobox', {name:'Inspect signal'}), '1')
+    expect(rowNumbers()).toEqual(['0','1']) // Bias parameters have no example identity.
+    await user.selectOptions(screen.getByRole('combobox', {name:'Inspect signal'}), '2')
+    expect(rowNumbers()).toEqual(['4','1','3'])
+    const edge = graph.edges.find(edge => edge.source === 'biased' && edge.target === 'probabilities')!
+    rerender(<DataInspector graph={graph} edge={edge}/>)
+    expect(rowNumbers()).toEqual(['4','1','3'])
+    rerender(<DataInspector graph={graph} group={{id:'group',label:'Group',nodeIds:['probabilities'],position:{x:0,y:0},dimensions:{width:100,height:100}}}/>)
+    expect(rowNumbers()).toEqual(['4','1','3'])
+  })
+
+  it('keeps original row labels after paging, split changes, and returning from a shuffled batch', async () => {
+    const user = userEvent.setup()
+    const {graph} = exampleRowsModel()
+    const order = [4,1,3,4,1,3,4,1,3,4,1,3,3,4]
+    let evaluated = forwardPass(withDatasetIndices(graph,'data',order)).graph
+    const {container,rerender} = render(<DataInspector graph={evaluated} node={evaluated.nodes.find(node=>node.id==='probabilities')}/>)
+    await user.click(screen.getByRole('button',{name:'Next rows'}))
+    const rows = () => within(container.querySelector('.data-value-table') as HTMLElement).getAllByRole('rowheader').map(row=>row.textContent)
+    expect(rows()).toEqual(['3','4'])
+    graph.nodes[0].params.datasetSplit='test'
+    evaluated=forwardPass(graph).graph
+    rerender(<DataInspector graph={evaluated} node={evaluated.nodes.find(node=>node.id==='probabilities')}/>)
+    expect(rows()).toEqual(['0','2','5'])
+    graph.nodes[0].params.datasetSplit='train'
+    evaluated=forwardPass(graph).graph
+    rerender(<DataInspector graph={evaluated} node={evaluated.nodes.find(node=>node.id==='probabilities')}/>)
+    expect(rows()).toEqual(['1','3','4'])
+  })
+
   it('shows the selected wire’s values, exact cell, and backward contribution', async () => {
     const user = userEvent.setup()
     const graph: GraphModel = {
