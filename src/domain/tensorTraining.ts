@@ -113,11 +113,18 @@ export class TensorGraph {
       this.inputs.set(node.id,graph.edges.filter(edge=>edge.target===node.id).sort((a,b)=>(a.inputSlot??0)-(b.inputSlot??0)))
       if(node.type==='arithmetic') this.expressions.set(node.id,parseArithmetic(node.params.expression??'x1 * x2'))
     }
-    const targetInput=this.inputs.get(this.lossNode.id)![1]
-    if(targetInput.source!==this.source.id || targetInput.sourceSlot!==datasetTargetSlotForNode(this.source)) {
+    let targetInput=this.inputs.get(this.lossNode.id)![1]
+    // Target and Reshape preserve target values; trace them back to the dataset.
+    while(targetInput.source!==this.source.id) {
       const targetNode=graph.nodes.find(node=>node.id===targetInput.source)
-      const targetEdge=targetNode?.type==='target'?this.inputs.get(targetNode.id)?.[0]:undefined
-      if(targetEdge?.source!==this.source.id || targetEdge.sourceSlot!==datasetTargetSlotForNode(this.source)) throw Error('Tensor training needs the dataset target wired directly, or through Target, to Loss.')
+      const preservesTarget=targetNode && (targetNode.type==='target' || targetNode.type==='reshape' ||
+        targetNode.type==='tensor-transform' && targetNode.params.transform==='reshape')
+      const upstream=preservesTarget?this.inputs.get(targetNode.id)?.[0]:undefined
+      if(!upstream) break
+      targetInput=upstream
+    }
+    if(targetInput.source!==this.source.id || (targetInput.sourceSlot??0)!==datasetTargetSlotForNode(this.source)) {
+      throw Error('Tensor training needs the dataset target wired directly, or through Target or Reshape, to Loss.')
     }
     for(const node of this.order) if(node.type==='weight'||node.type==='bias') {
       const value=toTensor(node.params.value)

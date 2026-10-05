@@ -2,15 +2,17 @@ import {beforeAll,afterEach,it,expect} from 'vitest'
 import {prepareTextDocuments,importText,isTextDatasetData} from './textData'
 import {buildQaModel,buildAliceModel,builder} from '../test/curriculumModels'
 import {forwardPass,backwardPass,runTrainingStepFast,updateParameters,parameterValues} from './engine'
-import {TensorGraph,tf} from './tensorTraining'
+import {TensorGraph,tf,selectTensorBackend} from './tensorTraining'
 import {parameterPenalty} from './regularization'
 import {predictText} from './textGeneration'
-import {evaluateDataset} from './datasetTraining'
+import {evaluateDataset,withDatasetExample} from './datasetTraining'
 import {parseCustomCsv} from './customCsv'
 import {buildTextModel} from '../test/textModels'
 import {generatePyTorchExport} from './pytorchExport'
 import {createModelPreset} from './modelPresets'
 import {datasetExamplesForNode} from './datasets'
+import {connectGraphNodes} from './graphEditing'
+import {DEFAULT_TRAINING} from './trainingSettings'
 
 beforeAll(async()=>{await tf.setBackend('cpu');await tf.ready()})
 afterEach(()=>expect(tf.memory().numTensors).toBe(0))
@@ -106,4 +108,36 @@ it('all-position language inference preserves decoded targets and row counts',as
   expect(actual.predictions).toBe(expected.predictions)
   expect(actual.accuracy).toBe(expected.accuracy)
  }finally{model.dispose()}
+})
+
+it.each(['direct','target','reshape','tensor-transform','target-reshape'] as const)('accepts an implicit output-zero target through %s',async path=>{
+ const {graph,add}=builder()
+ const csv=parseCustomCsv('target,x\n0,1\n1,2\n0,3\n1,4\n','first-target.csv')
+ add('data','dataset',{dataset:'custom-csv',customCsv:csv,datasetMode:'sample'})
+ add('w','weight',{value:.1})
+ add('prediction','multiply',{},[['data',1],'w'])
+ if(path!=='direct') add('target',path==='target-reshape'?'target':path,{transform:'reshape',shape:[1,1]})
+ if(path==='target-reshape') add('reshaped','tensor-transform',{transform:'reshape',shape:[1,1]},['target'])
+ add('loss','loss',{loss:'mse'},['prediction',...(path==='direct'?[]:[path==='target-reshape'?'reshaped':'target'])])
+ // Selecting the first column as target is also valid when connected through Reshape.
+ csv.targetColumn=0
+ const connected=connectGraphNodes(graph,{source:'data',sourceHandle:'out-0',target:path==='direct'?'loss':'target',targetHandle:path==='direct'?'in-1':'in-0'})!
+ expect(connected.edges.find(edge=>edge.source==='data'&&edge.target===(path==='direct'?'loss':'target'))?.sourceSlot).toBeUndefined()
+ expect(connected.nodes.find(node=>node.id==='data')!.params.customCsv!.targetColumn).toBe(0)
+ // The CPU device exercises the same compiler and optimizer probe used by WebGL.
+ expect((await selectTensorBackend(connected,'cpu',{...DEFAULT_TRAINING,optimizer:'sgd'})).backend).toBe('cpu')
+ const model=new TensorGraph(connected)
+ try {
+  const actual=await model.inference(model.examples.filter(row=>row.split==='train'),2)
+  const expected=evaluateDataset(connected,'data','train')
+  expect(actual.loss).toBeCloseTo(expected.loss,5)
+  expect(actual.rows).toEqual(expected.rows)
+  const rows=model.examples.slice(0,2)
+  const expectedGradient=rows.reduce((sum,_,index)=>sum+backwardPass(forwardPass(withDatasetExample(connected,'data',index)).graph).graph.nodes.find(node=>node.id==='w')!.grad!.data[0],0)/rows.length
+  const gradients=model.gradients(rows)
+  try {expect((await gradients.grads[model.variables.get('w')!.name].data())[0]).toBeCloseTo(expectedGradient,5)}
+  finally {tf.dispose([gradients.loss,...Object.values(gradients.grads)])}
+ }finally{model.dispose()}
+ const wrongColumn={...connected,edges:connected.edges.map(edge=>edge.source==='data'&&edge.target===(path==='direct'?'loss':'target')?{...edge,sourceSlot:1}:edge)}
+ expect(()=>new TensorGraph(wrongColumn)).toThrow('Tensor training needs the dataset target')
 })
