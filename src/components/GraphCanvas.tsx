@@ -1007,7 +1007,7 @@ function GraphCanvasInner({
               if (event.key === 'Enter' && suggestions.length) { event.preventDefault(); placeSuggestion(suggestions[activeSuggestion] ?? suggestions[0]) }
             }} /></label>
           <div className="canvas-add-results" role="listbox" aria-label="Block types">
-            {suggestions.length ? suggestions.map((item, index) => <button type="button" key={item.type} role="option" aria-selected={index === activeSuggestion} className={index === activeSuggestion ? 'is-active' : ''} onMouseEnter={() => setActiveSuggestion(index)} onClick={() => placeSuggestion(item)}><span>{item.label}</span><small>{item.type}</small></button>) : <p>No matching blocks</p>}
+            {suggestions.length ? suggestions.map((item, index) => <button type="button" key={`${item.type}:${item.label}`} role="option" aria-selected={index === activeSuggestion} className={index === activeSuggestion ? 'is-active' : ''} onMouseEnter={() => setActiveSuggestion(index)} onClick={() => placeSuggestion(item)}><span>{item.label}</span><small>{item.type}</small></button>) : <p>No matching blocks</p>}
           </div>
           <div className="canvas-add-hint">↑ ↓ choose · Enter place · Esc close</div>
         </div> : null}

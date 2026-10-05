@@ -1,3 +1,4 @@
+import { TENSOR_TRANSFORM_OPTIONS } from './engine'
 import type { NodeParams, NodeType } from './types'
 
 export const blockPalette: Array<{ type: NodeType; label: string }> = [
@@ -47,5 +48,9 @@ export function blockSuggestions(query: string): Array<{ type: NodeType; label: 
   const search = query.trim().toLowerCase()
   const expression = Object.hasOwn(arithmeticShortcuts, search) ? arithmeticShortcuts[search] : undefined
   if (expression) return [{ type: 'arithmetic', label: `Arithmetic · ${expression}`, params: { expression } }]
-  return blockPalette.filter(item => `${item.label} ${item.type}`.toLowerCase().includes(search))
+  const transforms = search ? TENSOR_TRANSFORM_OPTIONS
+    .filter(option => option.label.toLowerCase().includes(search))
+    .map(option => ({ type: 'tensor-transform' as const, label: `Tensor transform · ${option.label}`, params: { transform: option.kind } })) : []
+  const blocks = blockPalette.filter(item => `${item.label} ${item.type}`.toLowerCase().includes(search))
+  return [...transforms, ...blocks.filter(item => !transforms.length || item.type !== 'tensor-transform')]
 }
