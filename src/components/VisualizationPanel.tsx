@@ -69,11 +69,13 @@ interface InputDimension {
 export function VisualizationPanel({ graph }: { graph: GraphModel }): ReactElement {
   const data = useMemo(() => buildVisualizationData(graph), [graph])
   const losses = useMemo(() => {
-    if (data.kind === 'unsupported') return undefined
-    if (data.datasetId) {
+    const datasets = graph.nodes.filter(node => node.type === 'dataset')
+    const datasetId = data.kind !== 'unsupported' && data.datasetId
+      ? data.datasetId : datasets.length === 1 ? datasets[0].id : undefined
+    if (datasetId) {
       try {
-        const training = evaluateDataset(graph, data.datasetId, 'train')
-        const heldOut = evaluateDataset(graph, data.datasetId, 'test')
+        const training = evaluateDataset(graph, datasetId, 'train')
+        const heldOut = evaluateDataset(graph, datasetId, 'test')
         return { kind: 'dataset' as const, training, heldOut }
       } catch { return undefined }
     }

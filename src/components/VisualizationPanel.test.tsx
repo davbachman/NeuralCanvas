@@ -9,6 +9,23 @@ import type { GraphModel } from '../domain/types'
 import { VisualizationPanel } from './VisualizationPanel'
 
 describe('VisualizationPanel', () => {
+  it('shows dataset loss cards even when three input features cannot be plotted', () => {
+    const graph = customCsvGraph('a,b,c,target,split\n1,2,3,8,train\n2,3,4,11,train\n3,4,5,15,test\n', 0, 3)
+    const prediction = graph.nodes.find(node => node.id === 'x')!
+    prediction.type = 'arithmetic'
+    prediction.params = { expression: 'x1 + x2 + x3' }
+    graph.edges.push(
+      { id: 'b', source: 'dataset', sourceSlot: 1, target: 'x', inputSlot: 1 },
+      { id: 'c', source: 'dataset', sourceSlot: 2, target: 'x', inputSlot: 2 },
+    )
+    render(<VisualizationPanel graph={graph} />)
+    expect(screen.getByText('Visualization supports predictions based on one or two distinct input features.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Training loss')).toHaveTextContent('4.0000')
+    expect(screen.getByLabelText('Held-out loss')).toHaveTextContent('9.0000')
+    expect(screen.getByText('2 examples')).toBeInTheDocument()
+    expect(screen.getByText('1 examples')).toBeInTheDocument()
+  })
+
   it('does not force all target points to use one CSS fill color', () => {
     expect(appCss).not.toMatch(/\.visualization-target-point\s*{[^}]*\bfill\s*:/)
   })
