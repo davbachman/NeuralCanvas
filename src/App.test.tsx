@@ -35,6 +35,21 @@ function handBuiltLinearGraph(): GraphModel {
 }
 
 describe('Neural Canvas app', () => {
+  it('puts epoch training first and keeps lesson tracing collapsed', () => {
+    render(<App initialGraph={createModelPreset('linear')} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    const panel = screen.getByRole('tabpanel', { name: 'Train controls' })
+    const run = within(panel).getByRole('button', { name: /Run 10 epochs/ })
+    expect(panel.querySelector('button')).toBe(run)
+    const summary = within(panel).getByText('Step through a lesson')
+    const lesson = summary.closest('details')!
+    expect(lesson).not.toHaveAttribute('open')
+    expect(run.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    fireEvent.click(summary)
+    expect(lesson).toHaveAttribute('open')
+    expect(within(lesson).getByRole('button', { name: /^Step$/ })).toBeVisible()
+  })
+
   it('renders the teaching workspace controls', () => {
     render(<App />)
 

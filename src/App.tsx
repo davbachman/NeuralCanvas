@@ -1663,10 +1663,44 @@ function App({
           ) : null}
         </section>
         <section className="panel-section run-panel" role="tabpanel" aria-label="Train controls" hidden={leftTab !== 'train'}>
-          <p className="eyebrow">Trace the computation</p>
+          <p className="eyebrow">Train the model</p>
+          {isTraining ? <button type="button" className="run-epochs-button" onClick={() => trainingController.current?.abort()}>Stop training</button>
+            : <button type="button" className="run-epochs-button primary-button" aria-keyshortcuts="Shift+Enter" onClick={() => void runEpochs()} disabled={!canRunEpochs}>Run {validRunSettings ? epochCount : '—'} {epochCount === 1 ? 'epoch' : 'epochs'} <kbd aria-hidden="true">⇧ Return</kbd></button>}
+          <div className="run-metrics"><span>Epoch {epoch}</span><span>Current loss {formatNumber(currentLoss ?? undefined)}</span></div>
+          {trainingStatus && <p className="run-status" role="status">{trainingStatus}</p>}
+          <div className="run-number-grid">
+            <label className="run-field">Epochs per run<input type="number" min="1" max="100000" step="1" value={epochsPerRun} onChange={event => setEpochsPerRun(event.target.value)} /></label>
+            <label className="run-field">Report loss every<input type="number" min="1" max="100000" step="1" value={reportEvery} disabled={isTraining} onChange={event => setReportEvery(event.target.value)} /><span>epochs</span></label>
+          </div>
+          {trainingDataset ? <>
+            <label className="run-field">Examples per update<input type="number" min="1" max={trainingExampleCount} step="1" value={batchSizeInput} placeholder={String(defaultBatchSize)} onChange={event => setBatchSizeInput(event.target.value)} disabled={isTraining} /></label>
+            <p className="run-intro">Batch size {validBatchSize ? batchSize : '—'} of {trainingExampleCount} training examples for Run epochs. Leave blank to use the Dataset’s current output mode.</p>
+            <label className="run-field run-checkbox"><input type="checkbox" checked={shuffleEachEpoch} onChange={event => setShuffleEachEpoch(event.target.checked)} disabled={isTraining} /> Reshuffle training examples each epoch</label>
+            {!validBatchSize && <p className="run-status" role="alert">{batchSize > 1 && !supportsNumericBatches(trainingDataset) ? 'This tensor-shaped dataset currently trains one example at a time. A larger batch needs a graph built with a batch dimension.' : `Choose a batch size from 1 to ${trainingExampleCount}.`}</p>}
+          </> : null}
+          {tensorTraining && <label className="run-field">Exact learning rate<input aria-label="Exact learning rate" type="number" min="0.000001" step="0.0001" disabled={isTraining} value={graph.learningRate} onChange={event=>updateLearningRate(Number(event.target.value))}/></label>}
+          <LearningRateControl value={graph.learningRate} tensorTraining={tensorTraining} disabled={isTraining} onChange={updateLearningRate}/>
+          <button type="button" className="run-full-step randomize-button" onClick={randomizeParameters} disabled={isTraining}><Shuffle size={15} /> Randomize parameters</button>
+          <div className="run-section-divider" />
+          {trainingDataset && <p className="eyebrow">Training settings</p>}
+          {trainingDataset && <>
+            <label className="run-field">Training execution<select aria-label="Training execution" disabled={isTraining} value={training.engine} onChange={event=>setTraining({engine:event.target.value as TrainingSettings['engine']})}><option value="trace">Trace engine · SGD</option><option value="tensor">Tensor engine · minibatches</option></select></label>
+            {tensorTraining && <>
+              <label className="run-field">Backend<select aria-label="Training backend" disabled={isTraining} value={training.backend} onChange={event=>setTraining({backend:event.target.value as TrainingSettings['backend']})}><option value="auto">Auto · WebGL, then CPU</option><option value="webgl">WebGL</option><option value="webgpu">WebGPU (experimental)</option><option value="cpu">Tensor CPU</option></select></label>
+              <label className="run-field">Optimizer<select aria-label="Optimizer" disabled={isTraining} value={training.optimizer} onChange={event=>setTraining({optimizer:event.target.value as TrainingSettings['optimizer']})}><option value="sgd">SGD</option><option value="adam">Adam</option><option value="adamw">AdamW</option></select></label>
+              {training.optimizer==='adamw' && <label className="run-field">Weight decay<input aria-label="Weight decay" disabled={isTraining} type="number" min="0" step="0.001" value={training.weightDecay} onChange={event=>setTraining({weightDecay:Number(event.target.value)})}/></label>}
+              <label className="run-field">Gradient norm limit (0 = off)<input aria-label="Gradient norm limit" disabled={isTraining} type="number" min="0" step="0.1" value={training.clipNorm} onChange={event=>setTraining({clipNorm:Number(event.target.value)})}/></label>
+              <label className="run-field">Early stopping patience (0 = off)<input aria-label="Early stopping patience" disabled={isTraining} type="number" min="0" step="1" value={training.patience} onChange={event=>setTraining({patience:Number(event.target.value)})}/></label>
+              <label className="run-field">Minimum validation improvement<input aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>
+              <p className="run-intro">Tensor runs use padded batches and report at the selected interval. Early stopping checks validation every epoch. Early stopping uses the held-out split as validation and restores its best checkpoint. Adam moments start fresh for each run.</p>
+            </>}
+          </>}
+          <details className="training-walkthrough">
+            <summary>Step through a lesson</summary>
+            <p className="run-intro">Inspect forward computation, gradients, and a single SGD update on the canvas example.</p>
           <div className="run-button-grid">
             <button type="button" onClick={() => runCanvasAction(evaluateModel)} disabled={blockingIssues.length > 0 || isTraining}>Run forward</button>
-            <button type="button" className="primary-button" aria-keyshortcuts="Shift+Space" onClick={() => runCanvasAction(stepForward)} disabled={blockingIssues.length > 0 || isTraining}><StepForward size={15} /> Step <kbd aria-hidden="true">⇧ Space</kbd></button>
+            <button type="button" aria-keyshortcuts="Shift+Space" onClick={() => runCanvasAction(stepForward)} disabled={blockingIssues.length > 0 || isTraining}><StepForward size={15} /> Step <kbd aria-hidden="true">⇧ Space</kbd></button>
             <button type="button" disabled={!activeStep || !collapsedGroupForNode(graph, activeStep.nodeId ?? '') || isTraining} onClick={() => {
               const group = collapsedGroupForNode(graph, activeStep?.nodeId ?? '')
               if (group) setGraph(setVisualGroupExpanded(graph, group.id, true))
@@ -1680,38 +1714,8 @@ function App({
             <button type="button" onClick={() => setIsPlaying(playing => !playing)} disabled={blockingIssues.length > 0 || isTraining}>{isPlaying ? <Pause size={15} /> : <Play size={15} />}{isPlaying ? 'Pause' : 'Play'}</button>
           </div>
           <label className="run-field">Playback speed<input type="range" min={MIN_PLAY_DELAY_MS} max={MAX_PLAY_DELAY_MS} step="50" value={speedSliderValue} onChange={event => setSpeedSliderValue(Number(event.target.value))} /></label>
-          <div className="run-section-divider" />
-          <p className="eyebrow">Train the model</p>
-          <button type="button" className="run-full-step randomize-button" onClick={randomizeParameters} disabled={isTraining}><Shuffle size={15} /> Randomize parameters</button>
           <button type="button" className="run-full-step" onClick={() => runCanvasAction(runOneTrainingStep)} disabled={blockingIssues.length > 0 || !hasLoss || heldOutSample || isTraining}><FastForward size={15} /> Run one full training step</button>
-          {trainingDataset && <>
-            <label className="run-field">Training execution<select aria-label="Training execution" disabled={isTraining} value={training.engine} onChange={event=>setTraining({engine:event.target.value as TrainingSettings['engine']})}><option value="trace">Trace engine · SGD</option><option value="tensor">Tensor engine · minibatches</option></select></label>
-            {tensorTraining && <>
-              <label className="run-field">Backend<select aria-label="Training backend" disabled={isTraining} value={training.backend} onChange={event=>setTraining({backend:event.target.value as TrainingSettings['backend']})}><option value="auto">Auto · WebGL, then CPU</option><option value="webgl">WebGL</option><option value="webgpu">WebGPU (experimental)</option><option value="cpu">Tensor CPU</option></select></label>
-              <label className="run-field">Optimizer<select aria-label="Optimizer" disabled={isTraining} value={training.optimizer} onChange={event=>setTraining({optimizer:event.target.value as TrainingSettings['optimizer']})}><option value="sgd">SGD</option><option value="adam">Adam</option><option value="adamw">AdamW</option></select></label>
-              {training.optimizer==='adamw' && <label className="run-field">Weight decay<input aria-label="Weight decay" disabled={isTraining} type="number" min="0" step="0.001" value={training.weightDecay} onChange={event=>setTraining({weightDecay:Number(event.target.value)})}/></label>}
-              <label className="run-field">Gradient norm limit (0 = off)<input aria-label="Gradient norm limit" disabled={isTraining} type="number" min="0" step="0.1" value={training.clipNorm} onChange={event=>setTraining({clipNorm:Number(event.target.value)})}/></label>
-              <label className="run-field">Early stopping patience (0 = off)<input aria-label="Early stopping patience" disabled={isTraining} type="number" min="0" step="1" value={training.patience} onChange={event=>setTraining({patience:Number(event.target.value)})}/></label>
-              <label className="run-field">Minimum validation improvement<input aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>
-              <p className="run-intro">Tensor runs use padded batches and report at the selected interval. Early stopping checks validation every epoch. Early stopping uses the held-out split as validation and restores its best checkpoint. Adam moments start fresh for each run. Step remains a single-example SGD calculation.</p>
-            </>}
-          </>}
-          <div className="run-number-grid">
-            <label className="run-field">Epochs per run<input type="number" min="1" max="100000" step="1" value={epochsPerRun} onChange={event => setEpochsPerRun(event.target.value)} /></label>
-            <label className="run-field">Report loss every<input type="number" min="1" max="100000" step="1" value={reportEvery} disabled={isTraining} onChange={event => setReportEvery(event.target.value)} /><span>epochs</span></label>
-          </div>
-          {trainingDataset ? <>
-            <label className="run-field">Examples per update<input type="number" min="1" max={trainingExampleCount} step="1" value={batchSizeInput} placeholder={String(defaultBatchSize)} onChange={event => setBatchSizeInput(event.target.value)} disabled={isTraining} /></label>
-            <p className="run-intro">Batch size {validBatchSize ? batchSize : '—'} of {trainingExampleCount} training examples for Run epochs. Leave blank to use the Dataset’s current output mode; Step follows the canvas example.</p>
-            <label className="run-field run-checkbox"><input type="checkbox" checked={shuffleEachEpoch} onChange={event => setShuffleEachEpoch(event.target.checked)} disabled={isTraining} /> Reshuffle training examples each epoch</label>
-            {!validBatchSize && <p className="run-status" role="alert">{batchSize > 1 && !supportsNumericBatches(trainingDataset) ? 'This tensor-shaped dataset currently trains one example at a time. A larger batch needs a graph built with a batch dimension.' : `Choose a batch size from 1 to ${trainingExampleCount}.`}</p>}
-          </> : null}
-          {isTraining ? <button type="button" className="run-epochs-button" onClick={() => trainingController.current?.abort()}>Stop training</button>
-            : <button type="button" className="run-epochs-button primary-button" aria-keyshortcuts="Shift+Enter" onClick={() => void runEpochs()} disabled={!canRunEpochs}>Run {validRunSettings ? epochCount : '—'} {epochCount === 1 ? 'epoch' : 'epochs'} <kbd aria-hidden="true">⇧ Return</kbd></button>}
-          {tensorTraining && <label className="run-field">Exact learning rate<input aria-label="Exact learning rate" type="number" min="0.000001" step="0.0001" disabled={isTraining} value={graph.learningRate} onChange={event=>updateLearningRate(Number(event.target.value))}/></label>}
-          <LearningRateControl value={graph.learningRate} tensorTraining={tensorTraining} disabled={isTraining} onChange={updateLearningRate}/>
-          <div className="run-metrics"><span>Epoch {epoch}</span><span>Current loss {formatNumber(currentLoss ?? undefined)}</span></div>
-          {trainingStatus && <p className="run-status" role="status">{trainingStatus}</p>}
+          </details>
         </section>
         <section className="panel-section run-panel test-panel" role="tabpanel" aria-label="Test controls" hidden={leftTab !== 'test'}>
           <p className="eyebrow">Inference</p>

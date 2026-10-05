@@ -69,3 +69,7 @@
   .app-shell.workspace-split.palette-open .left-panel,
   .app-shell.workspace-split.inspector-open .right-panel { display: flex; }
 }
+
+.training-walkthrough { margin-top: 18px; border-top: 1px solid var(--border, #e9e3ef); padding-top: 14px; }
+.training-walkthrough summary { cursor: pointer; font-size: 12px; font-weight: 600; }
+.training-walkthrough[open] summary { margin-bottom: 10px; }
