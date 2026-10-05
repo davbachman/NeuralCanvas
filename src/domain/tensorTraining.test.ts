@@ -67,6 +67,20 @@ describe('batched tensor compiler',()=>{
  it.each([0,-1,1.5,NaN,100001])('rejects invalid reporting interval %s',async reportEvery=>{
   await expect(trainTensorGraph(buildTextModel(data(),'counts-linear',4),{epochs:1,batchSize:2,reportEvery})).rejects.toThrow('reporting interval')
  })
+ it('publishes matching parameters and epochs for durable recovery checkpoints',async()=>{
+  const graph=buildTextModel(data(),'counts-linear',4)
+  const checkpoints:Array<{graph:typeof graph;epoch:number;loss:number}>=[]
+  const result=await trainTensorGraph(graph,{epochs:3,reportEvery:2,batchSize:2,settings:{...DEFAULT_TRAINING,engine:'tensor',backend:'cpu',patience:0},onCheckpoint:async(graph,report)=>{
+   checkpoints.push({graph,epoch:report.epoch,loss:report.train.loss})
+  }})
+  expect(checkpoints.map(point=>point.epoch)).toEqual([0,2,3])
+  expect(parameterValues(checkpoints.at(-1)!.graph)).toEqual(parameterValues(result.graph))
+  for(const checkpoint of checkpoints) {
+   const model=new TensorGraph(checkpoint.graph)
+   try {expect((await model.evaluate(model.examples.filter(row=>row.split==='train'),2)).loss).toBeCloseTo(checkpoint.loss,5)}
+   finally{model.dispose()}
+  }
+ })
  it('rejects unsupported nodes before allocating variables',()=>{
   const graph=buildTextModel(data(),'mean',4)
   graph.nodes.find(n=>n.id==='mean-review')!.params.axis=1

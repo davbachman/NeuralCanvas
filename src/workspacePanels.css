@@ -73,3 +73,5 @@
 .training-walkthrough { margin-top: 18px; border-top: 1px solid var(--border, #e9e3ef); padding-top: 14px; }
 .training-walkthrough summary { cursor: pointer; font-size: 12px; font-weight: 600; }
 .training-walkthrough[open] summary { margin-bottom: 10px; }
+
+.recovery-status { margin: 8px 12px; font-size: 10px; line-height: 1.4; color: var(--text-muted, #796b86); overflow-wrap: anywhere; }

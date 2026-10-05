@@ -379,6 +379,7 @@ export interface TensorTrainOptions {
   onBackend?:(backend:string,fallback:string)=>void
   onProgress?:(done:number,total:number)=>void
   onReport?:(report:TensorReport)=>void
+  onCheckpoint?:(graph:GraphModel,report:TensorReport)=>Promise<void> | void
 }
 export async function trainTensorGraph(graph:GraphModel,options:TensorTrainOptions) {
   const settings=options.settings??{...DEFAULT_TRAINING,engine:'tensor'}
@@ -405,6 +406,7 @@ export async function trainTensorGraph(graph:GraphModel,options:TensorTrainOptio
       if(!Number.isFinite(trainMetrics.loss)) throw Error('Training diverged. Lower the learning rate.')
       const result={epoch:epoch+(options.epochOffset??0),train:trainMetrics,validation:val,improved}
       reports.push(result);options.onReport?.(result)
+      if(options.onCheckpoint) await options.onCheckpoint(await model.snapshot(),result)
     }
     await report(0)
     for(let epoch=1;epoch<=options.epochs;epoch++) {

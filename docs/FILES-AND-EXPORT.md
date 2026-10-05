@@ -21,3 +21,11 @@ The generated program is a starting point for experiments outside the visual app
 If you only want the guide, choose **Neural Canvas → Reference** in the app's top bar. It opens the GitHub README in a new tab.
 
 Imported text projects also save their vocabulary, tokenization settings, original documents, and fixed document splits. Their Python/notebook exports include `neural-canvas-dataset.json`, with prepared numerical examples and text metadata; keep it beside the export. See [Text curriculum](TEXT-CURRICULUM.md).
+
+## Automatic local recovery
+
+The app saves a recovery copy in this browser's IndexedDB every three seconds while editing. It includes the model and dataset, parameter values, epoch count, loss history, run controls, and shuffle preference. Tensor training saves matching parameters and metrics at each reporting checkpoint; between checkpoints, recovery returns to the last saved checkpoint. The sidebar shows the last successful local save or a storage error.
+
+When reopening the app, choose **Restore workspace** or **Discard recovery**. The existing copy is not overwritten while this choice is pending. Restoring leaves playback and training paused; optimizer moments are not resumed. File → New replaces the recovery copy with the new workspace on the next save.
+
+Recovery is the most recently saved workspace for this site in this browser, shared across tabs. It does not sync between devices, and clearing browser site data removes it. A crash can lose changes since the last successful save. Continue using **File → Save** for portable backups; those files also preserve epochs per run, reporting frequency, and examples per update.

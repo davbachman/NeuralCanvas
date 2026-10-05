@@ -1,3 +1,5 @@
+import { useLocalRecovery } from './hooks/useLocalRecovery'
+import type { RecoveryWorkspace } from './domain/localRecovery'
 import { LearningRateControl } from './components/LearningRateControl'
 import {DEFAULT_TRAINING, type TrainingSettings} from './domain/trainingSettings'
 import { mergePreservingLayout, ungroupPreservingLayout } from './domain/mergeLayout'
@@ -111,6 +113,7 @@ import {
 } from './domain/traceVisibility'
 import { issueNodeIds, problemNodeIds } from './domain/validationPresentation'
 import type {
+  ProjectStateSnapshot,
   ActivationKind,
   CustomCsvData,
   DatasetKind,
@@ -290,6 +293,18 @@ function App({
     setExecutionError(undefined)
     setIsPlaying(false)
   }, [cancelActiveRun, dismissPendingImports])
+
+  const recoveryWorkspace = useMemo<RecoveryWorkspace>(() => ({
+    state: {
+      graph, visualizationGraph, initialParameterValues: initialParams, selectedNodeIds, selectedGroupId,
+      phase, traceSteps, traceIndex, epoch, currentLoss,
+      runSettings: { epochsPerRun, reportEvery, examplesPerUpdate: batchSizeInput },
+      display: { showMath: SHOW_MATH_LAYER, showGradient: SHOW_GRADIENT_LAYER, showCode: SHOW_CODE_LAYER, showVisualization: rightTab === 'visualization' },
+    },
+    lossReports, shuffleEachEpoch,
+  }), [graph, visualizationGraph, initialParams, selectedNodeIds, selectedGroupId, phase, traceSteps, traceIndex, epoch, currentLoss, epochsPerRun, reportEvery, batchSizeInput, rightTab, lossReports, shuffleEachEpoch])
+  const recovery = useLocalRecovery(recoveryWorkspace, isTraining && graph.training?.engine === 'tensor')
+  const saveRecoveryCheckpoint = recovery.save
 
   const validationIssues = useMemo(() => validateGraph(graph), [graph])
   const blockingIssues = useMemo(() => validationIssues.filter(
@@ -768,11 +783,22 @@ function App({
         const {trainTensorGraph} = await import('./domain/tensorTraining')
         if (!isCurrent()) return
         controller.signal.throwIfAborted()
+        let checkpointReports = lossReports
         const result = await trainTensorGraph(graph, {
           epochs:epochCount,reportEvery:reportInterval,batchSize,settings:training,signal:controller.signal,epochOffset:startEpoch,shuffle:shuffleEachEpoch,
           onBackend:(backend,fallback)=>{if(!isCurrent())return;setTrainingStatus('Training on '+backend);if(fallback)setReportingWarning('Using '+backend+'. '+fallback)},
           onProgress:(done,total)=>{if(isCurrent())setTrainingStatus('Training '+done+' / '+total+' examples')},
-          onReport:report=>{if(isCurrent())setLossReports(reports=>appendLossReport(reports,{epoch:report.epoch,loss:report.train.loss,heldOutLoss:report.validation.loss}))},
+          onReport:report=>{if(isCurrent()){
+            checkpointReports=appendLossReport(checkpointReports,{epoch:report.epoch,loss:report.train.loss,heldOutLoss:report.validation.loss})
+            setLossReports(checkpointReports)
+          }},
+          onCheckpoint:async (checkpoint,report)=>{
+            if(!isCurrent()) return
+            await saveRecoveryCheckpoint({ ...recoveryWorkspace, lossReports: checkpointReports, state: {
+              ...recoveryWorkspace.state, graph: checkpoint, visualizationGraph: checkpoint,
+              epoch: report.epoch, currentLoss: report.train.loss, phase: 'edit', traceSteps: [], traceIndex: 0,
+            } })
+          },
         })
         if (!isCurrent()) return
         const evaluated=forwardPass(result.graph)
@@ -836,7 +862,7 @@ function App({
         setIsTraining(false)
       }
     }
-  }, [batchSize, canRunEpochs, reportTrainingLoss, dismissPendingImports, epoch, epochCount, graph, pushHistory, reportInterval, shuffleEachEpoch, trainingDataset, tensorTraining, training])
+  }, [batchSize, canRunEpochs, reportTrainingLoss, dismissPendingImports, epoch, epochCount, graph, pushHistory, reportInterval, shuffleEachEpoch, trainingDataset, tensorTraining, training, lossReports, recoveryWorkspace, saveRecoveryCheckpoint])
 
   const runInference = useCallback(async () => {
     const dataset = graph.nodes.find(node => node.type === 'dataset')
@@ -1407,6 +1433,10 @@ function App({
     }
 
     const nextState = result.file.state
+    restoreProjectState(nextState)
+  }
+
+  const restoreProjectState = (nextState: ProjectStateSnapshot) => {
     pushHistory()
     clearRecordedExecution()
     setGraph(cloneGraph(nextState.graph))
@@ -1627,6 +1657,29 @@ function App({
         </section>
       </div> : null}
 
+      {recovery.pending && <div className="csv-picker-backdrop">
+        <section role="dialog" aria-modal="true" aria-labelledby="recovery-title" aria-describedby="recovery-description" className="csv-picker-dialog" onKeyDown={event => {
+          if (event.key !== 'Tab') return
+          const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('button')]
+          const first = buttons[0], last = buttons.at(-1)
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+        }}>
+          <h2 id="recovery-title">Restore previous workspace?</h2>
+          <p id="recovery-description">A local copy was saved {new Date(recovery.pending.file.savedAt).toLocaleString()}. Restore the model, dataset, parameters, and training history at epoch {recovery.pending.file.state.epoch}. Training will remain paused.</p>
+          <button type="button" autoFocus onClick={() => {
+            const record = recovery.pending!
+            restoreProjectState(record.file.state)
+            setLossReports(record.lossReports)
+            setShuffleEachEpoch(record.shuffleEachEpoch)
+            setLeftTab('train')
+            recovery.accept()
+          }}>Restore workspace</button>
+          <button type="button" onClick={() => void recovery.discard()}>Discard recovery</button>
+          {recovery.error && <p role="alert">{recovery.error}</p>}
+        </section>
+      </div>}
+
       {csvPickerOpen && <div className="csv-picker-backdrop">
         <section role="dialog" aria-modal="true" aria-labelledby="csv-picker-title" className="csv-picker-dialog" onKeyDown={event => { if (event.key === 'Escape') dismissPendingImports() }}>
           <p className="eyebrow">Dataset source</p>
@@ -1650,6 +1703,7 @@ function App({
             {leftOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
           </button>
         </div>
+        {leftOpen && <p className="recovery-status">{recovery.error ?? (recovery.savedAt ? `Saved locally at ${recovery.savedAt.toLocaleTimeString()}` : 'Local recovery saves your work in this browser.')} {recovery.error && !recovery.pending && <button type="button" onClick={() => void recovery.discard()}>Reset local recovery</button>}</p>}
         <section className="panel-section" role="tabpanel" aria-label="Build blocks" hidden={leftTab !== 'build'}>
           <p className="eyebrow">Build the model</p>
           <p className="palette-intro">
