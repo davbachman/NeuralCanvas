@@ -37,6 +37,16 @@ function projectSnapshot(): ProjectStateSnapshot {
 }
 
 describe('project state files', () => {
+  it.each(['', '100'])('round-trips run settings with batch size %s', examplesPerUpdate => {
+    const snapshot = projectSnapshot()
+    snapshot.runSettings = { epochsPerRun: '2000', reportEvery: '500', examplesPerUpdate }
+    const file = createProjectStateFile(snapshot)
+    expect(file.state.runSettings).not.toBe(snapshot.runSettings)
+    const parsed = parseProjectStateFile(JSON.stringify(file))
+    expect(parsed.ok).toBe(true)
+    if (parsed.ok) expect(parsed.file.state.runSettings).toEqual(snapshot.runSettings)
+  })
+
   it('imports legacy projects and saves them with the Neural Canvas format name', () => {
     const file = createProjectStateFile(projectSnapshot())
     const result = parseProjectStateFile(JSON.stringify({ ...file, kind: 'backprop-builder-state' }))

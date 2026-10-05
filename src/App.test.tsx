@@ -1481,6 +1481,9 @@ describe('Neural Canvas app', () => {
       await chooseFileMenuItem(user, /^Starter$/i)
       await user.click(screen.getByRole('tab', { name: 'Train' }))
       await user.click(screen.getByRole('button', { name: /Run one full training step/i }))
+      fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '2000' } })
+      fireEvent.change(screen.getByLabelText(/Report loss every/), { target: { value: '500' } })
+      fireEvent.change(screen.getByLabelText('Examples per update'), { target: { value: '100' } })
       await chooseFileMenuItem(user, /^Save$/i)
 
       expect(createObjectURL).toHaveBeenCalled()
@@ -1491,7 +1494,15 @@ describe('Neural Canvas app', () => {
       expect(saved.version).toBe(1)
       expect(saved.state.graph.nodes.find((node: { id: string }) => node.id === 'w')?.params.value).toBeDefined()
       expect(saved.state.epoch).toBe(1)
+      expect(saved.state.runSettings).toEqual({ epochsPerRun: '2000', reportEvery: '500', examplesPerUpdate: '100' })
       expect(click).toHaveBeenCalled()
+      fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '10' } })
+      fireEvent.change(screen.getByLabelText(/Report loss every/), { target: { value: '1' } })
+      fireEvent.change(screen.getByLabelText('Examples per update'), { target: { value: '' } })
+      fireEvent.change(screen.getByLabelText(/Import state file/i), { target: { files: [new File([JSON.stringify(saved)], 'saved.json', { type: 'application/json' })] } })
+      await waitFor(() => expect(screen.getByLabelText('Epochs per run')).toHaveValue(2000))
+      expect(screen.getByLabelText(/Report loss every/)).toHaveValue(500)
+      expect(screen.getByLabelText('Examples per update')).toHaveValue(100)
     } finally {
       createElementSpy.mockRestore()
       vi.unstubAllGlobals()
@@ -1555,6 +1566,7 @@ describe('Neural Canvas app', () => {
       traceSteps: [],
       traceIndex: 0,
       epoch: 7,
+      runSettings: { epochsPerRun: '2000', reportEvery: '500', examplesPerUpdate: '100' },
       currentLoss: 0.123456,
       display: {
         showMath: false,
@@ -1578,6 +1590,9 @@ describe('Neural Canvas app', () => {
     expect(screen.getByText('z1 = x * w')).toBeInTheDocument()
     expect(screen.getAllByText(/^grad /).length).toBeGreaterThan(0)
     expect(screen.queryByText('loss.backward()')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    expect(screen.getByLabelText('Epochs per run')).toHaveValue(2000)
+    expect(screen.getByLabelText(/Report loss every/)).toHaveValue(500)
   })
 
   it('shows an error and keeps the current graph when import fails', async () => {

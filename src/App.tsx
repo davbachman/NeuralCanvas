@@ -1308,6 +1308,7 @@ function App({
         traceIndex,
         epoch,
         currentLoss,
+        runSettings: { epochsPerRun, reportEvery, examplesPerUpdate: batchSizeInput },
         display: {
           showMath: SHOW_MATH_LAYER,
           showGradient: SHOW_GRADIENT_LAYER,
@@ -1417,6 +1418,9 @@ function App({
     setTraceSteps(cloneTraceSteps(nextState.traceSteps))
     setTraceIndex(nextState.traceIndex)
     setEpoch(nextState.epoch)
+    setEpochsPerRun(nextState.runSettings?.epochsPerRun ?? '10')
+    setReportEvery(nextState.runSettings?.reportEvery ?? '1')
+    setBatchSizeInput(nextState.runSettings?.examplesPerUpdate ?? '')
     setCurrentLoss(nextState.currentLoss)
     setLossReports([])
     setTrainingStatus('')

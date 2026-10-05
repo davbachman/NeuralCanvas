@@ -266,7 +266,15 @@ export interface ProjectDisplayState {
   showVisualization: boolean
 }
 
+export interface ProjectRunSettings {
+  epochsPerRun: string
+  reportEvery: string
+  // An empty string keeps the automatic batch size based on dataset mode.
+  examplesPerUpdate: string
+}
+
 export interface ProjectStateSnapshot {
+  runSettings?: ProjectRunSettings
   graph: GraphModel
   visualizationGraph: GraphModel
   initialParameterValues: Record<string, TensorValue>

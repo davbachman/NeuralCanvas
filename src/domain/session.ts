@@ -101,6 +101,7 @@ function cloneProjectStateSnapshot(state: ProjectStateSnapshot): ProjectStateSna
     epoch: state.epoch,
     currentLoss: state.currentLoss,
     display: { ...state.display },
+    ...(state.runSettings ? { runSettings: { ...state.runSettings } } : {}),
   }
 }
 
@@ -141,8 +142,13 @@ function isProjectStateSnapshot(value: unknown): value is ProjectStateSnapshot {
     isNonNegativeInteger(value.traceIndex) &&
     isNonNegativeInteger(value.epoch) &&
     (currentLoss === null || isFiniteNumber(currentLoss)) &&
-    isDisplayState(value.display)
+    isDisplayState(value.display) &&
+    (value.runSettings === undefined || isRunSettings(value.runSettings))
   )
+}
+
+function isRunSettings(value: unknown): boolean {
+  return isRecord(value) && ['epochsPerRun', 'reportEvery', 'examplesPerUpdate'].every(key => typeof value[key] === 'string')
 }
 
 function isGraphModel(value: unknown): value is GraphModel {
