@@ -78,7 +78,8 @@ export const LOSS_OPTIONS: Array<{ kind: LossKind; label: string }> = [
   { kind: 'squared-error', label: 'Squared error' },
   { kind: 'mse', label: 'Mean squared error' },
   { kind: 'mae', label: 'Mean absolute error' },
-  { kind: 'binary-cross-entropy', label: 'Binary cross entropy' },
+  { kind: 'binary-cross-entropy-with-logits', label: 'Binary cross entropy (logits)' },
+  { kind: 'binary-cross-entropy', label: 'Binary cross entropy (probabilities, legacy)' },
   { kind: 'cross-entropy', label: 'Cross entropy (logits)' },
 ]
 
@@ -223,8 +224,7 @@ export function formulaForNode(node: GraphNode, graph?: GraphModel, valueFormatt
 }
 
 export function lossOptionsForNode(node: GraphNode, graph?: GraphModel): Array<{ kind: LossKind; label: string }> {
-  void node; void graph
-  return LOSS_OPTIONS
+  return LOSS_OPTIONS.filter(option => option.kind !== 'binary-cross-entropy' || lossKindForNode(node, graph) === 'binary-cross-entropy')
 }
 
 export function lossKindForNode(node: GraphNode, graph?: GraphModel): LossKind {
@@ -245,6 +245,7 @@ function lossFormula(kind: LossKind, inputLabels: string[], isTensor: boolean): 
   const prediction = inputLabels[0] ?? 'prediction'
   const target = inputLabels[1] ?? 'target'
   if (kind === 'cross-entropy') return `L = mean(-log softmax(${prediction})[${target}])`
+  if (kind === 'binary-cross-entropy-with-logits') return `L = mean(softplus(${prediction}) - ${target} * ${prediction})`
 
   if (!isTensor) {
     if (kind === 'mse') return `L = (${prediction} - ${target})^2`
@@ -1042,6 +1043,10 @@ function computeLossForward(
 }
 
 function lossValue(kind: LossKind, prediction: TensorValue, target: TensorValue, error: TensorValue): number {
+  if (kind === 'binary-cross-entropy-with-logits') {
+    const losses = elementwiseTensors([prediction, target], ([logit, label]) => Math.max(logit, 0) - label * logit + Math.log1p(Math.exp(-Math.abs(logit))))
+    return sumTensor(losses) / meanDenominator(losses)
+  }
   if (kind === 'mse') {
     return sumTensor(tensorValue(error.shape, error.data.map((entry) => entry ** 2))) / meanDenominator(error)
   }
@@ -1062,6 +1067,10 @@ function lossValue(kind: LossKind, prediction: TensorValue, target: TensorValue,
 }
 
 function lossGradient(kind: LossKind, prediction: TensorValue, target: TensorValue): TensorValue {
+  if (kind === 'binary-cross-entropy-with-logits') {
+    const entries = elementwiseTensors([prediction, target], ([logit, label]) => 1 / (1 + Math.exp(-logit)) - label)
+    return scaleTensor(entries, 1 / meanDenominator(entries))
+  }
   const error = subtractTensors(prediction, target)
   if (kind === 'mse') return scaleTensor(error, 2 / meanDenominator(error))
   if (kind === 'mae') {
@@ -1410,6 +1419,7 @@ function calculationForForward(node: GraphNode, inputs: TensorValue[]): string {
 
 function lossCalculationForForward(node: GraphNode, inputs: TensorValue[]): string {
   const kind = lossKindForInputs(node, inputs)
+  if (kind === 'binary-cross-entropy-with-logits') return `mean binary cross entropy from logits = ${formatNumber(node.value)}; logits ${formatNumber(inputs[0])}, targets ${formatNumber(inputs[1])}`
   if (kind === 'cross-entropy') return `mean negative log likelihood = ${formatNumber(node.value)}; logits ${formatNumber(inputs[0])}, target IDs ${formatNumber(inputs[1])}`
   const error = node.cache?.error ?? subtractTensors(inputs[0], inputs[1])
   const denominator = meanDenominator(error)
@@ -1465,6 +1475,7 @@ function lossDerivativeFormula(kind: LossKind, inputLabels: string[], isTensor: 
   const suffix = isTensor ? '_i' : ''
   const denominator = isTensor ? ' / n' : ''
 
+  if (kind === 'binary-cross-entropy-with-logits') return `dL/d${prediction}${suffix} = (sigmoid(${prediction}${suffix}) - ${target}${suffix})${denominator}`
   if (kind === 'mse') return `dL/d${prediction}${suffix} = 2 * (${prediction}${suffix} - ${target}${suffix})${denominator}`
   if (kind === 'mae') return `dL/d${prediction}${suffix} = sign(${prediction}${suffix} - ${target}${suffix})${denominator}`
   if (kind === 'binary-cross-entropy') {
@@ -1495,6 +1506,7 @@ function pseudocodeForNode(node: GraphNode, graph?: GraphModel): string[] {
   if (node.type === 'activation') return [`z = ${node.params.activation ?? 'identity'}(u)`]
   const lossKind = lossKindForNode(node, graph)
   if (lossKind === 'cross-entropy') return ['loss = mean(cross_entropy_from_logits(logits, target_ids))']
+  if (lossKind === 'binary-cross-entropy-with-logits') return ['loss = binary_cross_entropy_with_logits(logits, target)']
   if (lossKind === 'mse') return ['loss = mean((prediction - target) ** 2)']
   if (lossKind === 'mae') return ['loss = mean(abs(prediction - target))']
   if (lossKind === 'binary-cross-entropy') {
@@ -1518,6 +1530,7 @@ function pseudocodeForBackward(node: GraphNode, graph?: GraphModel): string[] {
 }
 
 function lossBackwardPseudocode(kind: LossKind): string[] {
+  if (kind === 'binary-cross-entropy-with-logits') return ['logits.grad += (sigmoid(logits) - target) / n']
   if (kind === 'cross-entropy') return ['logits.grad += (softmax(logits) - one_hot(target_ids)) / n']
   if (kind === 'mse') return ['prediction.grad += 2 * (prediction - target) / n']
   if (kind === 'mae') return ['prediction.grad += sign(prediction - target) / n']

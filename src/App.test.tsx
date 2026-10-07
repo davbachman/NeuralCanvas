@@ -557,7 +557,7 @@ describe('Neural Canvas app', () => {
       'squared-error',
       'mse',
       'mae',
-      'binary-cross-entropy',
+      'binary-cross-entropy-with-logits',
       'cross-entropy',
     ])
     expect(screen.getByText('L = (1/n) * Σ_i (pred_i - y_i)^2')).toBeInTheDocument()

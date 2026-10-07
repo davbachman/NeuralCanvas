@@ -96,6 +96,7 @@ function operationCode(node: GraphNode, args: string[], graph: GraphModel): stri
         case 'squared-error': return `0.5 * torch.sum((${a} - ${b}) ** 2)`
         case 'mse': return `torch.mean((${a} - ${b}) ** 2)`
         case 'mae': return `torch.mean(torch.abs(${a} - ${b}))`
+        case 'binary-cross-entropy-with-logits': return `F.binary_cross_entropy_with_logits(*torch.broadcast_tensors(${a}, ${b}))`
         case 'binary-cross-entropy': return `binary_cross_entropy(${a}, ${b})`
         case 'cross-entropy': return `F.cross_entropy(${a}.reshape(1, -1) if ${a}.ndim == 1 else ${a}, ${b}.long().reshape(-1))`
       }
@@ -300,11 +301,11 @@ datasetLoader +
 `            if prediction.numel() % actual.numel() != 0:\n` +
 `                continue\n` +
 `            scores = prediction.reshape(actual.numel(), -1)\n` +
-`            categorical = DATASET['task'] in ('classification', 'binary-classification', 'sequence')\n` +
+`            categorical = ${lossNode && lossKindForNode(lossNode, graph) === 'binary-cross-entropy-with-logits' ? 'True or ' : ''}DATASET['task'] in ('classification', 'binary-classification', 'sequence')\n` +
 `            if categorical and scores.shape[-1] > 1:\n` +
 `                predicted = scores.argmax(dim=-1)\n` +
-`            elif DATASET['task'] == 'binary-classification':\n` +
-`                predicted = (scores[:, 0] >= 0.5).long()\n` +
+`            elif ${lossNode && lossKindForNode(lossNode, graph) === 'binary-cross-entropy-with-logits' ? 'True' : "DATASET['task'] == 'binary-classification'"}:\n` +
+`                predicted = (scores[:, 0] >= ${lossNode && lossKindForNode(lossNode, graph) === 'binary-cross-entropy-with-logits' ? '0.0' : '0.5'}).long()\n` +
 `            else:\n` +
 `                predicted = scores[:, 0]\n` +
 `            for index, value in enumerate(predicted):\n` +

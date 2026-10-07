@@ -29,7 +29,7 @@ export type NodeType =
   | 'avgpool2d'
 
 export type ActivationKind = 'identity' | 'relu' | 'sigmoid' | 'tanh'
-export type LossKind = 'squared-error' | 'mse' | 'mae' | 'binary-cross-entropy' | 'cross-entropy'
+export type LossKind = 'squared-error' | 'mse' | 'mae' | 'binary-cross-entropy' | 'binary-cross-entropy-with-logits' | 'cross-entropy'
 export type TensorTransformKind = 'reshape' | 'transpose' | 'slice' | 'mean'
 export type DatasetKind =
   | 'line-1d'

@@ -1,6 +1,6 @@
 import {parameterPenalty} from './regularization'
 import { datasetExamplesForNode, datasetForNode, datasetMode, datasetOutputCountForNode, datasetOutputValueForSlot, datasetTargetSlotForNode } from './datasets'
-import { createForwardEvaluator, forwardPass, isLossNode, runTrainingStepFast, validateGraph } from './engine'
+import { createForwardEvaluator, forwardPass, isLossNode, lossKindForNode, runTrainingStepFast, validateGraph } from './engine'
 import type { GraphModel, GraphNode } from './types'
 
 export function withDatasetExample(graph: GraphModel, id: string, index: number): GraphModel {
@@ -90,14 +90,15 @@ function* evaluateDatasetSteps(graph: GraphModel, id: string, split: 'train' | '
     const targetEdge = result.graph.edges.find(edge => edge.target === lossNode.id && edge.inputSlot === 1)
     const targetNode = result.graph.nodes.find(node => node.id === targetEdge?.source)
     const target = targetNode?.type === 'dataset' ? datasetOutputValueForSlot(targetNode, targetEdge?.sourceSlot ?? 0) : targetNode?.value
-    const categorical = dataset.task.includes('classification') || dataset.task === 'sequence' || lossNode.type === 'cross-entropy' || lossNode.params.loss === 'cross-entropy'
+    const binaryLogits = lossKindForNode(lossNode, result.graph) === 'binary-cross-entropy-with-logits'
+    const categorical = binaryLogits || dataset.task.includes('classification') || dataset.task === 'sequence' || lossNode.type === 'cross-entropy' || lossNode.params.loss === 'cross-entropy'
     const width = output && target ? output.data.length / target.data.length : 0
     if (output && target && Number.isInteger(width) && width >= 1 && (width === 1 || output.shape.at(-1) === width)) {
       target.data.forEach((actual, row) => {
         const scores = output.data.slice(row * width, (row + 1) * width)
         const predicted = categorical && width > 1 ? scores.indexOf(Math.max(...scores))
-          : dataset.task === 'binary-classification' ? Number(scores[0] >= .5) : scores[0]
-        const scored = categorical && (width > 1 || dataset.task === 'binary-classification')
+          : (binaryLogits || dataset.task === 'binary-classification') ? Number(scores[0] >= (binaryLogits ? 0 : .5)) : scores[0]
+        const scored = categorical && (width > 1 || binaryLogits || dataset.task === 'binary-classification')
         const matched = scored ? predicted === actual : undefined
         if (matched !== undefined) { correct += Number(matched); predictions++ }
         const exampleIndex = batch ? indices[row] : index

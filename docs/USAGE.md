@@ -35,3 +35,9 @@ After training, open **Test**, choose **Held-out test set**, and select **Run in
 ## Save your work
 
 Choose **File → Save** to download an editable project JSON file. **File → Import** opens that file later; **File → New** returns to a blank canvas. Save your current work before importing another project. See [Saving and exporting](FILES-AND-EXPORT.md) for Python and notebook exports.
+
+## Binary classification from logits
+
+Choose **Binary cross entropy (logits)** in the Loss block and connect the raw score directly to its prediction input. The loss includes sigmoid internally and uses a stable calculation even for very large positive or negative scores. Targets are 0 or 1; inference predicts class 1 when the logit is at least zero. A separate Sigmoid block can branch from the raw score to show probabilities without feeding the loss.
+
+Existing saved models using **Binary cross entropy (probabilities, legacy)** keep their previous behavior. To convert one, connect the score before its Sigmoid directly to Loss and select **Binary cross entropy (logits)**. Do not feed sigmoid probabilities into the logits loss. Python exports use `torch.nn.functional.binary_cross_entropy_with_logits`.

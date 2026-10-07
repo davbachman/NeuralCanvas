@@ -43,7 +43,7 @@ const NODE_TYPES = new Set([
   'standardize', 'dropout', 'embedding', 'transpose', 'slice', 'concat', 'softmax', 'causal-mask', 'layer-norm', 'reshape', 'mean', 'cross-entropy',
 ])
 const ACTIVATION_KINDS = new Set<ActivationKind>(['identity', 'relu', 'sigmoid', 'tanh'])
-const LOSS_KINDS = new Set<LossKind>(['squared-error', 'mse', 'mae', 'binary-cross-entropy', 'cross-entropy'])
+const LOSS_KINDS = new Set<LossKind>(['squared-error', 'mse', 'mae', 'binary-cross-entropy', 'binary-cross-entropy-with-logits', 'cross-entropy'])
 const GRAPH_PHASES = new Set<GraphPhase>(['edit', 'forward', 'loss', 'backward', 'update'])
 
 export function createProjectStateFile(state: ProjectStateSnapshot): ProjectStateFile {

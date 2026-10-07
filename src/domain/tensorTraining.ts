@@ -135,6 +135,7 @@ export class TensorGraph {
   private predictionKind(prediction:tf.Tensor,target:tf.Tensor):PredictionKind {
     const task=datasetForNode(this.source).task
     if(lossKindForNode(this.lossNode,this.graph)==='cross-entropy') return 'categorical'
+    if(lossKindForNode(this.lossNode,this.graph)==='binary-cross-entropy-with-logits') return 'binary'
     if(task==='binary-classification' && prediction.size===target.size) return 'binary'
     return task.includes('classification') || task==='sequence' ? 'categorical' : 'regression'
   }
@@ -244,7 +245,11 @@ export class TensorGraph {
     const prediction=predictionSignal.value,actual=actualSignal.value
     let loss:tf.Tensor
     const lossKind=lossKindForNode(this.lossNode,this.graph)
-    if(lossKind==='binary-cross-entropy') {
+    if(lossKind==='binary-cross-entropy-with-logits') {
+      const {values:[logits,labels]}=broadcastSignals([predictionSignal,actualSignal])
+      const broadcasted=tf.broadcastTo(labels,logits.shape)
+      loss=tf.losses.sigmoidCrossEntropy(broadcasted,logits)
+    } else if(lossKind==='binary-cross-entropy') {
       if(prediction.size!==count) throw Error('A batched sentiment classifier must produce one probability per review. Pool tokens before Loss.')
       const clipped=clipProbability(prediction), labels=actual.reshape(prediction.shape)
       loss=tf.neg(tf.mean(tf.add(tf.mul(labels,tf.log(clipped)),tf.mul(tf.sub(1,labels),tf.log(tf.sub(1,clipped))))))
@@ -282,7 +287,7 @@ export class TensorGraph {
         const {loss:objective,dataLoss:loss,prediction,target,mask}=this.execute(batch)
         const kind=this.predictionKind(prediction,target)
         const sequence=this.source.params.textData?.task==='language' && this.source.params.textData.targetMode!=='last'
-        const correct=kind==='regression'?tf.zeros([batch.length]):kind==='binary'?tf.equal(tf.greaterEqual(prediction,.5),tf.cast(target.reshape(prediction.shape),'bool')).cast('float32'):tf.mul(tf.equal(tf.argMax(prediction,-1),target.reshape(prediction.shape.slice(0,-1))).cast('float32'),sequence?mask:tf.scalar(1))
+        const correct=kind==='regression'?tf.zeros([batch.length]):kind==='binary'?tf.equal(tf.greaterEqual(prediction,lossKindForNode(this.lossNode,this.graph)==='binary-cross-entropy-with-logits'?0:.5),tf.cast(target.reshape(prediction.shape),'bool')).cast('float32'):tf.mul(tf.equal(tf.argMax(prediction,-1),target.reshape(prediction.shape.slice(0,-1))).cast('float32'),sequence?mask:tf.scalar(1))
         return {loss,objective,hits:tf.sum(correct),total:sequence?tf.sum(mask):tf.scalar(correct.size)}
       })
       try {const [loss,correct,count,objective]=await Promise.all([result.loss.data(),result.hits.data(),result.total.data(),result.objective.data()]);sum+=loss[0]*batch.length;objectives+=objective[0]*batch.length;hits+=correct[0];total+=count[0]}
@@ -318,7 +323,7 @@ export class TensorGraph {
           const start = (exampleIndex * positions + position) * width
           const scores = Array.from(values.slice(start, start + width))
           const isClass = result.kind!=='regression'
-          const predicted = result.kind==='categorical' ? scores.indexOf(Math.max(...scores)) : result.kind==='binary' ? Number(scores[0] >= .5) : scores[0]
+          const predicted = result.kind==='categorical' ? scores.indexOf(Math.max(...scores)) : result.kind==='binary' ? Number(scores[0] >= (lossKindForNode(this.lossNode,this.graph)==='binary-cross-entropy-with-logits'?0:.5)) : scores[0]
           if (isClass) { scored++; hits += Number(predicted === actual) }
           predictions.push({
             example: `${exampleIndices.has(example) ? `Dataset row ${exampleIndices.get(example)}` : example.label ?? 'Example'}${example.target.data.length > 1 ? ` · output ${position + 1}` : ''}`,

@@ -132,6 +132,24 @@ describe('PyTorch export', () => {
       })
     } finally { rmSync(directory, { recursive: true, force: true }) }
   }
+  it.skipIf(!python)('matches stable binary logits losses in the generated Python program', () => {
+    const graph = customArithmeticGraph()
+    const source = graph.nodes.find(node => node.type === 'dataset')!
+    const csv = 'answer,feature,split\n1,-1000,train\n0,1000,train\n1,0.1,test\n0,-0.1,test\n'
+    source.params.customCsv = parseCustomCsv(csv, 'measurements.csv')
+    source.params.customCsv.targetColumn = 0
+    source.params.customCsv.task = 'binary-classification'
+    graph.nodes.find(node => node.type === 'arithmetic')!.params.expression = 'x1 * x2'
+    graph.nodes.find(node => node.type === 'loss')!.params.loss = 'binary-cross-entropy-with-logits'
+    const exported = generatePyTorchExport(graph, { epochs: 0 })
+    const harness = "import sys,json\nns={}\nexec(sys.stdin.read(),ns)\nprint('LOGIT_LOSSES=' + json.dumps([ns['initial_train_loss'],ns['initial_held_out_loss']]))\n"
+    const run = runWithDataset(exported, exported.script, harness, csv)
+    expect(run.status, run.stderr).toBe(0)
+    const actual = JSON.parse(run.stdout.match(/LOGIT_LOSSES=([^\n]+)/)![1])
+    expect(actual[0]).toBeCloseTo(evaluateDataset(graph, source.id, 'train').loss, 9)
+    expect(actual[1]).toBeCloseTo(evaluateDataset(graph, source.id, 'test').loss, 9)
+  }, 30_000)
+
   it.skipIf(!python).each([0, 1, 2])('reloads the original CSV with an explicit split in column %s', splitColumn => {
     const rows = [['answer', 'feature'], ['2', '1'], ['4', '2'], ['6', '3'], ['8', '4']]
     const splits = ['split', 'train', 'test', 'train', 'test']

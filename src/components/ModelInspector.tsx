@@ -152,6 +152,8 @@ export function ModelInspector({
             </>}
           </fieldset>}
           {node.type === 'loss' && <label className="inspector-field">Loss<select aria-label="Loss function" value={lossKindForNode(node, graph)} onChange={event => onParams(node.id,{loss:event.target.value as NodeParams['loss']})}>{lossOptionsForNode(node, graph).map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}</select></label>}
+          {node.type === 'loss' && lossKindForNode(node, graph) === 'binary-cross-entropy-with-logits' && <p className="coordinate-note">Connect raw scores directly. This loss includes sigmoid; use a separate sigmoid only to inspect probabilities.</p>}
+          {node.type === 'loss' && lossKindForNode(node, graph) === 'binary-cross-entropy' && <p className="coordinate-note">Legacy probability loss: keep the sigmoid before this block. To use logits, remove that sigmoid connection and choose Binary cross entropy (logits).</p>}
           {node.type === 'tensor-transform' && <label className="inspector-field">Transform<select aria-label="Tensor transform operation" value={node.params.transform ?? 'reshape'} onChange={event => onParams(node.id, { transform: event.target.value as TensorTransformKind })}>{TENSOR_TRANSFORM_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}</select></label>}
           {binding && canonical && (
             <p className="coordinate-note">
