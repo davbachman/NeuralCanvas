@@ -184,6 +184,31 @@ describe('canvas movement gestures', () => {
     expect(queryByRole('dialog', { name: 'Add a block' })).not.toBeInTheDocument()
   })
 
+  it.each([
+    ['resh', 'tensor-transform', { transform: 'reshape' }],
+    ['TRANS', 'tensor-transform', { transform: 'transpose' }],
+    ['slic', 'tensor-transform', { transform: 'slice' }],
+    ['mean', 'tensor-transform', { transform: 'mean' }],
+    [' MSE ', 'loss', { loss: 'mse' }],
+    ['mean absolute', 'loss', { loss: 'mae' }],
+    ['squared error', 'loss', { loss: 'squared-error' }],
+    ['binary cross', 'loss', { loss: 'binary-cross-entropy-with-logits' }],
+    ['bce', 'loss', { loss: 'binary-cross-entropy-with-logits' }],
+    ['cross entropy', 'loss', { loss: 'cross-entropy' }],
+    ['categorical cross', 'loss', { loss: 'cross-entropy' }],
+  ])('autocompletes %s with the operation preselected', (query, type, params) => {
+    flow.screenToFlowPosition.mockImplementationOnce(() => ({ x: 417, y: -83 }))
+    const { container, getByRole, queryByRole, onCreateNode } = mountCanvas(createModelPreset('blank'))
+    const pane = document.createElement('div')
+    pane.className = 'react-flow__pane'
+    container.querySelector('.flow-shell')!.append(pane)
+    fireEvent.doubleClick(pane, { clientX: 523, clientY: 186 })
+    fireEvent.change(getByRole('searchbox', { name: 'Search blocks' }), { target: { value: query } })
+    fireEvent.keyDown(getByRole('searchbox', { name: 'Search blocks' }), { key: 'Enter' })
+    expect(onCreateNode).toHaveBeenCalledExactlyOnceWith(type, { x: 417, y: -83 }, undefined, undefined, params)
+    expect(queryByRole('dialog', { name: 'Add a block' })).not.toBeInTheDocument()
+  })
+
   it('dismisses the blank-canvas block picker with Escape', () => {
     const { container, getByRole, queryByRole, onCreateNode } = mountCanvas(createModelPreset('blank'))
     const pane = document.createElement('div')
