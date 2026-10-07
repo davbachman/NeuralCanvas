@@ -96,7 +96,7 @@ function operationCode(node: GraphNode, args: string[], graph: GraphModel): stri
         case 'squared-error': return `0.5 * torch.sum((${a} - ${b}) ** 2)`
         case 'mse': return `torch.mean((${a} - ${b}) ** 2)`
         case 'mae': return `torch.mean(torch.abs(${a} - ${b}))`
-        case 'binary-cross-entropy-with-logits': return `F.binary_cross_entropy_with_logits(*torch.broadcast_tensors(${a}, ${b}))`
+        case 'binary-cross-entropy-with-logits': return `F.binary_cross_entropy_with_logits(*torch.broadcast_tensors(${a}, ${b}.to(dtype=${a}.dtype)))`
         case 'binary-cross-entropy': return `binary_cross_entropy(${a}, ${b})`
         case 'cross-entropy': return `F.cross_entropy(${a}.reshape(1, -1) if ${a}.ndim == 1 else ${a}, ${b}.long().reshape(-1))`
       }
