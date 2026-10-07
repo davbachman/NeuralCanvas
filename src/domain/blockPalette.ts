@@ -1,5 +1,5 @@
 import { TENSOR_TRANSFORM_OPTIONS } from './engine'
-import type { NodeParams, NodeType } from './types'
+import type { ActivationKind, NodeParams, NodeType } from './types'
 
 export const blockPalette: Array<{ type: NodeType; label: string }> = [
   { type: 'dataset', label: 'Dataset' },
@@ -44,6 +44,13 @@ const arithmeticShortcuts: Record<string, string> = {
   '**': 'x1 ^ 2',
 }
 
+const activationFunctions: Array<{ kind: ActivationKind; label: string }> = [
+  { kind: 'sigmoid', label: 'Sigmoid' },
+  { kind: 'relu', label: 'ReLU' },
+  { kind: 'tanh', label: 'Tanh' },
+  { kind: 'identity', label: 'Identity' },
+]
+
 export function blockSuggestions(query: string): Array<{ type: NodeType; label: string; params?: NodeParams }> {
   const search = query.trim().toLowerCase()
   const expression = Object.hasOwn(arithmeticShortcuts, search) ? arithmeticShortcuts[search] : undefined
@@ -51,6 +58,10 @@ export function blockSuggestions(query: string): Array<{ type: NodeType; label: 
   const transforms = search ? TENSOR_TRANSFORM_OPTIONS
     .filter(option => option.label.toLowerCase().includes(search))
     .map(option => ({ type: 'tensor-transform' as const, label: `Tensor transform · ${option.label}`, params: { transform: option.kind } })) : []
+  const activations = search ? activationFunctions
+    .filter(option => option.label.toLowerCase().includes(search))
+    .map(option => ({ type: 'activation' as const, label: `Activation · ${option.label}`, params: { activation: option.kind } })) : []
   const blocks = blockPalette.filter(item => `${item.label} ${item.type}`.toLowerCase().includes(search))
-  return [...transforms, ...blocks.filter(item => !transforms.length || item.type !== 'tensor-transform')]
+  return [...activations, ...transforms, ...blocks.filter(item =>
+    (!transforms.length || item.type !== 'tensor-transform') && (!activations.length || item.type !== 'activation'))]
 }

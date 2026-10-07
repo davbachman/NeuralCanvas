@@ -167,6 +167,23 @@ describe('canvas movement gestures', () => {
     expect(queryByRole('dialog', { name: 'Add a block' })).not.toBeInTheDocument()
   })
 
+  it.each([
+    ['sig', 'sigmoid'], [' ReLU ', 'relu'], ['tan', 'tanh'], ['ident', 'identity'],
+  ])('autocompletes %s to an activation with %s selected', (query, activation) => {
+    flow.screenToFlowPosition.mockImplementationOnce(() => ({ x: 417, y: -83 }))
+    const { container, getByRole, queryByRole, onCreateNode } = mountCanvas(createModelPreset('blank'))
+    const pane = document.createElement('div')
+    pane.className = 'react-flow__pane'
+    container.querySelector('.flow-shell')!.append(pane)
+    fireEvent.doubleClick(pane, { clientX: 523, clientY: 186 })
+    fireEvent.change(getByRole('searchbox', { name: 'Search blocks' }), { target: { value: query } })
+    const option = getByRole('option', { name: /Activation/ })
+    if (activation === 'tanh') fireEvent.click(option)
+    else fireEvent.keyDown(getByRole('searchbox', { name: 'Search blocks' }), { key: 'Enter' })
+    expect(onCreateNode).toHaveBeenCalledExactlyOnceWith('activation', { x: 417, y: -83 }, undefined, undefined, { activation })
+    expect(queryByRole('dialog', { name: 'Add a block' })).not.toBeInTheDocument()
+  })
+
   it('dismisses the blank-canvas block picker with Escape', () => {
     const { container, getByRole, queryByRole, onCreateNode } = mountCanvas(createModelPreset('blank'))
     const pane = document.createElement('div')
