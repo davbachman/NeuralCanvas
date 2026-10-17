@@ -13,8 +13,9 @@ export function tokenize(text: string, mode: 'word' | 'character', lowercase = t
 
 export function encodeText(text: string, data: TextDatasetData): number[] {
   const index = new Map(data.vocabulary.map((token, id) => [token, id]))
-  // The visible unknown marker must round-trip when continuing generated text.
-  return text.split(/(<unk>)/g).flatMap(part => part === '<unk>' ? [0] : tokenize(part, data.tokenizer, data.lowercase).map(token => index.get(token) ?? 0))
+  // Displayed reserved tokens must retain their IDs when pasted or re-encoded.
+  // Do not invent a padding ID for vocabularies without a padding token.
+  return text.split(/(<unk>|<pad>)/g).flatMap(part => (part === '<unk>' || part === '<pad>') && index.has(part) ? [index.get(part)!] : tokenize(part, data.tokenizer, data.lowercase).map(token => index.get(token) ?? 0))
 }
 
 export function decodeTokens(ids: number[], data: TextDatasetData): string {
