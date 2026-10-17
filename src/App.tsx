@@ -1,4 +1,5 @@
 import { hasStoryExperiment } from './domain/textData'
+import { InferenceInspection, inferenceSignature } from './domain/inferenceInspection'
 import { useLocalRecovery } from './hooks/useLocalRecovery'
 import type { RecoveryWorkspace } from './domain/localRecovery'
 import { LearningRateControl } from './components/LearningRateControl'
@@ -189,7 +190,9 @@ function App({
   const [rightTab, setRightTab] = useState<'details' | 'data' | 'code' | 'visualization'>('details')
   const [leftTab, setLeftTab] = useState<'build' | 'train' | 'test'>('build')
   const [inferenceSplit, setInferenceSplit] = useState<'train' | 'test'>('test')
-  const [inferenceResult, setInferenceResult] = useState<{ split: 'train' | 'test'; metrics: ReturnType<typeof evaluateDataset> }>()
+  const [inferenceResult, setInferenceResult] = useState<{ split: 'train' | 'test'; metrics: ReturnType<typeof evaluateDataset>; inspection: InferenceInspection }>()
+  const inferenceModelSignature = useMemo(() => inferenceResult ? inferenceSignature(graph, inferenceResult.inspection.datasetId) : undefined, [graph, inferenceResult])
+  if (inferenceResult && inferenceResult.inspection.signature !== inferenceModelSignature) setInferenceResult(undefined)
   const [testStatus, setTestStatus] = useState('')
   const [codeFocus, setCodeFocus] = useState<{ kind: 'group' | 'node'; id: string; serial: number }>()
   const nextCodeFocus = useRef(0)
@@ -885,29 +888,26 @@ function App({
     setIsPlaying(false)
     setTestStatus('Evaluating examples…')
     try {
-      const inferred = forwardPass(testGraph).graph
       let metrics: ReturnType<typeof evaluateDataset>
+      let inferenceBackend: string | undefined
       if (training.engine === 'tensor') {
         const { selectTensorBackend, TensorGraph } = await import('./domain/tensorTraining')
         if (!isCurrent()) return
         controller.signal.throwIfAborted()
-        await selectTensorBackend(testGraph, training.backend, training)
+        inferenceBackend = (await selectTensorBackend(testGraph, training.backend, training)).backend
         if (!isCurrent()) return
         controller.signal.throwIfAborted()
         const model = new TensorGraph(testGraph)
         try { metrics = await model.inference(model.examples.filter(row => row.split === inferenceSplit), 64, controller.signal) }
         finally { model.dispose() }
-      } else metrics = await evaluateDatasetAsync(inferred, dataset.id, inferenceSplit, { signal: controller.signal })
+      } else metrics = await evaluateDatasetAsync(testGraph, dataset.id, inferenceSplit, { signal: controller.signal })
       if (!isCurrent()) return
       controller.signal.throwIfAborted()
-      pushHistory()
-      setGraph(existing => mergeExecutionGraph(existing, inferred))
-      setVisualizationGraph(inferred)
       setCurrentLoss(metrics.loss)
       setTraceSteps([])
       setTraceIndex(0)
       setPhase('forward')
-      setInferenceResult({ split: inferenceSplit, metrics })
+      setInferenceResult({ split: inferenceSplit, metrics, inspection: new InferenceInspection(testGraph, dataset.id, inferenceSplit, inferenceBackend) })
       setTestStatus('')
       setExecutionError(undefined)
     } catch (error) {
@@ -925,7 +925,7 @@ function App({
         setIsTraining(false)
       }
     }
-  }, [blockingIssues.length, dismissPendingImports, graph, inferenceSplit, pushHistory, training])
+  }, [blockingIssues.length, dismissPendingImports, graph, inferenceSplit, training])
 
   const openTrainTab = () => {
     setLeftTab('train')
@@ -1982,7 +1982,7 @@ function App({
         </section>}
         </div>
         <div className="right-panel-scroll right-data-scroll" hidden={rightTab !== 'data'} role="tabpanel" aria-label="Model data">
-          {rightTab === 'data' ? <DataInspector key={selectedEdgeId ?? selectedGroupId ?? selectedNodeId ?? 'empty'} graph={graph} node={inspectedNode} edge={numericalEdge} group={selectedGroup} /> : null}
+          {rightTab === 'data' ? <DataInspector key={selectedEdgeId ?? selectedGroupId ?? selectedNodeId ?? 'empty'} graph={graph} node={inspectedNode} edge={numericalEdge} group={selectedGroup} inference={inferenceResult?.inspection} /> : null}
         </div>
         <div className="right-panel-scroll right-code-scroll" hidden={rightTab !== 'code'} role="tabpanel" aria-label="Model code">
           {rightTab === 'code' ? <CodeOutline graph={displayGraph} selected={selectedCodeTarget} active={rightOpen} onNavigate={navigateFromCode} /> : null}

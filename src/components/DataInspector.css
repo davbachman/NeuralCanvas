@@ -9,7 +9,7 @@
 .data-section-heading h3 { margin: 0; font-size: 12px; }
 .data-section-heading span { color: var(--muted); font-size: 10px; text-align: right; }
 .data-signal-select, .data-slice-control { display: grid; gap: 6px; margin: 12px 0; color: var(--muted-strong); font-size: 11px; font-weight: 650; }
-.data-signal-select select, .data-slice-control select { width: 100%; min-width: 0; padding: 8px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-bg); color: var(--text); font: 11px var(--font-mono); }
+.data-signal-select select, .data-signal-select input, .data-slice-control select { width: 100%; min-width: 0; padding: 8px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-bg); color: var(--text); font: 11px var(--font-mono); }
 .data-view-tabs { display: flex; gap: 5px; margin: 15px 0; padding: 3px; border: 1px solid var(--border); border-radius: 9px; background: var(--panel-soft); }
 .data-view-tabs button { flex: 1; min-height: 30px; padding: 5px 4px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; }
 .data-view-tabs button[aria-selected="true"] { background: var(--panel-bg); color: var(--accent); box-shadow: 0 1px 5px #11182724; }

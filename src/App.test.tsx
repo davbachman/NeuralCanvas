@@ -162,7 +162,8 @@ describe('Neural Canvas app', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Reporting' }))
     expect(within(screen.getByRole('tabpanel', { name: 'Model reporting' })).queryByLabelText('Test predictions')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
-    expect(screen.getByRole('button', { name: /Run one full training step/ })).toBeDisabled()
+    // Inference preserves the current training example on the canvas.
+    expect(screen.getByRole('button', { name: /Run one full training step/ })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Run forward' })).toBeEnabled()
     expect(screen.getByRole('button', { name: /Run 10 epochs/ })).toBeEnabled()
   })

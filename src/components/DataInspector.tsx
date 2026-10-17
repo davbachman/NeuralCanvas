@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { InferenceInspection, type InspectionValue } from '../domain/inferenceInspection'
 import { datasetExampleIndex, datasetExamplesForNode, datasetMode, datasetOutputCountForNode, datasetOutputLabelForSlot, datasetOutputValueForSlot, datasetTargetSlotForNode } from '../domain/datasets'
 import { tensorExampleRows } from '../domain/tensorExampleRows'
 import { tensorAxisLabels } from '../domain/tensorLabels'
@@ -18,6 +19,7 @@ interface Props {
   node?: GraphNode
   edge?: GraphEdge
   group?: GraphGroup
+  inference?: InferenceInspection
 }
 
 const PAGE_ROWS = 12
@@ -36,13 +38,13 @@ function shapeLabel(value: TensorValue): string {
   return value.shape.length ? `[${value.shape.join(' × ')}]` : 'scalar'
 }
 
-function signalList(graph: GraphModel, node?: GraphNode, edge?: GraphEdge, group?: GraphGroup): Signal[] {
+function signalList(graph: GraphModel, node?: GraphNode, edge?: GraphEdge, group?: GraphGroup, includeValues = true): Signal[] {
   if (edge) return [{ key: edge.id, label: 'Connection', value: edge.value, gradient: edge.grad }]
   if (node?.type === 'dataset') {
     return Array.from({ length: datasetOutputCountForNode(node) }, (_, slot) => ({
       key: `${node.id}:${slot}`,
       label: datasetOutputLabelForSlot(node, slot),
-      value: datasetOutputValueForSlot(node, slot),
+      value: includeValues ? datasetOutputValueForSlot(node, slot) : undefined,
     }))
   }
   if (node) {
@@ -183,7 +185,7 @@ function TensorViewer({ value, labels = [], exampleRows }: { value: TensorValue;
   </>
 }
 
-export function DataInspector({ graph, node, edge, group }: Props) {
+function CanvasDataInspector({ graph, node, edge, group }: Props) {
   const [signalIndex, setSignalIndex] = useState(0)
   const [mode, setMode] = useState<'value' | 'gradient'>('value')
   const signals = signalList(graph, node, edge, group)
@@ -212,4 +214,82 @@ export function DataInspector({ graph, node, edge, group }: Props) {
     {selected && <div className="data-view-tabs" role="tablist" aria-label="Data direction"><button type="button" role="tab" aria-selected={shownMode === 'value'} disabled={!hasValue} onClick={() => setMode('value')}>Forward value</button><button type="button" role="tab" aria-selected={shownMode === 'gradient'} disabled={!hasGradient} onClick={() => setMode('gradient')}>← Gradient</button></div>}
     {tensor ? <TensorViewer key={`${selected.key}:${shownMode}`} value={tensor} labels={axisLabels} exampleRows={exampleRows} /> : <p className="data-empty">{signals.length === 0 ? 'This selection has no output signal to inspect.' : 'No value has reached this signal yet. Run forward or take a Step to calculate it.'}</p>}
   </section>
+}
+
+function InferenceSignalView({ inspection, id, slot }: { inspection: InferenceInspection; id: string; slot: number }) {
+  const [page, setPage] = useState(0)
+  const [row, setRow] = useState(inspection.indices[0])
+  const [loaded, setLoaded] = useState<{ page: number; row: number; first: InspectionValue; values: TensorValue[]; rows: number[] }>()
+  const [error, setError] = useState<{ page: number; row: number; message: string }>()
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      const first = await inspection.read(id, slot, row)
+      const rows = first.status === 'available' && first.kind === 'example' && first.simple ? inspection.indices.slice(page * PAGE_ROWS, (page + 1) * PAGE_ROWS) : [row]
+      const values: TensorValue[] = []
+      if (first.status === 'available') for (const index of rows) {
+        if (cancelled) return
+        const result = index === row ? first : await inspection.read(id, slot, index)
+        if (result.status !== 'available') throw Error(result.message)
+        values.push(result.value)
+      }
+      if (!cancelled) { setError(undefined); setLoaded({ page, row, first, values, rows }) }
+    }
+    load().catch(reason => { if (!cancelled) setError({ page, row, message: reason instanceof Error ? reason.message : String(reason) }) })
+    return () => { cancelled = true }
+  }, [inspection, id, slot, page, row])
+  if (error?.page === page && error.row === row) return <p role="alert">Could not inspect this inference output: {error.message}</p>
+  if (!loaded || loaded.page !== page || loaded.row !== row) return <p role="status">Loading inference output…</p>
+  const result = loaded.first
+  if (result.status !== 'available') return <p className="data-empty" role="status">{result.message}</p>
+  const table = result.kind === 'example' && result.simple && loaded.values.every(value => value.data.length === loaded.values[0].data.length)
+  const width = loaded.values[0].data.length
+  const value = table ? { shape: [loaded.values.length, width], data: loaded.values.flatMap(value => value.data), excluded: loaded.values.flatMap(value => value.excluded ?? value.data.map(() => false)) } : result.value
+  const pages = Math.ceil(inspection.indices.length / PAGE_ROWS)
+  const position = inspection.indices.indexOf(row)
+  return <>
+    {result.kind === 'shared' && <p className="data-current-note">Shared tensor — the same parameters or constants are used for every example.</p>}
+    {result.kind === 'aggregate' && <p className="data-current-note">Reduced output for the original inference batch. Its axes do not represent individual examples.</p>}
+    {!table && result.kind !== 'shared' && <>
+      <label className="data-signal-select">Dataset row{inspection.indices.length <= 500
+        ? <select aria-label="Inference dataset row" value={row} onChange={event => setRow(Number(event.target.value))}>{inspection.indices.map(index => <option key={index} value={index}>Row {index}</option>)}</select>
+        : <input aria-label="Inference dataset row" type="number" value={row} onChange={event => { if (event.target.value !== '' && inspection.indices.includes(Number(event.target.value))) setRow(Number(event.target.value)) }}/>}</label>
+      <PageControls label="Examples" page={position} pages={inspection.indices.length} onPage={index => setRow(inspection.indices[index])} range={`${position + 1} of ${inspection.indices.length} · dataset row ${row}`}/>
+    </>}
+    <p className="data-current-note">{table ? 'Rows: original dataset row numbers. Columns: output values.' : value.shape.length ? value.shape.map((size, axis) => `Axis ${axis}: ${result.axes[axis] ?? 'tensor index'} (${size})`).join(' · ') : 'Scalar output.'}</p>
+    {value.excluded?.some(Boolean) && <p className="data-current-note">Masked cells are excluded positions or padding from the inference run.</p>}
+    <TensorViewer key={`${table ? page : row}:${result.kind}`} value={value} labels={table ? [undefined, result.labels.at(-1)] : result.labels} exampleRows={table ? loaded.rows : undefined}/>
+    {table && pages > 1 && <PageControls label="Examples" page={page} pages={pages} onPage={setPage} range={`${page * PAGE_ROWS + 1}–${Math.min(inspection.indices.length, (page + 1) * PAGE_ROWS)} of ${inspection.indices.length}`}/>}
+  </>
+}
+
+function InferenceDataInspector({ inference, node, edge, group }: Props & { inference: InferenceInspection }) {
+  const [signalIndex, setSignalIndex] = useState(0)
+  const graph = inference.graph
+  const snapshotNode = graph.nodes.find(candidate => candidate.id === node?.id)
+  const signals = signalList(graph, snapshotNode, edge, group, false)
+  const selected = signals[Math.min(signalIndex, signals.length - 1)]
+  const signalEdge = graph.edges.find(candidate => candidate.id === selected?.key)
+  const id = signalEdge?.source ?? (snapshotNode?.type === 'dataset' ? snapshotNode.id : selected?.key)
+  const slot = signalEdge?.sourceSlot ?? (snapshotNode?.type === 'dataset' ? signalIndex : 0)
+  if (!node && !edge && !group) return <p className="data-empty">Select a block or wire to inspect inference outputs.</p>
+  return <section className="data-inspector" aria-label="Inference output">
+    <header className="data-header"><h2>{edge ? 'Connection data' : group?.label ?? node?.label}</h2><p>Forward outputs from the saved inference run. Gradients are not part of inference.</p></header>
+    {signals.length > 1 && <label className="data-signal-select">Inspect signal<select aria-label="Inspect inference signal" value={Math.min(signalIndex, signals.length - 1)} onChange={event => setSignalIndex(Number(event.target.value))}>{signals.map((signal, index) => <option key={signal.key} value={index}>{signal.label}</option>)}</select></label>}
+    {id ? <InferenceSignalView key={`${id}:${slot}`} inspection={inference} id={id} slot={slot}/> : <p className="data-empty">This output was not evaluated in this inference run.</p>}
+  </section>
+}
+
+export function DataInspector(props: Props) {
+  const [canvasRun, setCanvasRun] = useState<number>()
+  const inference = props.inference
+  if (!inference) return <CanvasDataInspector {...props}/>
+  const active = canvasRun !== inference.runId
+  return <>
+    <label className="data-signal-select">Inspection context<select aria-label="Inspection context" value={active ? 'inference' : 'canvas'} onChange={event => setCanvasRun(event.target.value === 'canvas' ? inference.runId : undefined)}>
+      <option value="inference">{inference.title}</option><option value="canvas">Current canvas example</option>
+    </select></label>
+    <p className="data-current-note" role="status">{active ? inference.title : 'Current canvas example'}</p>
+    {active ? <InferenceDataInspector key={inference.runId} {...props} inference={inference}/> : <CanvasDataInspector {...props}/>}
+  </>
 }

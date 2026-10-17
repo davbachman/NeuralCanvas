@@ -139,7 +139,7 @@ export class TensorGraph {
     if(task==='binary-classification' && prediction.size===target.size) return 'binary'
     return task.includes('classification') || task==='sequence' ? 'categorical' : 'regression'
   }
-  private execute(rows:DatasetExample[], training = false): {loss:tf.Scalar; dataLoss:tf.Scalar; prediction:tf.Tensor; target:tf.Tensor; mask:tf.Tensor} {
+  private execute(rows:DatasetExample[], training = false, capture?: {id:string; slot:number; signal?:Signal}): {loss:tf.Scalar; dataLoss:tf.Scalar; prediction:tf.Tensor; target:tf.Tensor; mask:tf.Tensor} {
     const data=this.source.params.textData, count=rows.length
     const generic=!data || data.representation==='facts'
     const lengths=rows.map(row=>generic?1:row.features[1].data.length), length=Math.max(...lengths)
@@ -154,6 +154,7 @@ export class TensorGraph {
     const targetSignal:Signal={value:target,axes:['batch',...rows[0].target.shape.map(()=>'feature' as const)]}
     if(this.source.params.customCsv) features.splice(datasetTargetSlotForNode(this.source),0,targetSignal)
     else features.push(targetSignal)
+    if(capture?.id===this.source.id) capture.signal=features[capture.slot]
     const values=new Map<string,Signal>()
     const read=(edge:GraphModel['edges'][number])=>edge.source===this.source.id?features[edge.sourceSlot??0]:values.get(edge.source)!
     for(const node of this.order) {
@@ -235,6 +236,7 @@ export class TensorGraph {
         default:throw Error('Unsupported tensor operation '+kind)
       }
       values.set(node.id,{value,axes})
+      if(capture?.id===node.id) capture.signal={value,axes}
     }
     const outputSignal=read(this.inputs.get(this.lossNode.id)![0])
     const predictionSignal:Signal=outputSignal.axes[0]==='batch'?outputSignal:{
@@ -269,7 +271,17 @@ export class TensorGraph {
       const selected=regularizedParameters(this.graph,this.lossNode).map(n=>this.variables.get(n.id)!)
       if(selected.length) loss=tf.add(loss,tf.mul(this.lossNode.params.regularizationStrength??0,tf.addN(selected.map(w=>tf.sum(this.lossNode.params.regularization==='l1'?tf.abs(w):tf.mul(tf.square(w),.5))))))
     }
+    if(capture?.id===this.lossNode.id) capture.signal={value:loss,axes:[]}
     return {loss:loss as tf.Scalar,dataLoss,prediction,target,mask}
+  }
+  /** Read one signal with the same batch/padding semantics as inference. Only
+   * that signal escapes tidy; no gradients or optimizer updates are involved. */
+  async inspectSignal(rows:DatasetExample[], id:string, slot=0):Promise<{value:TensorValue; axes:Axis[]} | undefined> {
+    const capture:{id:string;slot:number;signal?:Signal}={id,slot}
+    const value=tf.tidy(()=>{this.execute(rows,false,capture);return capture.signal ? tf.clone(capture.signal.value) : undefined})
+    if(!value || !capture.signal) return undefined
+    try {return {value:{shape:[...value.shape],data:Array.from(await value.data())},axes:capture.signal.axes}}
+    finally {value.dispose()}
   }
   gradients(rows:DatasetExample[]) {
     return tf.tidy(()=>{const result=tf.variableGrads(()=>this.execute(rows,true).loss,[...this.variables.values()]);return {loss:result.value,grads:result.grads}})
