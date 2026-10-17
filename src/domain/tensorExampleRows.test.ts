@@ -86,3 +86,42 @@ it('recognizes a scalar example reshaped into one row without labelling image ro
   image.params = {dataset:'digits-8x8',datasetIndex:4}
   expect(tensorExampleRows({nodes:[image],edges:[],learningRate:.1},image.id)).toBeUndefined()
 })
+
+it('tracks modified single-example origin separately from example axes and shared parameters', async () => {
+  const { singleExampleTextModel } = await import('../test/inferenceInspectionModel')
+  const { tensorDatasetProvenance } = await import('./tensorExampleRows')
+  const { datasetExamplesForNode } = await import('./datasets')
+  const graph = withDatasetExample(singleExampleTextModel(), 'text-data', 2)
+  const source = graph.nodes.find(node => node.type === 'dataset')!
+  const example = datasetExamplesForNode(source)[2]
+  source.params.datasetValues = [example.features[0], example.features[1], example.target]
+  graph.nodes.push({ ...createNode('mean', 99), id: 'reduced', params: { axis: 0 } })
+  graph.edges.push({ id: 'reduce', source: 'review-counts', target: 'reduced', inputSlot: 0 })
+  const evaluated = forwardPass(graph).graph
+  for (const id of ['text-data', 'review-counts', 'sentiment-product', 'sentiment-bias-add', 'positive-probability', 'reduced']) {
+    expect(tensorDatasetProvenance(evaluated, id).sources).toEqual([{ datasetId: 'text-data', rows: [2], modified: true }])
+    expect(tensorExampleRows(evaluated, id)).toEqual(id === 'reduced' ? undefined : [2])
+  }
+  expect(tensorExampleRows(evaluated, 'text-data', 1)).toBeUndefined() // Position IDs are not example IDs.
+  for (const id of ['sentiment-weights', 'sentiment-bias']) expect(tensorDatasetProvenance(evaluated, id)).toEqual({ exampleRows: undefined, sources: [] })
+  const restored = forwardPass(withDatasetExample(graph, 'text-data', 3)).graph
+  expect(tensorDatasetProvenance(restored, 'positive-probability')).toEqual({ exampleRows: [3], sources: [{ datasetId: 'text-data', rows: [3], modified: false }] })
+})
+
+it('retains single-example context through token embeddings and attention without relabeling token axes', async () => {
+  const { singleExampleTextModel } = await import('../test/inferenceInspectionModel')
+  const { buildTextModel } = await import('../test/textModels')
+  const { encodeText } = await import('./textData')
+  const { tensorDatasetProvenance } = await import('./tensorExampleRows')
+  const { datasetExamplesForNode } = await import('./datasets')
+  const data = singleExampleTextModel().nodes.find(node => node.type === 'dataset')!.params.textData!
+  const graph = withDatasetExample(buildTextModel(data, 'attention', 4), 'text-data', 2)
+  const source = graph.nodes.find(node => node.type === 'dataset')!
+  const ids = encodeText('good good film', data)
+  source.params.datasetValues = [{ shape: [3], data: ids }, { shape: [3], data: [0, 1, 2] }, datasetExamplesForNode(source)[2].target]
+  const evaluated = forwardPass(graph).graph
+  for (const node of evaluated.nodes.filter(node => ['embedding', 'softmax'].includes(node.type))) {
+    expect(tensorDatasetProvenance(evaluated, node.id).sources).toEqual([{ datasetId: 'text-data', rows: [2], modified: true }])
+    expect(tensorExampleRows(evaluated, node.id)).toBeUndefined()
+  }
+})

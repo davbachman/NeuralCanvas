@@ -2,11 +2,12 @@ import { datasetExampleIndex, datasetExamplesForNode, datasetMode, datasetOutput
 import type { GraphModel, TensorValue } from './types'
 
 interface Identity { datasetId: string; indices: number[]; axis: number }
-interface Signal { shape?: number[]; identity?: Identity }
+interface DatasetSource { datasetId: string; rows: number[]; modified: boolean }
+interface Signal { shape?: number[]; identity?: Identity; sources?: DatasetSource[] }
 const sameRows = (a: Identity, b: Identity) => a.datasetId === b.datasetId && a.indices.length === b.indices.length && a.indices.every((row, index) => row === b.indices[index])
 
 /** Track example identity through wiring and axis semantics, never by size alone. */
-export function tensorExampleRows(graph: GraphModel, id: string, slot = 0): number[] | undefined {
+export function tensorDatasetProvenance(graph: GraphModel, id: string, slot = 0): { exampleRows?: number[]; sources: DatasetSource[] } {
   const nodes = new Map(graph.nodes.map(node => [node.id, node]))
   const cache = new Map<string, Signal>()
   const visit = (id: string, slot: number): Signal => {
@@ -23,21 +24,31 @@ export function tensorExampleRows(graph: GraphModel, id: string, slot = 0): numb
         ?? graph.edges.find(edge => edge.source === id && (edge.sourceSlot ?? 0) === slot)?.value
     const shape = value?.shape
     const result: Signal = { shape }
+    // The input's origin survives reductions and token/feature transforms even
+    // when no tensor axis represents examples. Shared parameters have no origin.
+    if (!['dataset', 'weight', 'bias'].includes(node.type)) {
+      result.sources = [...new Map(inputs.flatMap(input => input.sources ?? []).map(source => [source.datasetId, source])).values()]
+    }
     const keep = (identity?: Identity) => {
       if (identity && shape && (identity.axis === -1 ? shape.length === 0 : shape[identity.axis] === identity.indices.length)) result.identity = identity
     }
     if (node.type === 'dataset' && shape) {
       const examples = datasetExamplesForNode(node)
       const override: TensorValue | undefined = node.params.datasetValues?.[slot]
-      if (override) {
+      const sample = datasetMode(node) === 'sample'
+      const rows = override?.exampleIndices ?? (sample ? [datasetExampleIndex(node)] : examples.flatMap((example, index) => !node.params.datasetSplit || node.params.datasetSplit === 'all' || example.split === node.params.datasetSplit ? [index] : []))
+      const knownRows = rows.every(index => Number.isInteger(index) && index >= 0 && index < examples.length)
+      result.sources = !knownRows || !sample && override && !override.exampleIndices ? []
+        : [{ datasetId: id, rows, modified: Boolean(node.params.storyExperiment || node.params.datasetValues?.some(value => !value.exampleIndices)) }]
+      if (override?.exampleIndices) {
         const indices = override.exampleIndices
         if (indices && indices.length === shape[0] && indices.every(index => Number.isInteger(index) && index >= 0 && index < examples.length)) {
           keep({ datasetId: id, indices, axis: 0 })
         }
-      } else if (datasetMode(node) === 'batch') {
+      } else if (!sample && !override) {
         const indices = examples.flatMap((example, index) => !node.params.datasetSplit || node.params.datasetSplit === 'all' || example.split === node.params.datasetSplit ? [index] : [])
         keep({ datasetId: id, indices, axis: 0 })
-      } else {
+      } else if (sample) {
         const counts = node.params.textData?.representation === 'counts' && slot === 0
         const singleTarget = slot === datasetTargetSlotForNode(node) && value?.data.length === 1 && node.params.textData?.task !== 'language'
         // Token positions, image rows, and arbitrary feature-vector axes are not examples.
@@ -85,5 +96,9 @@ export function tensorExampleRows(graph: GraphModel, id: string, slot = 0): numb
     return result
   }
   const result = visit(id, slot)
-  return result.identity?.axis === 0 ? result.identity.indices : undefined
+  return { exampleRows: result.identity?.axis === 0 ? result.identity.indices : undefined, sources: result.sources ?? [] }
+}
+
+export function tensorExampleRows(graph: GraphModel, id: string, slot = 0): number[] | undefined {
+  return tensorDatasetProvenance(graph, id, slot).exampleRows
 }
