@@ -3,9 +3,10 @@ import {isTrainingSettings} from './trainingSettings'
 import { cloneGraph } from './engine'
 import { isDatasetKind } from './datasets'
 import { isCustomCsvData } from './customCsv'
-import { isTextDatasetData } from './textData'
+import { isTextDatasetData, isStoryExperiment } from './textData'
 import { cloneTensor, isTensorValue } from './tensor'
 import type {
+  TextDatasetData,
   ActivationKind,
   DatasetKind,
   EvaluationTraceStep,
@@ -247,6 +248,7 @@ function isNodeParams(value: unknown): value is NodeParams {
     isOptionalNonNegativeInteger(value.datasetIndex) &&
     (value.datasetSplit === undefined || ['all', 'train', 'test'].includes(String(value.datasetSplit))) &&
     (value.trainPercent === undefined || (typeof value.trainPercent === 'number' && Number.isInteger(value.trainPercent) && value.trainPercent >= 1 && value.trainPercent <= 99)) &&
+    (value.storyExperiment === undefined || isStoryExperiment(value.storyExperiment, value.textData as TextDatasetData | undefined)) &&
     (value.datasetValues === undefined || (Array.isArray(value.datasetValues) && value.datasetValues.every(isTensorValue))) &&
     isOptionalNonNegativeInteger(value.inputCount) &&
     (value.expression === undefined || typeof value.expression === 'string') &&

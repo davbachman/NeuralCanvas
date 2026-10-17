@@ -1,8 +1,8 @@
+import { activeStoryExperiment, encodeStory, textDataset } from './textData'
 import type { CustomCsvData, DatasetKind, DatasetTask, GraphNode, TensorValue } from './types'
 import { tensorValue } from './tensor'
 import { analyzeCustomCsv } from './customCsv'
 import digits from '../learning/digits.json'
-import { textDataset } from './textData'
 
 export interface DatasetExample {
   text?: string
@@ -258,6 +258,8 @@ export function datasetOutputLabelForSlot(node: GraphNode, slot: number): string
   return dataset.featureLabels[slot] ?? dataset.targetLabel
 }
 export function datasetOutputValueForSlot(node: GraphNode, slot: number): TensorValue {
+  const story = activeStoryExperiment(node)
+  if (story && slot < 6) return encodeStory(story, node.params.textData!).features[slot]
   if (node.params.datasetValues?.[slot]) return node.params.datasetValues[slot]
   const examples = datasetExamplesForNode(node)
   const targetSlot = datasetTargetSlotForNode(node)

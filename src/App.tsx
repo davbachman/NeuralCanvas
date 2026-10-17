@@ -1,3 +1,4 @@
+import { hasStoryExperiment } from './domain/textData'
 import { useLocalRecovery } from './hooks/useLocalRecovery'
 import type { RecoveryWorkspace } from './domain/localRecovery'
 import { LearningRateControl } from './components/LearningRateControl'
@@ -312,7 +313,9 @@ function App({
   ), [validationIssues])
   const problemNodes = useMemo(() => problemNodeIds(graph, blockingIssues), [graph, blockingIssues])
   const hasLoss = graph.nodes.some(isLossNode)
+  const storyExperiment = hasStoryExperiment(graph)
   const heldOutSample = isHeldOutSample(graph)
+  const inspectionOnly = heldOutSample || storyExperiment
   const activeStep = traceSteps[traceIndex]
   const selectedNodeId =
     !selectedGroupId && selectedNodeIds.length === 1
@@ -622,7 +625,7 @@ function App({
 
     if (phase === 'edit' || phase === 'update') {
       pushHistory()
-      const forward = forwardPass(graph, true, {training:hasLoss && !heldOutSample})
+      const forward = forwardPass(graph, true, {training:hasLoss && !inspectionOnly})
       setGraph(forward.graph)
       const nextIndex = nextVisibleStepEnd(graph, forward.steps, 0)
       setTraceSteps(forward.steps)
@@ -654,7 +657,7 @@ function App({
     }
 
     if (phase === 'backward') {
-      if (heldOutSample) {
+      if (inspectionOnly) {
         setIsPlaying(false)
         return
       }
@@ -682,7 +685,7 @@ function App({
     blockingIssues,
     graph,
     hasLoss,
-    heldOutSample,
+    inspectionOnly,
     recordSingleTrainingStep,
     phase,
     pushHistory,
@@ -702,7 +705,7 @@ function App({
 
   const runOneTrainingStep = useCallback(() => {
     if (blockingIssues.length > 0 || !hasLoss || trainingController.current) return
-    if (heldOutSample) return
+    if (inspectionOnly) return
     setInferenceResult(undefined)
     pushHistory()
     const result = runTrainingStep(graph, graph.learningRate)
@@ -721,7 +724,7 @@ function App({
     blockingIssues,
     graph,
     hasLoss,
-    heldOutSample,
+    inspectionOnly,
     recordSingleTrainingStep,
     pushHistory,
     selectSingleNode,
@@ -873,7 +876,7 @@ function App({
     const first = examples.findIndex(example => example.split === inferenceSplit)
     if (first < 0) { setTestStatus(`This dataset has no ${inferenceSplit} examples.`); return }
     dismissPendingImports()
-    const source = { ...dataset, params: { ...dataset.params, datasetSplit: inferenceSplit, datasetIndex: first, datasetValues: undefined } }
+    const source = { ...dataset, params: { ...dataset.params, datasetSplit: inferenceSplit, datasetIndex: first, datasetValues: undefined, storyExperiment: undefined } }
     const testGraph = { ...graph, nodes: graph.nodes.map(node => node.id === dataset.id ? source : node) }
     const controller = new AbortController()
     trainingController.current = controller
@@ -1048,7 +1051,7 @@ function App({
       clearRecordedExecution()
       const updateNode = (node: GraphModel['nodes'][number]) => {
         if (node.id !== nodeId || node.type !== 'dataset') return node
-        const updated = { ...node, params: { ...node.params, dataset, customCsv, textData, trainPercent: undefined, datasetIndex: dataset === 'custom-csv' ? 1 : 0, datasetMode: dataset === 'custom-csv' ? 'batch' as const : node.params.datasetMode, datasetSplit: dataset === 'custom-csv' ? 'train' as const : node.params.datasetSplit, datasetValues: undefined } }
+        const updated = { ...node, params: { ...node.params, dataset, customCsv, textData, trainPercent: undefined, datasetIndex: dataset === 'custom-csv' ? 1 : 0, datasetMode: dataset === 'custom-csv' ? 'batch' as const : node.params.datasetMode, datasetSplit: dataset === 'custom-csv' ? 'train' as const : node.params.datasetSplit, datasetValues: undefined, storyExperiment: undefined } }
         const value = datasetOutputValueForSlot(updated, 0)
         return { ...updated, value, grad: zeroLike(value) }
       }
@@ -1269,7 +1272,7 @@ function App({
       ...graph,
       nodes: graph.nodes.map((node) =>
         node.id === nodeId
-          ? { ...node, params: { ...node.params, ...params } }
+          ? { ...node, params: { ...node.params, ...(('datasetIndex' in params || 'datasetSplit' in params || 'textData' in params) ? {storyExperiment: undefined, datasetValues: undefined} : {}), ...params } }
           : node,
       ),
     })
@@ -1699,7 +1702,7 @@ function App({
           <p className="eyebrow">Train the model</p>
           {isTraining ? <button type="button" className="run-epochs-button" onClick={() => trainingController.current?.abort()}>Stop training</button>
             : <button type="button" className="run-epochs-button primary-button" aria-keyshortcuts="Shift+Enter" onClick={() => void runEpochs()} disabled={!canRunEpochs}>Run {validRunSettings ? epochCount : '—'} {epochCount === 1 ? 'epoch' : 'epochs'} <kbd aria-hidden="true">⇧ Return</kbd></button>}
-          <div className="run-metrics"><span>Epoch {epoch}</span><span>Current loss {formatNumber(currentLoss ?? undefined)}</span></div>
+          <div className="run-metrics"><span>Epoch {epoch}</span><span>{isTraining ? 'Training loss' : storyExperiment ? 'Original-answer reference loss' : 'Current loss'} {formatNumber(currentLoss ?? undefined)}</span></div>
           {trainingStatus && <p className="run-status" role="status">{trainingStatus}</p>}
           <div className="run-number-grid">
             <label className="run-field">Epochs per run<input type="number" min="1" max="100000" step="1" value={epochsPerRun} onChange={event => setEpochsPerRun(event.target.value)} /></label>
@@ -1747,7 +1750,7 @@ function App({
             <button type="button" onClick={() => setIsPlaying(playing => !playing)} disabled={blockingIssues.length > 0 || isTraining}>{isPlaying ? <Pause size={15} /> : <Play size={15} />}{isPlaying ? 'Pause' : 'Play'}</button>
           </div>
           <label className="run-field">Playback speed<input type="range" min={MIN_PLAY_DELAY_MS} max={MAX_PLAY_DELAY_MS} step="50" value={speedSliderValue} onChange={event => setSpeedSliderValue(Number(event.target.value))} /></label>
-          <button type="button" className="run-full-step" onClick={() => runCanvasAction(runOneTrainingStep)} disabled={blockingIssues.length > 0 || !hasLoss || heldOutSample || isTraining}><FastForward size={15} /> Run one full training step</button>
+          <button type="button" className="run-full-step" onClick={() => runCanvasAction(runOneTrainingStep)} disabled={blockingIssues.length > 0 || !hasLoss || inspectionOnly || isTraining}><FastForward size={15} /> Run one full training step</button>
           </details>
         </section>
         <section className="panel-section run-panel test-panel" role="tabpanel" aria-label="Test controls" hidden={leftTab !== 'test'}>
@@ -1864,7 +1867,8 @@ function App({
           {selectedBlockingIssues.map((issue, index) => <p key={`${issue.code}-${issue.nodeId ?? issue.edgeId}-${index}`}>{issue.message}</p>)}
         </section>}
         {problemNodes.size > 0 && !selectedNodeId && !selectedGroupId && !selectedEdgeId && <p className="validation-hint">Select a red block to see what needs fixing.</p>}
-        {heldOutSample && (
+        {storyExperiment && <p className="coordinate-note" role="status">Story experiment: inference only. The original answer may be invalid. Loss and gradients reference that original answer; parameter updates on this example are disabled.</p>}
+        {heldOutSample && !storyExperiment && (
           <p className="coordinate-note">
             Held-out example: inspect its prediction and gradients. Parameter
             updates use training examples.

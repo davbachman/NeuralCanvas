@@ -1,3 +1,4 @@
+import { hasStoryExperiment } from './textData'
 import {isStandardizationStats, standardize, standardizationShapeMatches} from './standardization'
 import {parameterPenalty,penaltyGradients} from './regularization'
 import { resolveReshape } from './reshape'
@@ -433,6 +434,7 @@ export function cloneGraph(graph: GraphModel): GraphModel {
       params: {
         ...node.params,
         datasetValues: node.params.datasetValues?.map(cloneTensor),
+        ...(node.params.storyExperiment ? {storyExperiment: {...node.params.storyExperiment, facts: [...node.params.storyExperiment.facts]}} : {}),
         axes: node.params.axes ? [...node.params.axes] : undefined,
         shape: node.params.shape ? [...node.params.shape] : undefined,
         value: node.params.value !== undefined ? toTensor(node.params.value) : undefined,
@@ -845,6 +847,7 @@ export function backwardPass(graph: GraphModel): EvaluationResult {
 }
 
 export function updateParameters(graph: GraphModel, learningRate = graph.learningRate): UpdateResult {
+  if (hasStoryExperiment(graph)) throw new Error('Restore the original story before updating parameters on this example.')
   const next = cloneGraph(graph)
   const updates: ParameterUpdate[] = []
 
@@ -892,6 +895,7 @@ export function runTrainingStep(graph: GraphModel, learningRate = graph.learning
  * without copying trace caches or formatting thousands of tensor entries.
  * The caller validates the graph before the run; inputs are never mutated. */
 export function runTrainingStepFast(graph: GraphModel, learningRate = graph.learningRate): GraphModel {
+  if (hasStoryExperiment(graph)) throw new Error('Restore the original story before updating parameters on this example.')
   const next: GraphModel = { ...graph, nodes: graph.nodes.map(node => ({...node, params: {...node.params}, value: undefined, grad: undefined, cache: undefined, localDerivative: undefined})), edges: graph.edges.map(edge => ({...edge, value: undefined, grad: undefined})) }
   const order = topologicalSort(next)
   const byId = new Map(next.nodes.map(node => [node.id, node]))

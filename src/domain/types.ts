@@ -59,6 +59,11 @@ export interface CustomCsvData {
   task: 'regression' | 'binary-classification' | 'classification'
 }
 
+export interface StoryExperiment {
+  facts: string[]
+  question: string
+}
+
 export interface TextDocument {
   text: string
   facts?: string[]
@@ -112,6 +117,8 @@ export interface NodeParams {
   trainPercent?: number
   /** An editable experiment supplied by the dataset, e.g. a token prompt. */
   datasetValues?: TensorValue[]
+  /** Temporary structured inference inputs; the canonical answer is not re-labeled. */
+  storyExperiment?: StoryExperiment
   inputCount?: number
   expression?: string
   transform?: TensorTransformKind

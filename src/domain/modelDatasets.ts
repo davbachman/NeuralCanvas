@@ -55,7 +55,7 @@ export function modelDatasetEvaluation(graph: GraphModel, samples: ModelSample[]
 export function graphWithDatasetSample(graph: GraphModel, dataset: ModelDataset, index?: number): GraphModel {
   const sample = index === undefined ? undefined : dataset.samples[index]
   const next = { ...graph, groups: graph.groups?.map(group => group.id === 'network' ? { ...group, detail: { ...group.detail, datasetKind: dataset.id, sampleIndex: index, selectedSampleSplit: sample?.split } } : group), nodes: graph.nodes.map(node => {
-    if (node.type === 'dataset') return {...node,params:{...node.params,dataset:dataset.id,datasetMode:'sample' as const,datasetIndex:index ?? 0,datasetValues:undefined}}
+    if (node.type === 'dataset') return {...node,params:{...node.params,dataset:dataset.id,datasetMode:'sample' as const,datasetIndex:index ?? 0,datasetValues:undefined,storyExperiment:undefined}}
     if (!sample) return node
     const input = /^input-(\d+)$/.exec(node.id)
     if (!input && node.id !== 'target') return node

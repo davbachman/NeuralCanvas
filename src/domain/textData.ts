@@ -1,6 +1,6 @@
 import { parseRows } from './customCsv'
 import type { DatasetExample, ToyDataset } from './datasets'
-import type { TextDatasetData, TextDocument, TensorValue } from './types'
+import type { TextDatasetData, TextDocument, TensorValue, StoryExperiment, GraphNode, GraphModel } from './types'
 
 export const TEXT_LIMITS = { characters: 80_000_000, documents: 60_000, vocabulary: 8192, length: 256, examples: 60_000 }
 const tensor = (shape: number[], data: number[]): TensorValue => ({ shape, data })
@@ -19,6 +19,49 @@ export function encodeText(text: string, data: TextDatasetData): number[] {
 
 export function decodeTokens(ids: number[], data: TextDatasetData): string {
   return ids.map(id => data.vocabulary[id] ?? '<unk>').join(data.tokenizer === 'character' ? '' : ' ')
+}
+
+/** Shared encoding for imported stories and temporary inference edits. Never truncates. */
+export function encodeStory(story: StoryExperiment, data: TextDatasetData): { features: TensorValue[]; unknownWords: string[] } {
+  const words = data.factWords!, n = data.maxFacts!
+  if (data.representation !== 'facts' || !Number.isInteger(words) || !Number.isInteger(n) || words < 1 || n < 1) throw Error('Choose a Facts and question dataset.')
+  if (!Array.isArray(story.facts) || !story.facts.length || story.facts.length > n) throw Error(`Provide 1–${n} facts, one per line. No facts were truncated.`)
+  const index = new Map(data.vocabulary.map((token, id) => [token, id]))
+  const unknownWords = new Set<string>()
+  const encoded = [...story.facts, story.question].map((text, i) => {
+    const label = i === story.facts.length ? 'Question' : `Fact ${i + 1}`
+    if (typeof text !== 'string') throw Error(`${label} must be text.`)
+    const tokens = tokenize(text, data.tokenizer, data.lowercase)
+    if (!tokens.length) throw Error(`${label} needs at least one token.`)
+    if (tokens.length > words) throw Error(`${label} has ${tokens.length} tokens; the word limit is ${words}. Nothing was truncated.`)
+    return tokens.map(token => {
+      if (!index.has(token)) unknownWords.add(token)
+      return index.get(token) ?? 0
+    })
+  })
+  const padded = (ids: number[]) => [...ids, ...Array(words - ids.length).fill(1)]
+  const f = [...encoded.slice(0, -1).map(padded), ...Array.from({length: n - story.facts.length}, () => Array(words).fill(1))].flat()
+  const q = padded(encoded.at(-1)!)
+  return { features: [
+    tensor([n, words], f), tensor([1, words], q),
+    tensor([n], Array.from({length: n}, (_, i) => i)),
+    tensor([1, n], Array.from({length: n}, (_, i) => Number(i < story.facts.length))),
+    tensor([n, words, 1], f.map(id => Number(id !== 1))),
+    tensor([1, words, 1], q.map(id => Number(id !== 1))),
+  ], unknownWords: [...unknownWords] }
+}
+
+export function activeStoryExperiment(node: GraphNode): StoryExperiment | undefined {
+  return node.type === 'dataset' && node.params.textData?.representation === 'facts' ? node.params.storyExperiment : undefined
+}
+
+export function hasStoryExperiment(graph: GraphModel): boolean {
+  return graph.nodes.some(node => Boolean(activeStoryExperiment(node)))
+}
+
+export function isStoryExperiment(value: unknown, data: TextDatasetData | undefined): value is StoryExperiment {
+  if (!value || typeof value !== 'object' || !data) return false
+  try { encodeStory(value as StoryExperiment, data); return true } catch { return false }
 }
 
 export interface TextPreparation {
@@ -139,14 +182,7 @@ export function textDataset(data: TextDatasetData): ToyDataset {
         }})
       }
       if (data.representation === 'facts') {
-        const words=data.factWords!, n=data.maxFacts!
-        if (!Array.isArray(doc.facts) || !doc.facts.length || doc.facts.length>n || typeof doc.question!=='string' || !doc.question.trim()) throw Error('Provide nonempty facts and question within the configured fact limit.')
-        const encoded = [...doc.facts,doc.question].map(text=>tokenize(text,data.tokenizer,data.lowercase).map(t=>index.get(t)??0))
-        if (encoded.some(ids=>!ids.length || ids.length>words)) throw Error('A fact or question exceeds the word limit; increase it instead of truncating.')
-        const padded=(ids:number[])=>[...ids,...Array(words-ids.length).fill(1)]
-        const f=[...encoded.slice(0,-1).map(padded),...Array.from({length:n-doc.facts.length},()=>Array(words).fill(1))].flat()
-        const q=padded(encoded.at(-1)!)
-        features.splice(0,features.length,tensor([n,words],f),tensor([1,words],q),tensor([n],Array.from({length:n},(_,i)=>i)),tensor([1,n],Array.from({length:n},(_,i)=>Number(i<doc.facts!.length))),tensor([n,words,1],f.map(id=>Number(id!==1))),tensor([1,words,1],q.map(id=>Number(id!==1))))
+        features.splice(0, features.length, ...encodeStory({facts: doc.facts!, question: doc.question!}, data).features)
       }
       examples.push({ label: 'Document ' + (documentIndex + 1) + ' · offset ' + offset + ' · ' + (data.task !== 'language' ? doc.label : decodeTokens(tokens, data).slice(0, 45)), split: doc.split, features, target, text: decodeTokens(tokens, data), documentIndex, offset })
     }

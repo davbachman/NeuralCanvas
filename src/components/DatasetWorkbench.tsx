@@ -24,7 +24,7 @@ export function DatasetWorkbench({ graph, node, onParams, onDataset, onRename, o
   const counts = { train: examples.filter(example => example.split === 'train').length, test: examples.filter(example => example.split === 'test').length }
   const original = datasetExamples(dataset)
   const originalCounts = { train: original.filter(example => example.split === 'train').length, test: original.filter(example => example.split === 'test').length }
-  const update = (params: NodeParams) => onParams(node.id, { datasetValues: undefined, ...params })
+  const update = (params: NodeParams) => onParams(node.id, { datasetValues: undefined, storyExperiment: undefined, ...params })
   const updateCsv = (changes: Partial<CustomCsvData>) => {
     const csv = node.params.customCsv
     if (!csv) return
@@ -54,7 +54,7 @@ export function DatasetWorkbench({ graph, node, onParams, onDataset, onRename, o
       <option value="default">Dataset default · {originalCounts.train} train / {originalCounts.test} test</option>
       {[60, 70, 75, 80, 90].map(percent => <option key={percent} value={percent}>{percent}% train / {100 - percent}% test</option>)}
     </select></label>}
-    {node.params.textData && <TextDatasetPanel node={node} onParams={onParams} onReplace={() => onDataset(node.id, 'custom-text')}/>}
+    {node.params.textData && <TextDatasetPanel graph={graph} node={node} onParams={onParams} onReplace={() => onDataset(node.id, 'custom-text')}/>}
     {node.params.customCsv && <div className="csv-settings" aria-label="Custom CSV settings">
       <button type="button" className="inspector-wide" onClick={() => onChooseCustomCsv?.(node.id)}>Replace CSV file</button>
       <p className="coordinate-note">Outputs use the CSV column names. Connect a column to a Target block to use it as the target. {graph.edges.some(edge => edge.source === node.id && (edge.sourceSlot ?? 0) === node.params.customCsv!.targetColumn && graph.nodes.some(target => target.id === edge.target && (target.type === 'target' || ((target.type === 'loss' || target.type === 'cross-entropy') && edge.inputSlot === 1))))

@@ -5,12 +5,12 @@ import type { GraphModel, GraphNode } from './types'
 
 export function withDatasetExample(graph: GraphModel, id: string, index: number): GraphModel {
   return { ...graph, nodes: graph.nodes.map(node => node.id === id ? {
-    ...node, params: { ...node.params, datasetMode: 'sample', datasetIndex: index, datasetValues: undefined },
+    ...node, params: { ...node.params, datasetMode: 'sample', datasetIndex: index, datasetValues: undefined, storyExperiment: undefined },
   } : node) }
 }
 
 function withDatasetBatch(graph: GraphModel, id: string, split: 'train' | 'test'): GraphModel {
-  return {...graph,nodes:graph.nodes.map(node=>node.id === id ? {...node,params:{...node.params,datasetSplit:split,datasetValues:undefined}} : node)}
+  return {...graph,nodes:graph.nodes.map(node=>node.id === id ? {...node,params:{...node.params,datasetSplit:split,datasetValues:undefined,storyExperiment:undefined}} : node)}
 }
 
 /** A numeric batch is assembled from aligned feature and target rows. */
@@ -36,7 +36,7 @@ export function withDatasetIndices(graph: GraphModel, id: string, indices: numbe
     }),
   }))
   return { ...graph, nodes: graph.nodes.map(node => node.id === id
-    ? { ...node, params: { ...node.params, datasetValues: values } }
+    ? { ...node, params: { ...node.params, datasetValues: values, storyExperiment: undefined } }
     : node) }
 }
 
