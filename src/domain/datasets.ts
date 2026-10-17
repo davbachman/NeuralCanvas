@@ -140,7 +140,7 @@ DATASET_OPTIONS.push(tensorDataset('class-scores', 'Class scores · softmax expe
 export const DATASET_MENU_OPTIONS: { kind: DatasetKind; label: string }[] = [
   ...DATASET_OPTIONS.map(({ kind, label }) => ({ kind, label })),
   { kind: 'custom-csv', label: 'Custom CSV…' },
-  { kind: 'custom-text', label: 'Text / reviews…' },
+  { kind: 'custom-text', label: 'Text / sentiment…' },
 ]
 
 export function customCsvCardWidth(node: GraphNode): number {
