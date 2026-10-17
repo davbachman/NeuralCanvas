@@ -105,15 +105,28 @@ describe('Neural Canvas app', () => {
     expect(screen.getByRole('heading', { name: /^Evaluate / })).toBeInTheDocument()
   })
 
-  it.each([undefined, 'all', 'test'] as const)('enables a full training step for a numeric dataset showing %s examples', async split => {
+  it.each([undefined, 'all', 'test', 'train'] as const)('keeps training controls safe for a numeric dataset showing %s examples', async split => {
     const graph = handBuiltLinearGraph()
     const dataset = graph.nodes.find(node => node.type === 'dataset')!
     dataset.params.datasetSplit = split
     render(<App initialGraph={graph} />)
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
     const button = screen.getByRole('button', { name: /Run one full training step/ })
-    expect(button).toBeEnabled()
-    fireEvent.click(button)
+    if (split === 'train') {
+      expect(button).toBeEnabled()
+      fireEvent.click(button)
+    } else {
+      // Inspection may include held-out rows; only Run epochs chooses training rows.
+      expect(button).toBeDisabled()
+      fireEvent.click(button)
+      expect(screen.getByText('Epoch 0')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Run forward' })).toBeEnabled()
+      fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '1' } })
+      const run = screen.getByRole('button', { name: /Run 1 epoch/ })
+      expect(run).toBeEnabled()
+      fireEvent.click(run)
+      await waitFor(() => expect(screen.getByText('Completed 1 epoch.')).toBeInTheDocument())
+    }
     expect(screen.getByText('Epoch 1')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Reporting' }))
     await waitFor(() => expect(within(screen.getByRole('list', { name: 'Reported losses' })).getAllByRole('listitem')).toHaveLength(2))
@@ -149,7 +162,9 @@ describe('Neural Canvas app', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Reporting' }))
     expect(within(screen.getByRole('tabpanel', { name: 'Model reporting' })).queryByLabelText('Test predictions')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
-    expect(screen.getByRole('button', { name: /Run one full training step/ })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /Run one full training step/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Run forward' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /Run 10 epochs/ })).toBeEnabled()
   })
 
   it('shows project actions inside the File menu', async () => {
