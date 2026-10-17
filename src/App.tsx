@@ -1122,21 +1122,11 @@ function App({
   }
 
   const randomizeParameters = () => {
-    pushHistory()
-    clearRecordedExecution()
-    setPhase('edit')
-    setTraceSteps([])
-    setTraceIndex(0)
-    setEpoch(0)
-    setCurrentLoss(null)
-    setLossReports([])
-    setInferenceResult(undefined)
-    setTrainingStatus('')
-    setIsPlaying(false)
-    setGraph((existing) => {
+    let evaluated: ReturnType<typeof safeForward>
+    try {
       const next = {
-        ...existing,
-        nodes: existing.nodes.map((node) => {
+        ...graph,
+        nodes: graph.nodes.map((node) => {
           if (node.type !== 'weight' && node.type !== 'bias') return node
           const original = toTensor(node.params.value)
           const value = {
@@ -1148,11 +1138,23 @@ function App({
           return { ...node, params: { ...node.params, value }, value }
         }),
       }
-      setInitialParams(parameterValues(next))
-      const evaluated = safeForward(next)
-      setVisualizationGraph(evaluated.graph)
-      return evaluated.graph
-    })
+      // Keep parameter setup available on unfinished graphs, but reject any
+      // invalid values introduced into a previously valid graph.
+      const wasValid = validateGraph(graph).every(issue => issue.code === 'disconnected')
+      evaluated = wasValid ? forwardPass(next) : safeForward(next)
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Forward evaluation failed.'
+      throw new Error(`Could not randomize parameters: ${reason} The previous parameters and execution state were kept.`, { cause: error })
+    }
+    // Commit only after evaluation succeeds. No state setters run inside a
+    // graph updater, where an exception would escape the action error handler.
+    pushHistory()
+    clearRecordedExecution()
+    setEpoch(0)
+    setTrainingStatus('')
+    setInitialParams(parameterValues(evaluated.graph))
+    setVisualizationGraph(evaluated.graph)
+    setGraph(evaluated.graph)
   }
 
   const applyGraphChange = useCallback(
@@ -1716,7 +1718,7 @@ function App({
           </> : null}
           {tensorTraining && <label className="run-field">Exact learning rate<input aria-label="Exact learning rate" type="number" min="0.000001" step="0.0001" disabled={isTraining} value={graph.learningRate} onChange={event=>updateLearningRate(Number(event.target.value))}/></label>}
           <LearningRateControl value={graph.learningRate} tensorTraining={tensorTraining} disabled={isTraining} onChange={updateLearningRate}/>
-          <button type="button" className="run-full-step randomize-button" onClick={randomizeParameters} disabled={isTraining}><Shuffle size={15} /> Randomize parameters</button>
+          <button type="button" className="run-full-step randomize-button" onClick={() => runCanvasAction(randomizeParameters)} disabled={isTraining}><Shuffle size={15} /> Randomize parameters</button>
           <div className="run-section-divider" />
           {trainingDataset && <p className="eyebrow">Training settings</p>}
           {trainingDataset && <>

@@ -1402,6 +1402,7 @@ function calculationForForward(node: GraphNode, inputs: TensorValue[]): string {
   if (SOURCE_TYPES.has(node.type)) {
     return `${node.label} stores ${formatNumber(node.value)}.`
   }
+  if (node.type === 'one-hot') return `Encode token IDs ${formatNumber(inputs[0])} as ${node.params.numClasses ?? 2}-class one-hot rows: each row has 1 at its token ID and 0 elsewhere. Output ${formatNumber(node.value)}; token IDs are discrete constants.`
   if (node.type === 'matmul') return `${formatNumber(inputs[0])} @ ${formatNumber(inputs[1])} = ${formatNumber(node.value)} (row × column sums)`
   if (node.type === 'multiply') {
     return `${inputs.map((input) => formatNumber(input)).join(' * ')} = ${formatNumber(node.value)}`
@@ -1418,7 +1419,8 @@ function calculationForForward(node: GraphNode, inputs: TensorValue[]): string {
     return `${node.params.activation ?? 'identity'}(${formatNumber(inputs[0])}) = ${formatNumber(node.value)}`
   }
   if (TENSOR_OPERATION_TYPES.has(node.type)) return `${node.type === 'tensor-transform' ? selectedTensorTransform(node) : node.type}(${inputs.map((input) => formatShape(input.shape)).join(', ')}) = ${formatNumber(node.value)}`
-  return lossCalculationForForward(node, inputs)
+  if (isLossNode(node)) return lossCalculationForForward(node, inputs)
+  return `${node.type}(${inputs.map(input => formatNumber(input)).join(', ')}) = ${formatNumber(node.value)}`
 }
 
 function lossCalculationForForward(node: GraphNode, inputs: TensorValue[]): string {
