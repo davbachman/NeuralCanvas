@@ -106,7 +106,7 @@ export const DATASET_OPTIONS: ToyDataset[] = [
 function tensorDataset(kind: DatasetKind, label: string, task: DatasetTask, featureLabels: string[], targetLabel: string, examples: DatasetExample[], metadata: Partial<ToyDataset> = {}): ToyDataset {
   return { kind, label, task, featureLabels, targetLabel, featureValues: examples[0].features, targetValue: examples[0].target, examples, ...metadata }
 }
-DATASET_OPTIONS.push(tensorDataset('neuron-basics', 'Neuron basics · binary labels', 'binary-classification', ['x'], 'y', Array.from({length:20},(_,i)=>({label:`Example ${i+1}`,split:i % 4 === 3 ? 'test' : 'train',features:[tensorValue([], [i === 0 ? 2 : (i-10)/5])],target:tensorValue([], [Number(i === 0 || i >= 10)])}))))
+DATASET_OPTIONS.push(tensorDataset('neuron-basics', 'Neuron basics · binary labels', 'binary-classification', ['x'], 'y', Array.from({length:20},(_,i)=>({label:`Row ${i}`,split:i % 4 === 3 ? 'test' : 'train',features:[tensorValue([], [i === 0 ? 2 : (i-10)/5])],target:tensorValue([], [Number(i === 0 || i >= 10)])}))))
 let xorSeed = 137
 const random = () => { xorSeed = (1664525 * xorSeed + 1013904223) >>> 0; return xorSeed / 4294967296 }
 const xorPoints = Array.from({ length: 64 }, () => [random() * 2 - 1, random() * 2 - 1])
@@ -132,7 +132,7 @@ for (const causal of [false, true]) {
 }
 DATASET_OPTIONS.push(tensorDataset('class-scores', 'Class scores · softmax experiment', 'classification', ['scores'], 'class', Array.from({ length: 16 }, (_, i) => {
   const scores = [2, 1, .1, -1].map((_, j, values) => values[(j + i) % 4] * (1 + Math.floor(i / 4) / 5))
-  return { label: `Class ${(4 - i % 4) % 4} · example ${i + 1}`, split: i >= 12 ? 'test' : 'train', features: [tensorValue([1, 4], scores)], target: tensorValue([1], [scores.indexOf(Math.max(...scores))]) }
+  return { label: `Class ${(4 - i % 4) % 4} · row ${i}`, split: i >= 12 ? 'test' : 'train', features: [tensorValue([1, 4], scores)], target: tensorValue([1], [scores.indexOf(Math.max(...scores))]) }
 })))
 
 // The menu is separate from the built-in data catalog: selecting Custom CSV
@@ -186,7 +186,7 @@ export function datasetExamples(dataset: ToyDataset): DatasetExample[] {
   if (dataset.examples) return dataset.examples
   const cached = numericExamplesCache.get(dataset)
   if (cached) return cached
-  const examples: DatasetExample[] = dataset.targetValue.data.map((target, i) => ({ label: `Example ${i + 1}`, split: i % 4 === 0 ? 'test' : 'train', features: dataset.featureValues.map(value => tensorValue([], [value.data[i]])), target: tensorValue(dataset.task.includes('classification') ? [1] : [], [target]) }))
+  const examples: DatasetExample[] = dataset.targetValue.data.map((target, i) => ({ label: `Row ${i}`, split: i % 4 === 0 ? 'test' : 'train', features: dataset.featureValues.map(value => tensorValue([], [value.data[i]])), target: tensorValue(dataset.task.includes('classification') ? [1] : [], [target]) }))
   numericExamplesCache.set(dataset, examples)
   return examples
 }

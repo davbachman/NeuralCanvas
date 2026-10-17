@@ -185,7 +185,7 @@ export function textDataset(data: TextDatasetData): ToyDataset {
       if (data.representation === 'facts') {
         features.splice(0, features.length, ...encodeStory({facts: doc.facts!, question: doc.question!}, data).features)
       }
-      examples.push({ label: 'Document ' + (documentIndex + 1) + ' · offset ' + offset + ' · ' + (data.task !== 'language' ? doc.label : decodeTokens(tokens, data).slice(0, 45)), split: doc.split, features, target, text: decodeTokens(tokens, data), documentIndex, offset })
+      examples.push({ label: 'Source document ' + documentIndex + ' · offset ' + offset + ' · ' + (data.task !== 'language' ? doc.label : decodeTokens(tokens, data).slice(0, 45)), split: doc.split, features, target, text: decodeTokens(tokens, data), documentIndex, offset })
     }
     if (data.task !== 'language') {
       if (!ids.length) throw new Error('A review has no tokens after tokenization.')

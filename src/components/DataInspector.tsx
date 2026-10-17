@@ -97,7 +97,7 @@ function DatasetPreview({ node, signals }: { node: GraphNode; signals: Signal[] 
       })}</tbody>
     </table></div>
     {pages > 1 && <PageControls label="Rows" page={currentPage} pages={pages} onPage={setPage} range={`${first}–${Math.min(rows - 1, first + PAGE_ROWS - 1)}`} />}
-    {activeExample >= 0 && <p className="data-current-note">Highlighted row: the example currently sent through the graph.</p>}
+    {activeExample >= 0 && <p className="data-current-note" aria-label="Current dataset row">Current row: {activeExample}. This row is highlighted when visible.</p>}
   </section>
 }
 

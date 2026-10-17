@@ -16,7 +16,7 @@ function saveGraph(spy: ReturnType<typeof download>) {
 function chooseHeldOut(container: HTMLElement, index: number) {
   fireEvent.click(container.querySelector('[data-id="starter-data"]')!)
   fireEvent.change(screen.getByLabelText('Dataset split'), { target: { value: 'test' } })
-  fireEvent.change(screen.getByLabelText('Dataset example'), { target: { value: String(index) } })
+  fireEvent.change(screen.getByLabelText('Dataset row'), { target: { value: String(index) } })
 }
 function openLesson() {
   fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
@@ -31,7 +31,7 @@ it.each([2, 3])('preserves held-out row %i across tabs and inspects its probabil
   const before = saveGraph(spy)
   for (const name of ['Train', 'Test', 'Build', 'Train']) fireEvent.click(screen.getByRole('tab', { name }))
   expect(screen.getByLabelText('Dataset split')).toHaveValue('test')
-  expect(screen.getByLabelText('Dataset example')).toHaveValue(String(index))
+  expect(screen.getByLabelText('Dataset row')).toHaveValue(String(index))
   expect(saveGraph(spy).nodes.find(n => n.type === 'dataset')!.params).toEqual(before.nodes.find(n => n.type === 'dataset')!.params)
   fireEvent.click(screen.getByText('Step through a lesson'))
   expect(screen.getByRole('button', { name: 'Run forward' })).toBeEnabled()
@@ -43,7 +43,7 @@ it.each([2, 3])('preserves held-out row %i across tabs and inspects its probabil
   const x = index === 2 ? -2 : 2
   expect(inspected.nodes.find(n => n.id === 'pred')!.value!.data[0]).toBeCloseTo(1 / (1 + Math.exp(-(.5 * x - .3))), 12)
   expect(parameterValues(inspected)).toEqual(parameterValues(before))
-  expect(screen.getByLabelText('Dataset example')).toHaveValue(String(index))
+  expect(screen.getByLabelText('Dataset row')).toHaveValue(String(index))
   // Even repeatedly stepping beyond the backward pass must not update held-out parameters.
   for (let step = 0; step < 20; step++) fireEvent.click(screen.getByRole('button', { name: /^Step$/ }))
   expect(parameterValues(saveGraph(spy))).toEqual(parameterValues(before))
@@ -84,5 +84,5 @@ it('runs epochs on training rows only while leaving the selected held-out row in
   expect(parameterValues(after)).not.toEqual(parameterValues(before))
   expect(after.nodes.find(n => n.type === 'dataset')!.params).toEqual(before.nodes.find(n => n.type === 'dataset')!.params)
   expect(screen.getByLabelText('Dataset split')).toHaveValue('test')
-  expect(screen.getByLabelText('Dataset example')).toHaveValue('3')
+  expect(screen.getByLabelText('Dataset row')).toHaveValue('3')
 })

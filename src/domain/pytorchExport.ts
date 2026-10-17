@@ -235,7 +235,7 @@ export function generatePyTorchExport(graph: GraphModel, options: PyTorchExportO
 `        features = [{'shape': [], 'data': [float(value.strip())]} for column, value in enumerate(cells) if column != CSV_TARGET_COLUMN]\n` +
 `        raw_target = cells[CSV_TARGET_COLUMN].strip()\n` +
 `        target_value = class_indices[raw_target] if CSV_CLASS_LABELS else float(raw_target)\n` +
-`        examples.append({'label': f'Example {index + 1}', 'split': 'train' if index in CSV_TRAIN_ROW_INDICES else 'test', 'features': features, 'target': {'shape': ${dataset.task.includes('classification') ? '[1]' : '[]'}, 'data': [target_value]}})\n` +
+`        examples.append({'label': f'Row {index}', 'split': 'train' if index in CSV_TRAIN_ROW_INDICES else 'test', 'features': features, 'target': {'shape': ${dataset.task.includes('classification') ? '[1]' : '[]'}, 'data': [target_value]}})\n` +
 `    if len(examples) != ${examples.length}:\n` +
 `        raise ValueError(f'Expected ${examples.length} CSV examples, found {len(examples)}; use the dataset imported into the builder')\n` +
 `    return {'label': ${json(dataset.label)}, 'task': ${json(dataset.task)}, 'classLabels': CSV_CLASS_LABELS, 'examples': examples}\n\n`

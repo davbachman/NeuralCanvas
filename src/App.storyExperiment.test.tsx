@@ -67,7 +67,7 @@ it('exposes unknown words, rejects truncation, and clears experiments and drafts
   expect(screen.getByRole('alert')).toHaveTextContent('Nothing was truncated')
   expect(screen.getByRole('button', {name: 'Apply experiment'})).toBeDisabled()
   expect(save(spy).state.graph.nodes[0].params.storyExperiment).toEqual(applied.nodes[0].params.storyExperiment)
-  fireEvent.change(screen.getByLabelText('Dataset example'), {target: {value: '3'}})
+  fireEvent.change(screen.getByLabelText('Dataset row'), {target: {value: '3'}})
   expect(screen.getByLabelText('Experiment question')).toHaveValue('Where is Mary?')
   expect(screen.getByLabelText('Experiment facts')).toHaveValue('Mary is in garden.\nJohn is in kitchen.')
   expect(screen.queryByLabelText('Experimental result')).not.toBeInTheDocument()
