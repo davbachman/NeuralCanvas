@@ -75,8 +75,8 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     expect(screen.queryByText('Ready to evaluate')).not.toBeInTheDocument()
     const expectResults = (kind: string) => {
       const dataset = DATASET_OPTIONS.find(option => option.kind === kind)!
-      // Opening Train selects only training examples, including after changing datasets or undoing.
-      const examples = datasetExamples(dataset).filter(example => example.split === 'train')
+      // Opening Train preserves the selected all-examples split, including after changing datasets or undoing.
+      const examples = datasetExamples(dataset)
       const features = tensorValue([examples.length], examples.map(example => example.features[0].data[0]))
       const targets = tensorValue([examples.length], examples.map(example => example.target.data[0]))
       expect(container.querySelector('[data-id="x"] .node-metrics .tensor-hover-text')).toHaveAttribute('data-tooltip', 'out ' + formatFullTensor(features))

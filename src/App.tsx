@@ -926,27 +926,6 @@ function App({
 
   const openTrainTab = () => {
     setLeftTab('train')
-    if (!heldOutSample) return
-    const dataset = graph.nodes.find(node => node.type === 'dataset')
-    if (!dataset) return
-    const firstTrainingExample = datasetExamplesForNode(dataset).findIndex(example => example.split === 'train')
-    if (firstTrainingExample < 0) return
-    cancelActiveRun()
-    pushHistory()
-    const trainingGraph = {
-      ...graph,
-      nodes: graph.nodes.map(node => node.id === dataset.id
-        ? { ...node, params: { ...node.params, datasetSplit: 'train' as const, datasetIndex: firstTrainingExample, datasetValues: undefined } }
-        : node),
-    }
-    const evaluated = safeForward(trainingGraph)
-    setGraph(evaluated.graph)
-    setVisualizationGraph(evaluated.graph)
-    setTraceSteps([])
-    setTraceIndex(0)
-    setPhase('edit')
-    setCurrentLoss(evaluated.loss ?? null)
-    setIsPlaying(false)
   }
 
   useEffect(() => {
