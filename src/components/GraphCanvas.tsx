@@ -1,3 +1,6 @@
+import { useCanvasSelectionStyle } from './useCanvasSelectionStyle'
+import { useModelGraph } from '../hooks/useModelGraph'
+import { useStableCallback } from '../hooks/useStableCallback'
 import {
   Background,
   BackgroundVariant,
@@ -108,6 +111,7 @@ interface GraphCanvasProps {
   phase: string
   pendingNodeType?: NodeType
   onGraphChange: (graph: GraphModel) => void
+  onNavigationChange?: (active: boolean, viewport?: GraphViewState['viewport']) => void
   onViewChange?: (view: GraphViewState) => void
   onSelectionChange: (selection: CanvasSelection) => void
   onCreateNode: (type: NodeType, position: GraphPosition, parentGroupId?: string, sceneScale?: number, params?: NodeParams) => void
@@ -158,6 +162,7 @@ function GraphCanvasInner({
   onTransformChange,
   onLossChange,
   onDatasetChange,
+  onNavigationChange,
   onGroupCreate,
   onGroupExplode,
   onGroupRename,
@@ -165,16 +170,16 @@ function GraphCanvasInner({
   onInspectEdge,
 }: GraphCanvasProps): ReactElement {
   const { screenToFlowPosition, fitView, setViewport, getViewport } = useReactFlow()
-  const sourceGraph = displayGraph ?? graph
+  const sourceGraph = useModelGraph(displayGraph ?? graph)
   const continuous = Boolean(sourceGraph.groups?.length || sourceGraph.view?.preservedLayouts)
   const semantic = continuous
   const renderedGraph = useMemo(() => continuous ? compactVisualHierarchy(sourceGraph) : sourceGraph, [sourceGraph, continuous])
-  const geometryKey = JSON.stringify({
+  const geometryKey = useMemo(() => JSON.stringify({
     nodes: renderedGraph.nodes.map(({ id, type, label, position, dimensions, params }) => ({ id, type, label, position, dimensions, params: { inputCount: params.inputCount, expression: params.expression, dataset: params.dataset, customCsv: params.customCsv ? csvGeometrySample(params.customCsv) : undefined } })),
     edges: renderedGraph.edges.map(({ id, source, target, inputSlot, sourceSlot }) => ({ id, source, target, inputSlot, sourceSlot })),
     groups: renderedGraph.groups,
     view: { expandedGroupIds: [], preservedLayouts: renderedGraph.view?.preservedLayouts, preservedLayoutBounds: renderedGraph.view?.preservedLayoutBounds, layoutOffsets: renderedGraph.view?.layoutOffsets, layoutEdges: renderedGraph.view?.layoutEdges, manualNodePlacements: renderedGraph.view?.manualNodePlacements },
-  })
+  }), [renderedGraph])
   const geometryGraph = useMemo(() => JSON.parse(geometryKey) as GraphModel, [geometryKey])
   const scene = useMemo(() => continuous ? layoutContinuousScene(geometryGraph) : undefined, [geometryGraph, continuous])
   const layout = useMemo(() => scene ?? (semantic ? layoutSemanticGraph(renderedGraph) : undefined), [renderedGraph, semantic, scene])
@@ -188,6 +193,7 @@ function GraphCanvasInner({
   const addSearch = useRef<HTMLInputElement>(null)
   const emittedViewport = useRef<GraphViewState['viewport']>(undefined)
   const cameraZoom = camera.zoom
+  const updateSelectionZoom = useCanvasSelectionStyle(shell, cameraZoom)
   const [canvasSize, setCanvasSize] = useState({ width: 900, height: 600 })
   const maxZoom = scene ? continuousSceneMaxZoom(scene) : semantic ? 3 : 1.6
   const zoomToGroup = useCallback((groupId?: string) => {
@@ -360,6 +366,22 @@ function GraphCanvasInner({
     [graph, onGraphChange],
   )
 
+  const nodeActions = {
+    onFlexibleInputAdd: useStableCallback(addFlexibleInput),
+    onValueChange: useStableCallback(onNodeValueChange),
+    onActivationChange: useStableCallback((nodeId: string, value: string) => onActivationChange(nodeId, value as ActivationKind)),
+    onExpressionChange: useStableCallback((nodeId: string, value: string) => onExpressionChange?.(nodeId, value)),
+    onTransformChange: useStableCallback((nodeId: string, value: TensorTransformKind) => onTransformChange?.(nodeId, value)),
+    onLossChange: useStableCallback((nodeId: string, value: LossKind) => onLossChange?.(nodeId, value)),
+    onDatasetChange: useStableCallback((nodeId: string, value: DatasetKind) => onDatasetChange?.(nodeId, value)),
+  }
+  const { onFlexibleInputAdd: flexibleAction, onValueChange: valueAction, onActivationChange: activationAction,
+    onExpressionChange: expressionAction, onTransformChange: transformAction, onLossChange: lossAction, onDatasetChange: datasetAction } = nodeActions
+  const toggleAction = useStableCallback(toggleGroup)
+  const neuronAction = useStableCallback((groupId: string, unitIndex: number) => onInspectNeuron?.(groupId, unitIndex))
+  const inspectNeuronAction = onInspectNeuron ? neuronAction : undefined
+  const edgeAction = useStableCallback((id: string) => onInspectEdge?.(id))
+
   const reactNodes = useMemo(
     () => {
       const groupNodes = (continuous ? renderedGraph.groups ?? [] : visibleGroups(renderedGraph)).map<CanvasNode>((group) => {
@@ -393,7 +415,7 @@ function GraphCanvasInner({
             unitCount: weightValue?.shape[weightValue.shape.length - 1],
             unitValues: outputNode?.value?.data,
             attentionWeights: renderedGraph.nodes.find((node) => node.id === attentionWeightsId)?.value,
-            onInspectNeuron,
+            onInspectNeuron: inspectNeuronAction,
             inputCount: groupInterface?.inputs.length ?? 0,
             outputCount: groupInterface?.outputs.length ?? 0,
             outputMetrics: (groupInterface?.outputs ?? []).map((output) => {
@@ -405,7 +427,7 @@ function GraphCanvasInner({
             showGradient,
             active: group.nodeIds.includes(activeStep?.nodeId ?? ''),
             validationError: group.nodeIds.some(id => problemNodeIds.has(id)),
-            onToggle: toggleGroup,
+            onToggle: toggleAction,
           },
         }
       })
@@ -439,13 +461,13 @@ function GraphCanvasInner({
             active: activeStep?.nodeId === node.id,
             validationError: problemNodeIds.has(node.id),
             hasIncomingValue: renderedGraph.edges.some((edge) => edge.target === node.id),
-            onFlexibleInputAdd: addFlexibleInput,
-            onValueChange: onNodeValueChange,
-            onActivationChange: (nodeId: string, value: string) => onActivationChange(nodeId, value as ActivationKind),
-            onExpressionChange: onExpressionChange ?? (() => undefined),
-            onTransformChange: onTransformChange ?? (() => undefined),
-            onLossChange: onLossChange ?? (() => undefined),
-            onDatasetChange: onDatasetChange ?? (() => undefined),
+            onFlexibleInputAdd: flexibleAction,
+            onValueChange: valueAction,
+            onActivationChange: activationAction,
+            onExpressionChange: expressionAction,
+            onTransformChange: transformAction,
+            onLossChange: lossAction,
+            onDatasetChange: datasetAction,
           },
         }))
 
@@ -453,14 +475,14 @@ function GraphCanvasInner({
     },
     [
       activeStep?.nodeId,
-      onActivationChange,
-      onExpressionChange,
-      onTransformChange,
-      onLossChange,
-      onDatasetChange,
-      addFlexibleInput,
-      onNodeValueChange,
-      toggleGroup,
+      activationAction,
+      expressionAction,
+      transformAction,
+      lossAction,
+      datasetAction,
+      flexibleAction,
+      valueAction,
+      toggleAction,
       groupInterfaces,
       groupedNodeIds,
       renderedGraph,
@@ -473,7 +495,7 @@ function GraphCanvasInner({
       semantic,
       continuous,
       scene,
-      onInspectNeuron,
+      inspectNeuronAction,
     ],
   )
 
@@ -509,12 +531,12 @@ function GraphCanvasInner({
               phase,
               residual: semantic && /residual|skip/i.test(renderedGraph.nodes.find((node) => node.id === edge.target)?.label ?? '') && (edge.inputSlot ?? 0) === 0,
               label: `${renderedGraph.nodes.find((node) => node.id === edge.source)?.label ?? edge.source} → ${renderedGraph.nodes.find((node) => node.id === edge.target)?.label ?? edge.target}`,
-              onInspect: () => onInspectEdge?.(edge.id),
+              onInspect: () => edgeAction(edge.id),
             },
           },
         ]
       }),
-    [activeStep?.edgeIds, groupInterfaces, phase, renderedGraph, showGradient, semantic, continuous, selectedEdgeId, onInspectEdge],
+    [activeStep?.edgeIds, groupInterfaces, phase, renderedGraph, showGradient, semantic, continuous, selectedEdgeId, edgeAction],
   )
 
   const [nodes, setNodes, onNodesChangeBase] = useNodesState(reactNodes)
@@ -571,7 +593,7 @@ function GraphCanvasInner({
     }).sort((a, b) => a.distance - b.distance)[0]
     return nearby?.scale ?? Math.min(1, 1.25 / Math.max(.01, cameraZoom))
   }, [scene, cameraZoom, accessible])
-  const presentedNodes = scene ? nodes.filter(node => scene.nodes.has(node.id) || scene.groups.has(groupIdFromNodeId(node.id) ?? '')).map(node => {
+  const presentedNodes = useMemo(() => scene ? nodes.filter(node => scene.nodes.has(node.id) || scene.groups.has(groupIdFromNodeId(node.id) ?? '')).map(node => {
     const groupId = groupIdFromNodeId(node.id)
     const reveal = groupId ? reveals.get(groupId) ?? 0 : 1
     const available = accessible(scene.parents.get(node.id))
@@ -611,10 +633,11 @@ function GraphCanvasInner({
       ariaLabel: groupId ? (node.data as GroupNodeData).group.label : (node.data as BuilderNodeData).graphNode.label,
       data: { ...node.data, reveal, accessible: available, cameraZoom, frameHeaderVisible: groupId ? Math.max(0, (reveal - .95) / .05) * (1 - Math.max(0, Math.min(1, Math.max(node.width! * cameraZoom / canvasSize.width, node.height! * cameraZoom / canvasSize.height) - 1.1))) : 0 },
     }
-  }) : nodes
-  const presentedEdges = scene ? routedEdges.map(edge => ({ ...edge, focusable: accessible(edge.data?.parentId as string | undefined),
+  }) : nodes, [scene, nodes, reveals, accessible, cameraZoom, canvasSize])
+  const flatEdges = useMemo(() => routedEdges.filter(edge => visibleEdgeIds.has(edge.id)), [routedEdges, visibleEdgeIds])
+  const presentedEdges = useMemo(() => scene ? routedEdges.map(edge => ({ ...edge, focusable: accessible(edge.data?.parentId as string | undefined),
     data: { ...edge.data!, cameraZoom, accessible: accessible(edge.data?.parentId as string | undefined) },
-  })) : routedEdges.filter(edge => visibleEdgeIds.has(edge.id))
+  })) : flatEdges, [scene, routedEdges, accessible, cameraZoom, flatEdges])
   const previousReactNodes = useRef(reactNodes)
   const previousReactEdges = useRef(reactEdges)
 
@@ -869,6 +892,15 @@ function GraphCanvasInner({
     [toggleGroup],
   )
 
+  const commitViewport = (viewport: { x: number; y: number; zoom: number }) => {
+    emittedViewport.current = viewport
+    onNavigationChange?.(false, viewport)
+    const previous = graph.view?.viewport
+    if (!previous || previous.x !== viewport.x || previous.y !== viewport.y || previous.zoom !== viewport.zoom) {
+      changeView({ ...graph.view, expandedGroupIds: graph.view?.expandedGroupIds ?? [], viewport })
+    }
+  }
+
   const selectedGroup = selectedGroupId ? graph.groups?.find((group) => group.id === selectedGroupId) : undefined
   const groupCount = renderedGraph.groups?.length ?? 0
   const center = { x: (canvasSize.width / 2 - camera.x) / camera.zoom, y: (canvasSize.height / 2 - camera.y) / camera.zoom }
@@ -926,7 +958,7 @@ function GraphCanvasInner({
         <button type="button" onClick={() => focusGroup(undefined)}><Maximize size={14} /> Fit model</button>
         {semantic ? <button type="button" onClick={compactLayout} title="Rearrange all blocks and fit the model; keep the current weights and values"><LayoutGrid size={14} /> Compact layout</button> : null}
       </nav> : null}
-      <div className={`flow-shell ${semantic ? 'semantic-flow' : ''}`} style={{ '--selection-border-width': `${1 / cameraZoom}px` } as React.CSSProperties} ref={shell} onPointerDownCapture={handleFlowPointerDownCapture} onDoubleClick={handlePaneDoubleClick}
+      <div className={`flow-shell ${semantic ? 'semantic-flow' : ''}`} ref={shell} onPointerDownCapture={handleFlowPointerDownCapture} onDoubleClick={handlePaneDoubleClick}
         onContextMenu={(event) => event.preventDefault()}
         onPointerMove={(event) => {
           const pan = secondaryPan.current
@@ -938,9 +970,14 @@ function GraphCanvasInner({
         onPointerUp={(event) => {
           if (secondaryPan.current?.pointerId !== event.pointerId) return
           secondaryPan.current = undefined
+          commitViewport(getViewport())
           event.currentTarget.releasePointerCapture(event.pointerId)
         }}
-        onLostPointerCapture={() => { secondaryPan.current = undefined }}>
+        onLostPointerCapture={() => {
+          if (!secondaryPan.current) return
+          secondaryPan.current = undefined
+          commitViewport(getViewport())
+        }}>
         <ReactFlow
           nodes={presentedNodes}
           edges={presentedEdges}
@@ -951,14 +988,20 @@ function GraphCanvasInner({
           fitView={!graph.view?.viewport}
           fitViewOptions={INITIAL_FIT_OPTIONS}
           defaultViewport={graph.view?.viewport}
-          onMove={(_, viewport) => setCamera(viewport)}
+          onMoveStart={() => onNavigationChange?.(true)}
+          onMove={(_, viewport) => {
+            onNavigationChange?.(true, viewport)
+            // React Flow owns the camera; only nested scenes need React updates.
+            // Nested scenes still update reveals, hit targets and breadcrumbs.
+            updateSelectionZoom(viewport.zoom)
+            if (scene) setCamera(viewport)
+          }}
           onMoveEnd={(_, viewport) => {
-            emittedViewport.current = viewport
-            setCamera(viewport)
-            const previous = graph.view?.viewport
-            if (!previous || previous.x !== viewport.x || previous.y !== viewport.y || previous.zoom !== viewport.zoom) {
-              changeView({ ...graph.view, expandedGroupIds: graph.view?.expandedGroupIds ?? [], viewport })
-            }
+            updateSelectionZoom(viewport.zoom)
+            if (scene) setCamera(viewport)
+            // setViewport emits a move/end for every secondary-pointer move.
+            // Commit that gesture once, when the pointer is released.
+            if (!secondaryPan.current) commitViewport(viewport)
           }}
           minZoom={semantic ? 0.01 : 0.15}
           maxZoom={maxZoom}

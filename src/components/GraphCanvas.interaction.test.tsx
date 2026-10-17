@@ -664,7 +664,8 @@ describe('canvas movement gestures', () => {
 
   it('uses a secondary pointer drag to pan without changing block selection or graph positions', () => {
     const graph = createModelPreset('decoder')
-    const { container, onSelectionChange, onGraphChange } = mountCanvas(graph)
+    const { container, onSelectionChange, onGraphChange, onViewChange } = mountCanvas(graph)
+    onViewChange.mockClear()
     const shell = container.querySelector<HTMLDivElement>('.flow-shell')!
     shell.setPointerCapture = vi.fn()
     shell.releasePointerCapture = vi.fn()
@@ -679,12 +680,49 @@ describe('canvas movement gestures', () => {
     fireEvent(shell, pointer('pointermove', 145, 175))
     expect(flow.setViewport).toHaveBeenLastCalledWith({ x: 75, y: 25, zoom: 0.8 })
     expect(shell.setPointerCapture).toHaveBeenCalledWith(7)
+    // React Flow emits onMoveEnd for each programmatic setViewport. These
+    // intermediate notifications must not publish graph/recovery snapshots.
+    act(() => flow.props!.onMoveEnd!(null, { x: 75, y: 25, zoom: .8 }))
+    expect(onViewChange).not.toHaveBeenCalled()
     fireEvent(shell, pointer('pointerup', 145, 175))
     expect(shell.releasePointerCapture).toHaveBeenCalledWith(7)
+    expect(onViewChange).toHaveBeenCalledTimes(1)
     flow.setViewport.mockClear()
     fireEvent(shell, pointer('pointermove', 180, 210, 0))
     expect(flow.setViewport).not.toHaveBeenCalled()
     expect(onSelectionChange).not.toHaveBeenCalled()
     expect(onGraphChange).not.toHaveBeenCalled()
   })
+})
+
+it('preserves node/edge data through viewport-only pan and zoom updates', () => {
+  const graph = createModelPreset('linear')
+  graph.groups = []
+  graph.view = { expandedGroupIds: [], viewport: { x: 0, y: 0, zoom: 1 } }
+  const { rerenderGraph } = mountCanvas(graph)
+  const nodes = flow.props!.nodes, edges = flow.props!.edges
+  for (let i = 1; i <= 5; i++) {
+    const viewport = { x: i * 20, y: 30, zoom: 1 + i * .1 }
+    act(() => flow.props!.onMove!(null, viewport))
+    expect(flow.props!.nodes).toBe(nodes)
+    expect(flow.props!.edges).toBe(edges)
+    act(() => flow.props!.onMoveEnd!(null, viewport))
+    rerenderGraph({ ...graph, view: { ...graph.view!, viewport } })
+    expect(flow.props!.nodes).toBe(nodes)
+    expect(flow.props!.edges).toBe(edges)
+  }
+})
+
+
+it('preserves nested scene data during panning while retaining zoom-dependent presentation', () => {
+  const graph = createModelPreset('block')
+  graph.view = { ...graph.view!, viewport: { x: 0, y: 0, zoom: .8 } }
+  mountCanvas(graph)
+  const nodes = flow.props!.nodes, edges = flow.props!.edges
+  act(() => flow.props!.onMove!(null, { x: 20, y: 30, zoom: .8 }))
+  expect(flow.props!.nodes).toBe(nodes)
+  expect(flow.props!.edges).toBe(edges)
+  act(() => flow.props!.onMove!(null, { x: 20, y: 30, zoom: 3 }))
+  expect(flow.props!.nodes).not.toBe(nodes)
+  expect(flow.props!.edges).not.toBe(edges)
 })

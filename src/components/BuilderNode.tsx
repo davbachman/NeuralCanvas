@@ -22,7 +22,7 @@ import {
 } from '../domain/engine'
 import { DATASET_MENU_OPTIONS, customCsvCardHeight, customCsvCardWidth, customCsvLabelWidth, customCsvOutputTop, datasetTargetSlotForNode } from '../domain/datasets'
 import { builderCardHeight } from '../domain/builderGeometry'
-import { formatCompactTensor, formatFullTensor, formatTensorInput, parseTensorInput, toTensor } from '../domain/tensor'
+import { formatCompactTensor, formatFullTensor, formatTensorInput, parseTensorInput } from '../domain/tensor'
 import { arithmeticVariableNames, canonicalArithmeticExpression, displayArithmeticExpression, parseArithmetic } from '../domain/arithmetic'
 import type { DatasetKind, GraphNode, LossKind, NodeType, TensorTransformKind, TensorValue } from '../domain/types'
 
@@ -96,7 +96,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
     node.type === 'weight' ||
     node.type === 'bias' ||
     ((node.type === 'input' || node.type === 'target') && !data.hasIncomingValue)
-  const parameterTensor = node.type === 'weight' || node.type === 'bias' ? toTensor(node.params.value) : undefined
+  const parameterTensor = (node.type === 'weight' || node.type === 'bias') && typeof node.params.value === 'object' ? node.params.value : undefined
   const selectedDataset = node.type === 'dataset' ? datasetForNode(node) : undefined
   const customCsv = node.type === 'dataset' && node.params.dataset === 'custom-csv'
   const lossKind = data.lossKind ?? lossKindForNode(node)

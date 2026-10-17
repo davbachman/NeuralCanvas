@@ -1,3 +1,4 @@
+import { useModelGraph } from './hooks/useModelGraph'
 import { hasStoryExperiment } from './domain/textData'
 import { InferenceInspection, inferenceSignature } from './domain/inferenceInspection'
 import { useLocalRecovery } from './hooks/useLocalRecovery'
@@ -191,7 +192,8 @@ function App({
   const [leftTab, setLeftTab] = useState<'build' | 'train' | 'test'>('build')
   const [inferenceSplit, setInferenceSplit] = useState<'train' | 'test'>('test')
   const [inferenceResult, setInferenceResult] = useState<{ split: 'train' | 'test'; metrics: ReturnType<typeof evaluateDataset>; inspection: InferenceInspection }>()
-  const inferenceModelSignature = useMemo(() => inferenceResult ? inferenceSignature(graph, inferenceResult.inspection.datasetId) : undefined, [graph, inferenceResult])
+  const modelGraph = useModelGraph(graph)
+  const inferenceModelSignature = useMemo(() => inferenceResult ? inferenceSignature(modelGraph, inferenceResult.inspection.datasetId) : undefined, [modelGraph, inferenceResult])
   if (inferenceResult && inferenceResult.inspection.signature !== inferenceModelSignature) setInferenceResult(undefined)
   const [testStatus, setTestStatus] = useState('')
   const [codeFocus, setCodeFocus] = useState<{ kind: 'group' | 'node'; id: string; serial: number }>()
@@ -310,11 +312,11 @@ function App({
   const recovery = useLocalRecovery(recoveryWorkspace, isTraining && graph.training?.engine === 'tensor')
   const saveRecoveryCheckpoint = recovery.save
 
-  const validationIssues = useMemo(() => validateGraph(graph), [graph])
+  const validationIssues = useMemo(() => validateGraph(modelGraph), [modelGraph])
   const blockingIssues = useMemo(() => validationIssues.filter(
     (issue) => issue.code !== 'disconnected',
   ), [validationIssues])
-  const problemNodes = useMemo(() => problemNodeIds(graph, blockingIssues), [graph, blockingIssues])
+  const problemNodes = useMemo(() => problemNodeIds(modelGraph, blockingIssues), [modelGraph, blockingIssues])
   const hasLoss = graph.nodes.some(isLossNode)
   const storyExperiment = hasStoryExperiment(graph)
   const heldOutSample = isHeldOutSample(graph)
@@ -325,8 +327,8 @@ function App({
       ? selectedNodeIds[0]
       : undefined
   const traceGraph = useMemo(
-    () => visibleGraphForTrace(graph, traceSteps, traceIndex, phase),
-    [graph, phase, traceIndex, traceSteps],
+    () => visibleGraphForTrace(modelGraph, traceSteps, traceIndex, phase),
+    [modelGraph, phase, traceIndex, traceSteps],
   )
   const projection = useMemo(
     () => projectDenseNeurons(traceGraph),
@@ -1795,6 +1797,7 @@ function App({
         pendingNodeType={pendingNodeType}
         onGraphChange={applyGraphChange}
         onInspectNeuron={inspectNeuron}
+        onNavigationChange={recovery.onNavigationChange}
         onViewChange={(view: GraphViewState) => {
           if (
             JSON.stringify(graph.view?.expandedGroupIds ?? []) !==

@@ -151,17 +151,27 @@ export function formatTensor(value: TensorValue | number | undefined, digits = 3
 
 export function formatCompactTensor(value: TensorValue | number | undefined, digits = 3): string {
   if (value === undefined) return '--'
-  const tensor = toTensor(value)
+  if (typeof value === 'number') return formatScalarNumber(value, digits)
+  const tensor = value
   if (isScalarTensor(tensor)) return formatScalarNumber(tensor.data[0], digits)
   if (tensor.data.length === 0) return '[]'
   return `[${formatScalarNumber(tensor.data[0], digits)},...]`
 }
 
+// Tensor values in committed graph state are immutable. Weak keys release the
+// descriptions with their tensors; keeping only the last precision bounds memory.
+const fullDescriptions = new WeakMap<TensorValue, { digits: number; text: string }>()
+
 export function formatFullTensor(value: TensorValue | number | undefined, digits = 3): string {
   if (value === undefined) return '--'
-  const tensor = toTensor(value)
+  if (typeof value === 'number') return formatScalarNumber(value, digits)
+  const tensor = value
   if (isScalarTensor(tensor)) return formatScalarNumber(tensor.data[0], digits)
-  return `${formatShape(tensor.shape)} [${tensor.data.map((entry) => formatScalarNumber(entry, digits)).join(', ')}]`
+  const cached = fullDescriptions.get(tensor)
+  if (cached?.digits === digits) return cached.text
+  const text = `${formatShape(tensor.shape)} [${tensor.data.map((entry) => formatScalarNumber(entry, digits)).join(', ')}]`
+  fullDescriptions.set(tensor, { digits, text })
+  return text
 }
 
 export function formatTensorInput(value: TensorValue | number | undefined): string {
