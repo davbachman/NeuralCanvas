@@ -194,7 +194,7 @@ function CanvasDataInspector({ graph, node, edge, group }: Props) {
   const selected = signals[Math.min(signalIndex, signals.length - 1)]
   const source = graph.nodes.find(candidate => candidate.id === edge?.source)
   const target = graph.nodes.find(candidate => candidate.id === edge?.target)
-  const title = edge ? `${source?.label ?? edge.source} → ${target?.label ?? edge.target}` : group?.label ?? node?.label ?? ''
+  const title = edge ? `${source?.label ?? edge.source} → ${target?.label ?? edge.target}` : group?.label ?? (node?.type === 'weight' || node?.type === 'bias' ? 'Param' : node?.label) ?? ''
   const hasValue = selected?.value !== undefined
   const hasGradient = selected?.gradient !== undefined
   const shownMode = mode === 'gradient' && hasGradient || !hasValue && hasGradient ? 'gradient' : 'value'
@@ -276,7 +276,7 @@ function InferenceDataInspector({ inference, node, edge, group }: Props & { infe
   const slot = signalEdge?.sourceSlot ?? (snapshotNode?.type === 'dataset' ? signalIndex : 0)
   if (!node && !edge && !group) return <p className="data-empty">Select a block or wire to inspect inference outputs.</p>
   return <section className="data-inspector" aria-label="Inference output">
-    <header className="data-header"><h2>{edge ? 'Connection data' : group?.label ?? node?.label}</h2><p>Forward outputs from the saved inference run. Gradients are not part of inference.</p></header>
+    <header className="data-header"><h2>{edge ? 'Connection data' : group?.label ?? (node?.type === 'weight' || node?.type === 'bias' ? 'Param' : node?.label)}</h2><p>Forward outputs from the saved inference run. Gradients are not part of inference.</p></header>
     {signals.length > 1 && <label className="data-signal-select">Inspect signal<select aria-label="Inspect inference signal" value={Math.min(signalIndex, signals.length - 1)} onChange={event => setSignalIndex(Number(event.target.value))}>{signals.map((signal, index) => <option key={signal.key} value={index}>{signal.label}</option>)}</select></label>}
     {id ? <InferenceSignalView key={`${id}:${slot}`} inspection={inference} id={id} slot={slot}/> : <p className="data-empty">This output was not evaluated in this inference run.</p>}
   </section>
