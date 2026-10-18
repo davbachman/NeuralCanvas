@@ -66,10 +66,10 @@ describe('one continuous nested scene', () => {
     expect(gap).toBeLessThanOrEqual(40)
     expect(target.y).toBeLessThan(neuron.y + neuron.height + 40)
     expect(target.y + target.height / 2).toBeGreaterThan(neuron.y + neuron.height)
-    expect(loss.y + loss.height * 2 / 3).toBeCloseTo(target.y + target.height / 2)
+    expect(loss.y + builderInputPortY(graph.nodes.find(node => node.type === 'loss')!, 1)).toBeCloseTo(target.y + builderOutputPortY(graph.nodes.find(node => node.type === 'target')!, 0))
     const overview = scene.levels.find(level => !level.parentId)!.ids.map(id => scene.nodes.get(id) ?? scene.groups.get(id.slice(13))!)
     const height = Math.max(...overview.map(rect => rect.y + rect.height)) - Math.min(...overview.map(rect => rect.y))
-    expect(height).toBeLessThan(500)
+    expect(height).toBeLessThan(550)
     const targetWire = routeContinuousScene(graph, scene).find(wire => graph.edges.find(edge => edge.id === wire.edgeId)?.source === 'target')!
     expect(targetWire.route).toHaveLength(2)
   })
@@ -340,8 +340,8 @@ describe('one continuous nested scene', () => {
     const input = scene.nodes.get(`${prefix}x0`)!, weight = scene.nodes.get(`${prefix}w0`)!
     const scale = scene.scales.get(`${prefix}w0`)!
     expect(weight.width / scale).toBeCloseTo(176)
-    expect(weight.height / scale).toBeCloseTo(205)
+    expect(weight.height / scale).toBeCloseTo(builderCardHeight(graph.nodes.find(node => node.id === `${prefix}w0`)!))
     expect((weight.x - input.x) / scale).toBeCloseTo(200)
-    expect((weight.y - input.y) / scale).toBeCloseTo(110)
+    expect((weight.y - input.y) / scale).toBeGreaterThan(input.height / scale / 2)
   })
 })

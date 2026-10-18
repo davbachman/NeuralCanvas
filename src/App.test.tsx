@@ -1,3 +1,4 @@
+import { builderInputPortY } from './domain/builderGeometry'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Position as FlowPosition } from '@xyflow/react'
@@ -1162,7 +1163,7 @@ describe('Neural Canvas app', () => {
     const card = container.querySelector('[data-id="concat"] .builder-node')!
     const addInput = screen.getByRole('button', { name: 'Add input to concat' })
     expect(addInput).toHaveClass('node-add-input-button')
-    expect([...card.querySelectorAll<HTMLElement>('.node-handle.target')].map(port => port.style.top)).toEqual(['32px', '64px', '96px'])
+    expect([...card.querySelectorAll<HTMLElement>('.node-handle.target')].map(port => port.style.top)).toEqual([0, 1, 2].map(index => `${builderInputPortY(graph.nodes[0], index)}px`))
   })
 
   it.each([

@@ -1,13 +1,11 @@
 import { denseGroupDetail } from './authoring'
-import { customCsvCardHeight, customCsvCardWidth } from './datasets'
+import { builderCardHeight, builderCardWidth } from './builderGeometry'
 import { connectGraphNodes, type GraphConnection } from './graphEditing'
 import { layoutConnections } from './layoutState'
 import {
   MIN_NODE_HEIGHT,
   NODE_WIDTH,
-  heightForInputCount,
   inputArityForNode,
-  isFlexibleInputNodeType,
   outputArityForNode,
 } from './engine'
 import type { GraphEdge, GraphGroup, GraphModel, GraphNode, Position } from './types'
@@ -388,8 +386,8 @@ function nodeRect(node: GraphNode): NodeRect {
   return {
     x: node.position.x,
     y: node.position.y,
-    width: node.dimensions?.width ?? (node.type === 'dataset' && node.params.dataset === 'custom-csv' ? customCsvCardWidth(node) : NODE_WIDTH),
-    height: node.dimensions?.height ?? (node.type === 'dataset' && node.params.dataset === 'custom-csv' ? customCsvCardHeight(node) : isFlexibleInputNodeType(node.type) ? heightForInputCount(inputArityForNode(node)) : MIN_NODE_HEIGHT),
+    width: builderCardWidth(node),
+    height: builderCardHeight(node),
   }
 }
 

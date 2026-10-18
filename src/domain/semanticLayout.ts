@@ -107,7 +107,9 @@ export function layoutSemanticGraph(graph: GraphModel, nestedCards = false, root
     if (coordinates) {
       const inputPairs = items.flatMap((item) => { const match = item.id.match(/:([xw])(\d+)$/); return match ? [{ item, column: match[1] === 'x' ? 0 : 1, row: Number(match[2]) }] : [] })
       const inputRows = Math.max(1, ...inputPairs.map((pair) => pair.row + 1))
-      const coordinateRow = 230
+      const coordinateHeight = Math.max(190, ...inputPairs.map(pair => pair.item.height))
+      const coordinateRow = coordinateHeight + 30
+      const weightOffset = coordinateHeight / 2 + 15
       const height = (inputRows + 1) * coordinateRow - 20
       let x = 0
       for (const [columnRank, column] of [...columns.entries()].sort(([a], [b]) => a - b)) {
@@ -115,7 +117,7 @@ export function layoutSemanticGraph(graph: GraphModel, nestedCards = false, root
           for (const item of column) {
             const pair = inputPairs.find((candidate) => candidate.item.id === item.id)
             item.x = x + (pair?.column ?? 0) * 200
-            item.y = (pair?.row ?? inputRows) * coordinateRow + (pair?.column ?? 0) * 110
+            item.y = (pair?.row ?? inputRows) * coordinateRow + (pair?.column ?? 0) * weightOffset
           }
           x += 420
         } else {
@@ -219,13 +221,14 @@ export function layoutSemanticGraph(graph: GraphModel, nestedCards = false, root
       const columnBottom = Math.max(0, ...placed.filter(item => overlapsColumn(item, target)).map(item => item.y + item.height))
       const intervening = placed.filter(item => item.x >= target.x + target.width && (!loss || item.x + item.width <= loss.x))
       const laneY = Math.max(0, ...intervening.map(item => item.y + item.height + WIRE_LANE))
-      target.y = Math.max(columnBottom + ROW_GAP, laneY - target.height / 2)
+      const targetPortY = builderOutputPortY(target.node!, 0)
+      target.y = Math.max(columnBottom + ROW_GAP, laneY - targetPortY)
       if (loss) {
         const targetLink = links.find(link => link.from === target.id && link.to === loss.id)!
         const portY = terminalY(loss, loss.id, targetLink.inputSlot ?? 1)
         const lossColumnBottom = Math.max(-ROW_GAP, ...placed.filter(item => overlapsColumn(item, loss)).map(item => item.y + item.height))
-        loss.y = Math.max(target.y + target.height / 2 - portY, lossColumnBottom + ROW_GAP)
-        target.y = loss.y + portY - target.height / 2
+        loss.y = Math.max(target.y + targetPortY - portY, lossColumnBottom + ROW_GAP)
+        target.y = loss.y + portY - targetPortY
         placed.push(loss)
       }
       placed.push(target)

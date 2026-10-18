@@ -175,7 +175,7 @@ function GraphCanvasInner({
   const semantic = continuous
   const renderedGraph = useMemo(() => continuous ? compactVisualHierarchy(sourceGraph) : sourceGraph, [sourceGraph, continuous])
   const geometryKey = useMemo(() => JSON.stringify({
-    nodes: renderedGraph.nodes.map(({ id, type, label, position, dimensions, params }) => ({ id, type, label, position, dimensions, params: { inputCount: params.inputCount, expression: params.expression, dataset: params.dataset, customCsv: params.customCsv ? csvGeometrySample(params.customCsv) : undefined } })),
+    nodes: renderedGraph.nodes.map(({ id, type, label, position, dimensions, params }) => ({ id, type, label, position, dimensions, params: { inputCount: params.inputCount, expression: params.expression, dataset: params.dataset, textData: params.textData ? { representation: params.textData.representation, task: params.textData.task } : undefined, customCsv: params.customCsv ? csvGeometrySample(params.customCsv) : undefined } })),
     edges: renderedGraph.edges.map(({ id, source, target, inputSlot, sourceSlot }) => ({ id, source, target, inputSlot, sourceSlot })),
     groups: renderedGraph.groups,
     view: { expandedGroupIds: [], preservedLayouts: renderedGraph.view?.preservedLayouts, preservedLayoutBounds: renderedGraph.view?.preservedLayoutBounds, layoutOffsets: renderedGraph.view?.layoutOffsets, layoutEdges: renderedGraph.view?.layoutEdges, manualNodePlacements: renderedGraph.view?.manualNodePlacements },
@@ -229,8 +229,8 @@ function GraphCanvasInner({
     const node = renderedGraph.nodes.find(node => node.id === focusRequest.id)
     const rect = scene?.nodes.get(focusRequest.id) ?? layout?.nodes.get(focusRequest.id) ?? (node ? {
       ...node.position,
-      width: node.dimensions?.width ?? builderCardWidth(node),
-      height: node.dimensions?.height ?? builderCardHeight(node),
+      width: builderCardWidth(node),
+      height: builderCardHeight(node),
     } : undefined)
     if (!rect) return
     void setViewport(getViewportForBounds(rect, canvasSize.width, canvasSize.height, .01, maxZoom, .32), { duration: 650, ease: focusEase })
@@ -439,10 +439,8 @@ function GraphCanvasInner({
           type: 'builderNode',
           position: layout?.nodes.get(node.id) ?? node.position,
           draggable: true,
-          width: semantic ? layout?.nodes.get(node.id)?.width ?? 176 : isFlexibleInputNodeType(node.type) || node.type === 'arithmetic' ? NODE_WIDTH : undefined,
-          height: semantic ? layout?.nodes.get(node.id)?.height ?? 112 : isFlexibleInputNodeType(node.type) || node.type === 'arithmetic'
-            ? node.dimensions?.height ?? heightForInputCount(inputArityForNode(node))
-            : undefined,
+          width: layout?.nodes.get(node.id)?.width ?? builderCardWidth(node),
+          height: layout?.nodes.get(node.id)?.height ?? builderCardHeight(node),
           selected: selectedNodeIdSet.has(node.id),
           data: {
             graphNode: node,
@@ -492,7 +490,6 @@ function GraphCanvasInner({
       showGradient,
       showMath,
       layout,
-      semantic,
       continuous,
       scene,
       inspectNeuronAction,

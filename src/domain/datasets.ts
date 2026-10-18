@@ -1,4 +1,4 @@
-import { activeStoryExperiment, encodeStory, textDataset } from './textData'
+import { activeStoryExperiment, encodeStory, textDataset, textDatasetLabels } from './textData'
 import type { CustomCsvData, DatasetKind, DatasetTask, GraphNode, TensorValue } from './types'
 import { tensorValue } from './tensor'
 import { analyzeCustomCsv } from './customCsv'
@@ -243,14 +243,16 @@ export function datasetMode(node: GraphNode): 'sample' | 'batch' {
   return datasetForNode(node).examples ? 'sample' : node.params.datasetMode ?? 'batch'
 }
 export function datasetOutputCountForNode(node: GraphNode): number {
+  if (node.params.dataset === 'custom-text' && node.params.textData) return textDatasetLabels(node.params.textData).featureLabels.length + 1
   return datasetForNode(node).featureValues.length + 1
 }
 export function datasetTargetSlotForNode(node: GraphNode): number {
+  if (node.params.dataset === 'custom-text' && node.params.textData) return datasetOutputCountForNode(node) - 1
   return node.params.dataset === 'custom-csv' && node.params.customCsv
     ? node.params.customCsv.targetColumn : datasetForNode(node).featureValues.length
 }
 export function datasetOutputLabelForSlot(node: GraphNode, slot: number): string {
-  const dataset = datasetForNode(node)
+  const dataset = node.params.dataset === 'custom-text' && node.params.textData ? textDatasetLabels(node.params.textData) : datasetForNode(node)
   if (node.params.dataset === 'custom-csv' && node.params.customCsv) {
     const csv = node.params.customCsv
     return csv.hasHeader ? csv.rows[0][slot]?.trim() || `Column ${slot + 1}` : `Column ${slot + 1}`

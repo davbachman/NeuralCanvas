@@ -7,21 +7,20 @@ import {
 import { Box, CircleDot, Crosshair, Database, Plus, Sigma } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import {
-  FLEX_INPUT_HEIGHT_STEP,
   LOSS_OPTIONS,
   TENSOR_TRANSFORM_OPTIONS,
   MAX_FLEX_INPUT_COUNT,
   datasetForNode,
   datasetOutputLabelForSlot,
   datasetOutputValueForSlot,
-  heightForInputCount,
   inputArityForNode,
   isFlexibleInputNodeType,
   lossKindForNode,
   outputArityForNode,
 } from '../domain/engine'
-import { DATASET_MENU_OPTIONS, customCsvCardHeight, customCsvCardWidth, customCsvLabelWidth, customCsvOutputTop, datasetTargetSlotForNode } from '../domain/datasets'
-import { builderCardHeight } from '../domain/builderGeometry'
+import { DATASET_MENU_OPTIONS, customCsvLabelWidth, datasetTargetSlotForNode } from '../domain/datasets'
+import { inputConnectionLabels, outputConnectionLabel } from '../domain/connectionLabels'
+import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
 import { formatCompactTensor, formatFullTensor, formatTensorInput, parseTensorInput } from '../domain/tensor'
 import { arithmeticVariableNames, canonicalArithmeticExpression, displayArithmeticExpression, parseArithmetic } from '../domain/arithmetic'
 import type { DatasetKind, GraphNode, LossKind, NodeType, TensorTransformKind, TensorValue } from '../domain/types'
@@ -88,7 +87,6 @@ export function BuilderNode(props: NodeProps): ReactElement {
   const outputCount = outputArityForNode(node)
   const isFlexibleInputNode = isFlexibleInputNodeType(node.type)
   const variableInputLayout = isFlexibleInputNode || node.type === 'arithmetic'
-  const nodeHeight = node.dimensions?.height ?? heightForInputCount(inputCount)
   const canAddInput = !data.coordinate && variableInputLayout && inputCount < MAX_FLEX_INPUT_COUNT
   const accessible = data.accessible !== false
   const isSource = outputCount > 0
@@ -98,8 +96,10 @@ export function BuilderNode(props: NodeProps): ReactElement {
     ((node.type === 'input' || node.type === 'target') && !data.hasIncomingValue)
   const parameterTensor = (node.type === 'weight' || node.type === 'bias') && typeof node.params.value === 'object' ? node.params.value : undefined
   const selectedDataset = node.type === 'dataset' ? datasetForNode(node) : undefined
-  const customCsv = node.type === 'dataset' && node.params.dataset === 'custom-csv'
+  const datasetPorts = node.type === 'dataset'
+  const customCsv = datasetPorts && node.params.dataset === 'custom-csv'
   const lossKind = data.lossKind ?? lossKindForNode(node)
+  const inputLabels = inputConnectionLabels(node, lossKind)
   const lossOptions = data.lossOptions ?? LOSS_OPTIONS
   const showTypeBadge = node.label.trim().toLowerCase() !== node.type && !(node.type === 'weight' && /^param\s+\d+$/i.test(node.label))
   const valueText = useMemo(() => editableValue ? formatTensorInput(node.params.value) : '', [editableValue, node.params.value])
@@ -120,33 +120,37 @@ export function BuilderNode(props: NodeProps): ReactElement {
   }
 
   useEffect(() => {
-    if (!variableInputLayout) return
     updateNodeInternals(node.id)
-  }, [inputCount, variableInputLayout, node.id, updateNodeInternals])
+  }, [inputCount, outputCount, node.id, updateNodeInternals])
 
   return (
     <div
-      className={`builder-node node-${node.type} ${customCsv ? 'is-custom-csv' : ''} ${isFlexibleInputNode ? 'has-flex-inputs' : ''} ${data.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data.validationError ? 'has-error' : ''}`}
+      className={`builder-node node-${node.type} ${datasetPorts ? 'has-dataset-ports' : ''} ${isFlexibleInputNode ? 'has-flex-inputs' : ''} ${data.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data.validationError ? 'has-error' : ''}`}
       aria-hidden={!accessible}
       inert={!accessible}
       aria-invalid={data.validationError || undefined}
-      style={{ ...(variableInputLayout ? { height: nodeHeight } : {}), ...(customCsv ? { width: customCsvCardWidth(node), height: customCsvCardHeight(node, true) } : {}), ...(typeof data.sceneScale === 'number' ? { height: builderCardHeight(node), transform: `scale(${data.sceneScale})`, transformOrigin: 'top left' } : {}) }}
+      style={{ width: builderCardWidth(node), height: builderCardHeight(node), ...(typeof data.sceneScale === 'number' ? { transform: `scale(${data.sceneScale})`, transformOrigin: 'top left' } : {}) }}
     >
       {Array.from({ length: inputCount }).map((_, index) => (
         <Handle
           key={index}
           id={`in-${index}`}
           type="target"
+          aria-label={`${inputLabels[index]} input`}
+          title={`${inputLabels[index]} input`}
           position={Position.Left}
           className="node-handle"
-          style={node.type === 'loss' ? { top: `${(index + 1) * 100 / (inputCount + 1)}%` } : { top: `${FLEX_INPUT_HEIGHT_STEP + index * FLEX_INPUT_HEIGHT_STEP}px` }}
+          style={{ top: builderInputPortY(node, index) }}
         />
       ))}
+      <div className="node-input-labels" aria-hidden="true">
+        {inputLabels.map((label, index) => <span key={index} style={{ top: builderInputPortY(node, index) }} title={label}>{label}</span>)}
+      </div>
       {canAddInput ? (
         <button
           type="button"
           className="node-add-input-button nodrag nopan"
-          style={{ top: `${FLEX_INPUT_HEIGHT_STEP + inputCount * FLEX_INPUT_HEIGHT_STEP}px` }}
+          style={{ top: builderInputPortY(node, inputCount) }}
           aria-label={`Add input to ${node.label}`}
           onPointerDown={(event) => event.stopPropagation()}
           onClick={(event) => {
@@ -276,7 +280,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
               key={index}
               label={datasetOutputLabelForSlot(node, index)}
               value={datasetOutputValueForSlot(node, index)}
-              valueOnly={customCsv}
+              valueOnly={datasetPorts}
               detailed={accessible}
             />
           ))
@@ -285,7 +289,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
         )}
         {parameterTensor && parameterTensor.shape.length > 0 ? <span className="node-tensor-shape">shape {parameterTensor.shape.join(' × ')} · {parameterTensor.data.length} values</span> : null}
         {node.localDerivative !== undefined ? <TensorMetric label="d local" value={node.localDerivative} detailed={accessible} /> : null}
-        {data.showGradient && !customCsv ? <TensorMetric label="grad" value={node.grad} detailed={accessible} /> : null}
+        {data.showGradient && !datasetPorts ? <TensorMetric label="grad" value={node.grad} detailed={accessible} /> : null}
       </div>
       {isSource ? (
         Array.from({ length: outputCount }).map((_, index) => (
@@ -295,19 +299,20 @@ export function BuilderNode(props: NodeProps): ReactElement {
             aria-label={node.type === 'dataset' ? customCsv
               ? `${datasetOutputLabelForSlot(node, index)} output`
               : `${index === datasetTargetSlotForNode(node) ? 'Target' : 'Feature'} ${datasetOutputLabelForSlot(node, index)} output`
-              : undefined}
+              : `${outputConnectionLabel(node, index)} output`}
+            title={`${outputConnectionLabel(node, index)} output`}
             type="source"
             position={Position.Right}
             className={`node-handle source-handle${node.type === 'dataset' && node.params.dataset !== 'custom-csv' && index === datasetTargetSlotForNode(node) ? ' dataset-target-handle' : ''}`}
-            style={customCsv ? { top: `${customCsvOutputTop(index, true)}px` } : outputCount > 1 ? { top: `${outputHandleTop(index)}px` } : undefined}
+            style={{ top: builderOutputPortY(node, index) }}
           />
         ))
       ) : null}
-      {outputCount > 1 ? (
-        <div className="node-output-labels" aria-hidden="true" style={customCsv ? { width: customCsvLabelWidth(node) } : undefined}>
+      {outputCount > 0 ? (
+        <div className="node-output-labels" aria-hidden="true" style={datasetPorts ? { width: customCsvLabelWidth(node) } : undefined}>
           {Array.from({ length: outputCount }).map((_, index) => (
-            <span key={index} style={{ top: `${customCsv ? customCsvOutputTop(index, true) : outputHandleTop(index)}px` }} title={datasetOutputLabelForSlot(node, index)}>
-              {datasetOutputLabelForSlot(node, index)}
+            <span key={index} style={{ top: `${builderOutputPortY(node, index)}px` }} title={outputConnectionLabel(node, index)}>
+              {outputConnectionLabel(node, index)}
             </span>
           ))}
         </div>
@@ -318,10 +323,6 @@ export function BuilderNode(props: NodeProps): ReactElement {
 
 function sourceHandleId(index: number, outputCount: number): string {
   return outputCount === 1 ? 'out' : `out-${index}`
-}
-
-function outputHandleTop(index: number): number {
-  return FLEX_INPUT_HEIGHT_STEP + index * 30
 }
 
 function TensorMetric({ label, value, valueOnly = false, detailed }: { label: string; value: TensorValue | undefined; valueOnly?: boolean; detailed: boolean }): ReactElement {
@@ -342,6 +343,7 @@ function HoverText({ text, tooltip }: { text: string; tooltip: string }): ReactE
   return (
     <span
       className={hasTooltip ? 'tensor-hover-text' : undefined}
+      title={hasTooltip ? tooltip : undefined}
       data-tooltip={hasTooltip ? tooltip : undefined}
       tabIndex={hasTooltip ? 0 : undefined}
     >

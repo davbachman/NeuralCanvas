@@ -588,7 +588,7 @@
 .arithmetic-expression-field { display: flex; align-items: center; gap: 5px; color: var(--muted-strong); font: 12px var(--font-mono); }
 .arithmetic-expression-field span { flex: none; }
 .arithmetic-expression-field input { min-width: 0; font: 12px var(--font-mono); }
-.concat-expression-field { display: block; margin: 8px 0; }
+.concat-expression-field { display: block; margin: 8px 0; max-height: 72px; overflow: hidden; }
 .concat-expression-field code { display: block; box-sizing: border-box; width: 100%; margin-top: 3px; padding: 4px 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-soft); color: var(--muted-strong); overflow-wrap: break-word; font: 11px var(--font-mono); }
 
 .node-metrics {
@@ -638,6 +638,7 @@
   color: #fff;
 }
 
+.node-input-labels,
 .node-output-labels {
   position: absolute;
   top: 0;
@@ -648,13 +649,14 @@
   pointer-events: none;
 }
 
+.node-input-labels span,
 .node-output-labels span {
   position: absolute;
   right: 0;
   transform: translateY(-50%);
 }
 
-.builder-node.node-dataset.is-custom-csv .node-metrics {
+.builder-node.node-dataset.has-dataset-ports .node-metrics {
   position: absolute;
   top: 156px;
   left: 10px;
@@ -665,13 +667,13 @@
   overflow: hidden;
 }
 
-.builder-node.node-dataset.is-custom-csv .node-metrics > span {
+.builder-node.node-dataset.has-dataset-ports .node-metrics > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.builder-node.node-dataset.is-custom-csv .node-output-labels span {
+.builder-node.node-dataset.has-dataset-ports .node-output-labels span {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1000,3 +1002,10 @@
     flex-wrap: wrap;
   }
 }
+
+/* Connection names occupy their own rows below block controls and previews. */
+.node-input-labels { left: 14px; right: auto; width: 72px; }
+.node-input-labels span { left: 0; right: auto; }
+.node-output-labels { width: 72px; }
+.node-input-labels span, .node-output-labels span { white-space: nowrap; line-height: 16px; }
+.builder-node:not(.has-dataset-ports) .node-metrics > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }

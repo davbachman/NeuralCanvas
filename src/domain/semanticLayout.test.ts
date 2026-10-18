@@ -1,3 +1,4 @@
+import { builderCardHeight, builderInputPortY, builderOutputPortY } from './builderGeometry'
 import { describe, expect, it } from 'vitest'
 import { createModelPreset } from './modelPresets'
 import { layoutSemanticGraph, type SemanticRect } from './semanticLayout'
@@ -59,9 +60,9 @@ describe('one continuous architecture layout', () => {
       expect(x.y + x.height / 2).toBeLessThan(w.y)
       expect(product.y).toBe(x.y)
       expect(x.x + x.width).toBeLessThan(product.x)
-      expect(x.height).toBe(190)
+      expect(x.height).toBe(builderCardHeight(projected.nodes.find(node => node.id === `${prefix}:x${input}`)!))
     }
-    expect(layout.groups.get(prefix)!.height).toBeLessThan(2300)
+    expect(layout.groups.get(prefix)!.height).toBeLessThan(2700)
   })
 
   it('arranges the linear neuron like a readable calculation with a separate target lane', () => {
@@ -73,9 +74,9 @@ describe('one continuous architecture layout', () => {
     expect(bias.x).toBe(product.x)
     expect(bias.y).toBeGreaterThan(product.y + product.height)
     expect(weight.x).toBeLessThan(product.x)
-    expect(Math.abs(input.y + input.height / 2 - product.y - product.height / 3)).toBeLessThan(40)
+    expect(Math.abs(input.y + builderOutputPortY(graph.nodes.find(node => node.id === 'input-0')!, 0) - product.y - builderInputPortY(multiply, 0))).toBeLessThan(40)
     expect(weight.y).toBeGreaterThan(input.y + input.height / 2)
-    expect(target.y + target.height / 2).toBeGreaterThan(network.y + network.height)
+    expect(target.y + builderOutputPortY(graph.nodes.find(node => node.id === 'target')!, 0)).toBeGreaterThan(network.y + network.height)
     expect(target.y).toBeLessThan(network.y + network.height + 40)
   })
 
