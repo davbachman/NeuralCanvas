@@ -17,6 +17,8 @@ it.each(Object.keys(inputArityByType) as NodeType[])('labels every %s socket and
   const node = createNode(type, 1), view = card(node)
   const inputs = view.container.querySelectorAll('.react-flow__handle.target')
   const outputs = view.container.querySelectorAll('.react-flow__handle.source')
+  expect(view.container.querySelector('.node-formula, .node-metrics, .node-kind')).toBeNull()
+  expect(view.container.querySelector('.node-title-row')).toHaveTextContent(node.label)
   expect(inputs).toHaveLength(inputArityForNode(node))
   expect(outputs).toHaveLength(outputArityForNode(node))
   for (const [handles, selector, portY] of [
@@ -51,7 +53,7 @@ it('keeps all variable inputs and the add button inside the reserved connection 
   expect(builderInputPortY(node, 12)).toBeLessThan(builderCardHeight(node))
 })
 
-it.each(['tokens', 'counts', 'facts'] as const)('reserves separate label and preview columns for %s datasets', async representation => {
+it.each(['tokens', 'counts', 'facts'] as const)('shows only labeled ports beneath the title for %s datasets', async representation => {
   const { prepareTextDocuments } = await import('../domain/textData')
   const { builderCardWidth } = await import('../domain/builderGeometry')
   const textData = prepareTextDocuments([
@@ -65,9 +67,10 @@ it.each(['tokens', 'counts', 'facts'] as const)('reserves separate label and pre
   expect(labels.map(label => label.textContent)).toEqual(representation === 'facts'
     ? ['fact token IDs', 'question token IDs', 'fact position IDs', 'fact mask', 'fact word mask', 'question word mask', 'answer']
     : [representation === 'counts' ? 'word counts' : 'token IDs', 'position IDs', 'sentiment'])
-  expect(container.querySelector('.builder-node')).toHaveClass('has-dataset-ports')
-  expect(builderCardWidth(node)).toBeGreaterThanOrEqual(280)
-  expect(builderOutputPortY(node, 0)).toBeGreaterThan(150)
+  expect(container.querySelector('.builder-node')).toHaveClass('is-compact')
+  expect(container.querySelector('.node-metrics,.node-formula')).toBeNull()
+  expect(builderCardWidth(node)).toBeGreaterThanOrEqual(176)
+  expect(builderOutputPortY(node, 0)).toBeLessThan(120)
   expect(builderOutputPortY(node, labels.length - 1)).toBeLessThan(builderCardHeight(node))
   // Nested geometry uses only metadata, never copies the vocabulary or documents.
   const geometryNode = { ...node, params: { ...node.params, textData: { representation, task: textData.task } as typeof textData } }

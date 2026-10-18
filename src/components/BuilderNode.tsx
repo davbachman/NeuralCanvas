@@ -1,29 +1,12 @@
-import {
-  Handle,
-  Position,
-  useUpdateNodeInternals,
-  type NodeProps,
-} from '@xyflow/react'
-import { Box, CircleDot, Crosshair, Database, Plus, Sigma } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
-import {
-  LOSS_OPTIONS,
-  TENSOR_TRANSFORM_OPTIONS,
-  MAX_FLEX_INPUT_COUNT,
-  datasetForNode,
-  datasetOutputLabelForSlot,
-  datasetOutputValueForSlot,
-  inputArityForNode,
-  isFlexibleInputNodeType,
-  lossKindForNode,
-  outputArityForNode,
-} from '../domain/engine'
-import { DATASET_MENU_OPTIONS, customCsvLabelWidth, datasetTargetSlotForNode } from '../domain/datasets'
+import { ArithmeticExpressionInput } from './ArithmeticExpressionInput'
+import { Handle, Position, useUpdateNodeInternals, type NodeProps } from '@xyflow/react'
+import { Plus } from 'lucide-react'
+import { useEffect, type ReactElement } from 'react'
+import { LOSS_OPTIONS, TENSOR_TRANSFORM_OPTIONS, lossKindForNode, inputArityForNode, outputArityForNode, isFlexibleInputNodeType, MAX_FLEX_INPUT_COUNT } from '../domain/engine'
+import { DATASET_MENU_OPTIONS, datasetTargetSlotForNode } from '../domain/datasets'
 import { inputConnectionLabels, outputConnectionLabel } from '../domain/connectionLabels'
 import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
-import { formatCompactTensor, formatFullTensor, formatTensorInput, parseTensorInput } from '../domain/tensor'
-import { arithmeticVariableNames, canonicalArithmeticExpression, displayArithmeticExpression, parseArithmetic } from '../domain/arithmetic'
-import type { DatasetKind, GraphNode, LossKind, NodeType, TensorTransformKind, TensorValue } from '../domain/types'
+import type { DatasetKind, GraphNode, LossKind, TensorTransformKind, TensorValue } from '../domain/types'
 
 export interface BuilderNodeData extends Record<string, unknown> {
   graphNode: GraphNode
@@ -48,306 +31,52 @@ export interface BuilderNodeData extends Record<string, unknown> {
   onDatasetChange: (nodeId: string, value: DatasetKind) => void
 }
 
-const ICON_BY_TYPE: Record<NodeType, typeof CircleDot> = {
-  dataset: Database,
-  input: CircleDot,
-  weight: Sigma,
-  bias: Sigma,
-  multiply: Crosshair,
-  matmul: Crosshair,
-  add: Crosshair,
-  arithmetic: Sigma,
-  activation: Box,
-  target: CircleDot,
-  loss: Sigma,
-  embedding: Database,
-  'one-hot': Database,
-  transpose: Crosshair,
-  slice: Crosshair,
-  concat: Crosshair,
-  softmax: Sigma,
-  'causal-mask': Box,
-  'layer-norm': Sigma,
-  standardize: Sigma,
-  dropout: Box,
-  reshape: Box,
-  'tensor-transform': Box,
-  mean: Sigma,
-  'cross-entropy': Sigma,
-  conv2d: Crosshair,
-  avgpool2d: Sigma,
-}
-
+/** Compact cards show identity, operation choice, and wiring. Tensor inspection lives in the sidebar. */
 export function BuilderNode(props: NodeProps): ReactElement {
   const data = props.data as BuilderNodeData
   const node = data.graphNode
   const updateNodeInternals = useUpdateNodeInternals()
-  const Icon = ICON_BY_TYPE[node.type]
-  const inputCount = inputArityForNode(node)
-  const outputCount = outputArityForNode(node)
-  const isFlexibleInputNode = isFlexibleInputNodeType(node.type)
-  const variableInputLayout = isFlexibleInputNode || node.type === 'arithmetic'
-  const canAddInput = !data.coordinate && variableInputLayout && inputCount < MAX_FLEX_INPUT_COUNT
-  const accessible = data.accessible !== false
-  const isSource = outputCount > 0
-  const editableValue =
-    node.type === 'weight' ||
-    node.type === 'bias' ||
-    ((node.type === 'input' || node.type === 'target') && !data.hasIncomingValue)
-  const parameterTensor = (node.type === 'weight' || node.type === 'bias') && typeof node.params.value === 'object' ? node.params.value : undefined
-  const selectedDataset = node.type === 'dataset' ? datasetForNode(node) : undefined
-  const datasetPorts = node.type === 'dataset'
-  const customCsv = datasetPorts && node.params.dataset === 'custom-csv'
+  const inputCount = inputArityForNode(node), outputCount = outputArityForNode(node)
   const lossKind = data.lossKind ?? lossKindForNode(node)
   const inputLabels = inputConnectionLabels(node, lossKind)
-  const lossOptions = data.lossOptions ?? LOSS_OPTIONS
-  const showTypeBadge = node.label.trim().toLowerCase() !== node.type && !(node.type === 'weight' && /^param\s+\d+$/i.test(node.label))
-  const valueText = useMemo(() => editableValue ? formatTensorInput(node.params.value) : '', [editableValue, node.params.value])
-  const [valueDraft, setValueDraft] = useState({ source: valueText, text: valueText, valid: true })
-  const draftValue = valueDraft.source === valueText ? valueDraft.text : valueText
-  const valueIsValid = valueDraft.source === valueText ? valueDraft.valid : true
-  const savedExpression = node.params.expression ?? 'x1 * x2'
-  const expressionNames = arithmeticVariableNames(data.arithmeticInputLabels ?? [])
-  const displayedExpression = displayArithmeticExpression(savedExpression, expressionNames)
-  const expressionSource = JSON.stringify([savedExpression, expressionNames])
-  const [expressionDraft, setExpressionDraft] = useState({ source: expressionSource, text: displayedExpression, valid: true })
-  const expressionText = expressionDraft.source === expressionSource ? expressionDraft.text : displayedExpression
-  const expressionValid = expressionDraft.source === expressionSource ? expressionDraft.valid : true
-  const [concatOutput, concatExpression] = node.type === 'concat' ? data.fullFormula.split(' = ', 2) : []
-  const commitExpression = () => {
-    const canonical = canonicalArithmeticExpression(expressionText, expressionNames)
-    if (expressionValid && canonical !== savedExpression) data.onExpressionChange(node.id, canonical)
-  }
-
-  useEffect(() => {
-    updateNodeInternals(node.id)
-  }, [inputCount, outputCount, node.id, updateNodeInternals])
-
-  return (
-    <div
-      className={`builder-node node-${node.type} ${datasetPorts ? 'has-dataset-ports' : ''} ${isFlexibleInputNode ? 'has-flex-inputs' : ''} ${data.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data.validationError ? 'has-error' : ''}`}
-      aria-hidden={!accessible}
-      inert={!accessible}
-      aria-invalid={data.validationError || undefined}
-      style={{ width: builderCardWidth(node), height: builderCardHeight(node), ...(typeof data.sceneScale === 'number' ? { transform: `scale(${data.sceneScale})`, transformOrigin: 'top left' } : {}) }}
-    >
-      {Array.from({ length: inputCount }).map((_, index) => (
-        <Handle
-          key={index}
-          id={`in-${index}`}
-          type="target"
-          aria-label={`${inputLabels[index]} input`}
-          title={`${inputLabels[index]} input`}
-          position={Position.Left}
-          className="node-handle"
-          style={{ top: builderInputPortY(node, index) }}
-        />
-      ))}
-      <div className="node-input-labels" aria-hidden="true">
-        {inputLabels.map((label, index) => <span key={index} style={{ top: builderInputPortY(node, index) }} title={label}>{label}</span>)}
-      </div>
-      {canAddInput ? (
-        <button
-          type="button"
-          className="node-add-input-button nodrag nopan"
-          style={{ top: builderInputPortY(node, inputCount) }}
-          aria-label={`Add input to ${node.label}`}
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.stopPropagation()
-            data.onFlexibleInputAdd(node.id)
-          }}
-        >
-          <Plus size={12} strokeWidth={3} />
-        </button>
-      ) : null}
-      <div className="node-title-row">
-        <span className="node-icon" aria-hidden="true">
-          <Icon size={14} />
-        </span>
-        <strong title={node.label}>{node.label}</strong>
-        {showTypeBadge ? <span className="node-kind">{node.type === 'weight' || node.type === 'bias' ? 'Param' : node.type}</span> : null}
-      </div>
-      {data.showMath && node.type === 'concat' ? (
-        <div className="node-field arithmetic-expression-field concat-expression-field">
-          <span>{concatOutput} =</span>
-          <code title={data.fullFormula}>{concatExpression}</code>
-        </div>
-      ) : data.showMath && node.type !== 'arithmetic' ? (
-        <div className="node-formula">
-          <HoverText text={data.formula} tooltip={accessible ? data.fullFormula : data.formula} />
-        </div>
-      ) : null}
-      {node.type === 'activation' && !data.coordinate ? (
-        <label className="node-field">
-          activation
-          <select
-            className="nodrag nowheel"
-            value={node.params.activation ?? 'identity'}
-            onChange={(event) => data.onActivationChange(node.id, event.target.value)}
-          >
-            <option value="identity">identity</option>
-            <option value="relu">ReLU</option>
-            <option value="sigmoid">sigmoid</option>
-            <option value="tanh">tanh</option>
-          </select>
-        </label>
-      ) : null}
-      {node.type === 'arithmetic' ? (
-        <label className="node-field arithmetic-expression-field">
-          <span>{data.fullFormula.split(' = ')[0]} =</span>
-          <input
-            aria-label="Arithmetic expression"
-            className={`nodrag nowheel ${expressionValid ? '' : 'is-invalid'}`}
-            type="text"
-            spellCheck={false}
-            value={expressionText}
-            placeholder="x1 * x2"
-            onChange={(event) => {
-              const text = event.target.value
-              let valid = true
-              try { parseArithmetic(canonicalArithmeticExpression(text, expressionNames)) } catch { valid = false }
-              setExpressionDraft({ source: expressionSource, text, valid })
-            }}
-            onBlur={commitExpression}
-            onKeyDown={(event) => { if (event.key === 'Enter') { event.currentTarget.blur(); event.stopPropagation() } }}
-          />
-        </label>
-      ) : null}
-      {node.type === 'tensor-transform' ? (
-        <label className="node-field">
-          transform
-          <select aria-label="Tensor transform" className="nodrag nowheel" value={node.params.transform ?? 'reshape'} onChange={(event) => data.onTransformChange(node.id, event.target.value as TensorTransformKind)}>
-            {TENSOR_TRANSFORM_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
-          </select>
-        </label>
-      ) : null}
-      {node.type === 'loss' ? (
-        <label className="node-field">
-          loss
-          <select
-            aria-label="loss"
-            className="nodrag nowheel"
-            value={lossKind}
-            onChange={(event) => data.onLossChange(node.id, event.target.value as LossKind)}
-          >
-            {lossOptions.map((option) => (
-              <option key={option.kind} value={option.kind}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      {selectedDataset ? (
-        <label className="node-field">
-          dataset
-          <select
-            aria-label={`Dataset for ${node.label}`}
-            className="nodrag nowheel"
-            value={selectedDataset.kind}
-            onChange={(event) => data.onDatasetChange(node.id, event.target.value as DatasetKind)}
-          >
-            {DATASET_MENU_OPTIONS.map((option) => (
-              <option key={option.kind} value={option.kind}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-      {editableValue ? (
-        <label className="node-field">
-          value
-          <input
-            className={`nodrag nowheel ${valueIsValid ? '' : 'is-invalid'}`}
-            type="text"
-            inputMode="decimal"
-            value={draftValue}
-            onChange={(event) => {
-              const nextValue = event.target.value
-              const parsedValue = parseTensorInput(nextValue)
-              setValueDraft({ source: valueText, text: nextValue, valid: Boolean(parsedValue) })
-              if (parsedValue) data.onValueChange(node.id, parsedValue)
-            }}
-          />
-        </label>
-      ) : null}
-      <div className="node-metrics">
-        {node.type === 'dataset' ? (
-          Array.from({ length: outputCount }).map((_, index) => (
-            <TensorMetric
-              key={index}
-              label={datasetOutputLabelForSlot(node, index)}
-              value={datasetOutputValueForSlot(node, index)}
-              valueOnly={datasetPorts}
-              detailed={accessible}
-            />
-          ))
-        ) : (
-          <TensorMetric label="out" value={node.value} detailed={accessible} />
-        )}
-        {parameterTensor && parameterTensor.shape.length > 0 ? <span className="node-tensor-shape">shape {parameterTensor.shape.join(' × ')} · {parameterTensor.data.length} values</span> : null}
-        {node.localDerivative !== undefined ? <TensorMetric label="d local" value={node.localDerivative} detailed={accessible} /> : null}
-        {data.showGradient && !datasetPorts ? <TensorMetric label="grad" value={node.grad} detailed={accessible} /> : null}
-      </div>
-      {isSource ? (
-        Array.from({ length: outputCount }).map((_, index) => (
-          <Handle
-            key={index}
-            id={sourceHandleId(index, outputCount)}
-            aria-label={node.type === 'dataset' ? customCsv
-              ? `${datasetOutputLabelForSlot(node, index)} output`
-              : `${index === datasetTargetSlotForNode(node) ? 'Target' : 'Feature'} ${datasetOutputLabelForSlot(node, index)} output`
-              : `${outputConnectionLabel(node, index)} output`}
-            title={`${outputConnectionLabel(node, index)} output`}
-            type="source"
-            position={Position.Right}
-            className={`node-handle source-handle${node.type === 'dataset' && node.params.dataset !== 'custom-csv' && index === datasetTargetSlotForNode(node) ? ' dataset-target-handle' : ''}`}
-            style={{ top: builderOutputPortY(node, index) }}
-          />
-        ))
-      ) : null}
-      {outputCount > 0 ? (
-        <div className="node-output-labels" aria-hidden="true" style={datasetPorts ? { width: customCsvLabelWidth(node) } : undefined}>
-          {Array.from({ length: outputCount }).map((_, index) => (
-            <span key={index} style={{ top: `${builderOutputPortY(node, index)}px` }} title={outputConnectionLabel(node, index)}>
-              {outputConnectionLabel(node, index)}
-            </span>
-          ))}
-        </div>
-      ) : null}
+  const canAddInput = !data.coordinate && (isFlexibleInputNodeType(node.type) || node.type === 'arithmetic') && inputCount < MAX_FLEX_INPUT_COUNT
+  const accessible = data.accessible !== false
+  const width = builderCardWidth(node), height = builderCardHeight(node)
+  useEffect(() => { updateNodeInternals(node.id) }, [inputCount, outputCount, width, height, node.id, updateNodeInternals])
+  return <div className={`builder-node is-compact node-${node.type} ${data.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data.validationError ? 'has-error' : ''}`}
+    aria-hidden={!accessible} inert={!accessible} aria-invalid={data.validationError || undefined}
+    style={{ width, height, ...(typeof data.sceneScale === 'number' ? { transform: `scale(${data.sceneScale})`, transformOrigin: 'top left' } : {}) }}>
+    <div className="node-title-row"><strong title={node.label}>{node.label}</strong></div>
+    {node.type === 'activation' && !data.coordinate && <label className="node-field">activation<select aria-label="activation" className="nodrag nowheel" value={node.params.activation ?? 'identity'} onChange={event => data.onActivationChange(node.id, event.target.value)}>
+      {['identity', 'relu', 'sigmoid', 'tanh'].map(kind => <option key={kind} value={kind}>{kind === 'relu' ? 'ReLU' : kind}</option>)}
+    </select></label>}
+    {node.type === 'loss' && <label className="node-field">loss<select aria-label="loss" className="nodrag nowheel" value={lossKind} onChange={event => data.onLossChange(node.id, event.target.value as LossKind)}>
+      {(data.lossOptions ?? LOSS_OPTIONS).map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
+    </select></label>}
+    {node.type === 'tensor-transform' && <label className="node-field">transform<select aria-label="Tensor transform" className="nodrag nowheel" value={node.params.transform ?? 'reshape'} onChange={event => data.onTransformChange(node.id, event.target.value as TensorTransformKind)}>
+      {TENSOR_TRANSFORM_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
+    </select></label>}
+    {node.type === 'dataset' && <label className="node-field">dataset<select aria-label={`Dataset for ${node.label}`} className="nodrag nowheel" value={node.params.dataset ?? 'line-1d'} onChange={event => data.onDatasetChange(node.id, event.target.value as DatasetKind)}>
+      {DATASET_MENU_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
+    </select></label>}
+    {node.type === 'arithmetic' && <label className="node-field">operation<ArithmeticExpressionInput node={node} inputLabels={data.arithmeticInputLabels ?? []} onChange={expression => data.onExpressionChange(node.id, expression)}/></label>}
+    {inputLabels.map((label, index) => <Handle key={`in-${index}`} id={`in-${index}`} type="target" position={Position.Left}
+      className="node-handle" aria-label={`${label} input`} title={`${label} input`} style={{ top: builderInputPortY(node, index) }}/>) }
+    <div className="node-input-labels" aria-hidden="true">{inputLabels.map((label, index) =>
+      <span key={index} style={{ top: builderInputPortY(node, index) }} title={label}>{label}</span>)}</div>
+    {canAddInput && <button type="button" className="node-add-input-button nodrag nopan" style={{ top: builderInputPortY(node, inputCount) }}
+      aria-label={`Add input to ${node.label}`} onPointerDown={event => event.stopPropagation()}
+      onClick={event => { event.stopPropagation(); data.onFlexibleInputAdd(node.id) }}><Plus size={12} strokeWidth={3}/></button>}
+    {Array.from({ length: outputCount }, (_, index) => {
+      const label = outputConnectionLabel(node, index)
+      const target = node.type === 'dataset' && node.params.dataset !== 'custom-csv' && index === datasetTargetSlotForNode(node)
+      const description = node.type === 'dataset' && node.params.dataset !== 'custom-csv' ? `${target ? 'Target' : 'Feature'} ${label} output` : `${label} output`
+      return <Handle key={`out-${index}`} id={outputCount === 1 ? 'out' : `out-${index}`} type="source" position={Position.Right}
+        className={`node-handle source-handle${target ? ' dataset-target-handle' : ''}`} aria-label={description} title={description}
+        style={{ top: builderOutputPortY(node, index) }}/>
+    })}
+    <div className="node-output-labels" aria-hidden="true" style={node.type === 'dataset' ? { width: width - 28 } : undefined}>
+      {Array.from({ length: outputCount }, (_, index) => <span key={index} style={{ top: builderOutputPortY(node, index) }} title={outputConnectionLabel(node, index)}>{outputConnectionLabel(node, index)}</span>)}
     </div>
-  )
-}
-
-function sourceHandleId(index: number, outputCount: number): string {
-  return outputCount === 1 ? 'out' : `out-${index}`
-}
-
-function TensorMetric({ label, value, valueOnly = false, detailed }: { label: string; value: TensorValue | undefined; valueOnly?: boolean; detailed: boolean }): ReactElement {
-  const text = valueOnly ? formatCompactTensor(value) : `${label} ${formatCompactTensor(value)}`
-  // Covered calculations cannot be inspected. Defer their full tensor strings
-  // until the camera reveals them, then reuse those strings during panning.
-  const tooltip = useMemo(() => detailed ? `${label} ${formatFullTensor(value)}` : text, [detailed, label, value, text])
-  return (
-    <HoverText
-      text={text}
-      tooltip={tooltip}
-    />
-  )
-}
-
-function HoverText({ text, tooltip }: { text: string; tooltip: string }): ReactElement {
-  const hasTooltip = text !== tooltip
-  return (
-    <span
-      className={hasTooltip ? 'tensor-hover-text' : undefined}
-      title={hasTooltip ? tooltip : undefined}
-      data-tooltip={hasTooltip ? tooltip : undefined}
-      tabIndex={hasTooltip ? 0 : undefined}
-    >
-      {text}
-    </span>
-  )
+  </div>
 }

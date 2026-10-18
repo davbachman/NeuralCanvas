@@ -10,7 +10,7 @@ it.each(['Enter', 'click'])('creates an editable addition block from the canvas 
   fireEvent.change(search, { target: { value: '+' } })
   if (method === 'Enter') fireEvent.keyDown(search, { key: 'Enter' })
   else fireEvent.click(screen.getByRole('option', { name: /Arithmetic/ }))
-  await waitFor(() => expect(screen.getByRole('textbox', { name: 'Arithmetic expression' })).toHaveValue('x1 + x2'))
+  await waitFor(() => expect(within(container.querySelector('.node-arithmetic') as HTMLElement).getByRole('textbox', { name: 'Arithmetic expression' })).toHaveValue('x1 + x2'))
   expect(container.querySelectorAll('.builder-node .node-handle.target')).toHaveLength(2)
   expect(screen.queryByRole('dialog', { name: 'Add a block' })).not.toBeInTheDocument()
 })

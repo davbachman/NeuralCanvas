@@ -213,10 +213,9 @@ describe('execution ownership and reports', () => {
     const { container } = render(<App initialGraph={graph} />)
     startTraining()
     await waitFor(() => expect(train).toHaveBeenCalledTimes(1))
-    const weight = container.querySelector<HTMLInputElement>('[data-id="w"] input')!
-    fireEvent.change(weight, { target: { value: '7' } })
+    editWeight(container, '7')
     await act(async () => { pending.resolve(graph); await pending.promise })
-    expect(weight).toHaveValue('7')
+    expect(screen.getByLabelText('Tensor values')).toHaveValue('7')
     expect(screen.getByText('Epoch 0')).toBeInTheDocument()
   })
 
@@ -226,7 +225,7 @@ describe('execution ownership and reports', () => {
     const { container } = render(<App initialGraph={graph} />)
     startTraining()
     await waitFor(() => expect(train).toHaveBeenCalledTimes(1))
-    fireEvent.change(container.querySelector('[data-id="w"] input')!, { target: { value: '7' } })
+    editWeight(container, '7')
     startTraining()
     await waitFor(() => expect(train).toHaveBeenCalledTimes(2))
     await act(async () => { first.resolve(graph); await first.promise })
@@ -257,22 +256,30 @@ describe('execution ownership and reports', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Test' }))
     fireEvent.click(screen.getByRole('button', { name: 'Run inference' }))
     await screen.findByRole('region', { name: 'Inference report' })
-    if (field === 'value') fireEvent.change(container.querySelector('[data-id="w"] input')!, { target: { value: '-10' } })
+    if (field === 'value') editWeight(container, '-10')
     if (field === 'activation') fireEvent.change(container.querySelector('.node-activation select')!, { target: { value: 'tanh' } })
     if (field === 'loss') fireEvent.change(container.querySelector('.node-loss select')!, { target: { value: 'mse' } })
     if (field === 'dataset') fireEvent.change(container.querySelector('.node-dataset select')!, { target: { value: 'line-1d' } })
     expect(screen.queryByRole('region', { name: 'Inference report' })).not.toBeInTheDocument()
   })
 
-  it('updates the canonical tensor coordinate from a projected inline weight editor', () => {
+  it('updates the canonical tensor coordinate from projected weight Details', () => {
     const graph = createModelPreset('decoder')
     graph.view = { ...graph.view!, inspectedNeuron: { groupId: 'blocks.0.ff1.layer', unitIndex: 0, row: 0 } }
     const { container } = render(<App initialGraph={graph} />)
     const projected = container.querySelector('[data-id="inspect:blocks.0.ff1.layer:0:w0"]')!
     fireEvent.click(projected)
-    fireEvent.change(projected.querySelector('input')!, { target: { value: '42' } })
+    fireEvent.click(screen.getByRole('tab', { name: 'Details' }))
+    fireEvent.change(screen.getByLabelText('Edit tensor coordinate'), { target: { value: '42' } })
     expect(screen.getByLabelText('Edit tensor coordinate')).toHaveValue(42)
     fireEvent.keyDown(document, { key: 'z', metaKey: true })
     expect(screen.getByLabelText('Edit tensor coordinate')).toHaveValue(0.12621368371146552)
   })
 })
+
+function editWeight(container: HTMLElement, value: string) {
+  fireEvent.click(container.querySelector('[data-id="w"]')!)
+  fireEvent.click(screen.getByRole('tab', { name: 'Details' }))
+  fireEvent.change(screen.getByLabelText('Tensor values'), { target: { value } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply values' }))
+}

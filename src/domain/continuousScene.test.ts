@@ -4,7 +4,6 @@ import { createModelPreset } from './modelPresets'
 import { LESSONS } from '../learning/presets'
 import { projectDenseNeurons } from './neuronProjection'
 import { parseCustomCsv } from './customCsv'
-import { customCsvCardHeight, customCsvOutputTop } from './datasets'
 import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from './builderGeometry'
 import { createNode } from './examples'
 import { mergePreservingLayout } from './mergeLayout'
@@ -63,7 +62,7 @@ describe('one continuous nested scene', () => {
     const neuron = scene.groups.get(graph.groups![0].id)!
     const gap = target.y - input.y - input.height
     expect(gap).toBeGreaterThanOrEqual(24)
-    expect(gap).toBeLessThanOrEqual(40)
+    expect(gap).toBeLessThanOrEqual(80)
     expect(target.y).toBeLessThan(neuron.y + neuron.height + 40)
     expect(target.y + target.height / 2).toBeGreaterThan(neuron.y + neuron.height)
     expect(loss.y + builderInputPortY(graph.nodes.find(node => node.type === 'loss')!, 1)).toBeCloseTo(target.y + builderOutputPortY(graph.nodes.find(node => node.type === 'target')!, 0))
@@ -192,7 +191,7 @@ describe('one continuous nested scene', () => {
       const outside = wires.find(wire => wire.edgeId === edgeId && !wire.parentId)!
       const inside = wires.find(wire => wire.edgeId === edgeId && wire.parentId === groupId)!
       expect(outside.route[0].x).toBeCloseTo(datasetRect.x + datasetRect.width)
-      expect(outside.route[0].y).toBeCloseTo(datasetRect.y + datasetRect.height * customCsvOutputTop(slot, true) / customCsvCardHeight(dataset, true))
+      expect(outside.route[0].y).toBeCloseTo(datasetRect.y + datasetRect.height * builderOutputPortY(dataset, slot) / builderCardHeight(dataset))
       expect(close(outside.route.at(-1)!, inside.route[0])).toBe(true)
     }
   })

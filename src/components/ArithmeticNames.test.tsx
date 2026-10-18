@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
-import { GraphCanvas } from './GraphCanvas'
+import { ModelInspector } from './ModelInspector'
 import { createNode } from '../domain/examples'
 import type { GraphModel } from '../domain/types'
 
@@ -14,10 +14,8 @@ it('displays connected variable names, saves edited slots, and follows renames a
     { id: 'right', source: weight.id, target: arithmetic.id, inputSlot: 1 },
   ] }
   const onExpressionChange = vi.fn()
-  const canvas = (model: GraphModel) => <GraphCanvas graph={model} showMath showGradient phase="edit"
-    onGraphChange={vi.fn()} onSelectionChange={vi.fn()} onCreateNode={vi.fn()} onCancelPendingPlacement={vi.fn()}
-    onNodeValueChange={vi.fn()} onActivationChange={vi.fn()} onGroupCreate={vi.fn()} onGroupExplode={vi.fn()} onGroupMove={vi.fn()}
-    onExpressionChange={onExpressionChange}/>
+  const canvas = (model: GraphModel) => <ModelInspector graph={model} node={model.nodes.find(node => node.id === arithmetic.id)}
+    onParams={(id, params) => onExpressionChange(id, params.expression)} onValue={vi.fn()} onOpen={vi.fn()} onInspectNeuron={vi.fn()} onGroup={vi.fn()} selectionCount={1}/>
   const { rerender } = render(canvas(graph))
   const field = await screen.findByRole('textbox', { name: 'Arithmetic expression' })
   expect(field).toHaveValue('u * w')

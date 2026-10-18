@@ -1,10 +1,11 @@
+import { ArithmeticExpressionInput } from './ArithmeticExpressionInput'
 import {StandardizationInspector} from './StandardizationInspector'
 import { useState } from 'react'
 import { initializeTensor, initializerForNode, INITIALIZERS, operationHelp, type Initializer } from '../domain/authoring'
 import { ConvolutionInspector } from './ConvolutionInspector'
 import { TensorHeatmap } from './TensorHeatmap'
 import { EditableBlockTitle } from './EditableBlockTitle'
-import { lossKindForNode, lossOptionsForNode, TENSOR_TRANSFORM_OPTIONS } from '../domain/engine'
+import { arithmeticInputLabels, lossKindForNode, lossOptionsForNode, TENSOR_TRANSFORM_OPTIONS } from '../domain/engine'
 import { formatFullTensor, toTensor } from '../domain/tensor'
 import type { CoordinateBinding } from '../domain/neuronProjection'
 import type {
@@ -141,6 +142,7 @@ export function ModelInspector({
               <span>Used in formulas and pseudocode. Clear for automatic naming. Duplicate names get a numeric suffix.</span>
             </label>}
           {operationHelp[node.type] && <p className="coordinate-note">{operationHelp[node.type]}</p>}
+          {node.type === 'arithmetic' && !node.id.startsWith('inspect:') && <ArithmeticEditor key={node.id} graph={graph} node={node} onParams={onParams}/>}
           {node.type === 'one-hot' && <label className="inspector-field">Vocabulary size<input aria-label="One-hot vocabulary size" type="number" min="2" max="8192" value={node.params.numClasses ?? 2} onChange={event => onParams(node.id, {numClasses: Number(event.target.value)})}/></label>}
           {node.type === 'conv2d' && <ConvolutionInspector graph={graph} node={node} onValue={onValue}/>}
           {(node.type==='loss'||node.type==='cross-entropy') && <fieldset><legend>Parameter regularization</legend>
@@ -459,4 +461,8 @@ function OperationEditor({
       <button className="inspector-wide">Apply operation</button>
     </form>
   )
+}
+
+function ArithmeticEditor({ graph, node, onParams }: { graph: GraphModel; node: GraphNode; onParams: Props['onParams'] }) {
+  return <label className="inspector-field">Expression<ArithmeticExpressionInput node={node} inputLabels={arithmeticInputLabels(node, graph)} onChange={expression => onParams(node.id, { expression })}/></label>
 }

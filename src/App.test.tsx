@@ -372,7 +372,8 @@ describe('Neural Canvas app', () => {
 
     await chooseFileMenuItem(user, /^Starter$/i)
     expect(screen.getByText('Neuron examples')).toBeInTheDocument()
-    expect(screen.getByText(/w = 0.500/i)).toBeInTheDocument()
+    inspectBlockData('w')
+    expect(Number(screen.getByLabelText('Scalar value').textContent)).toBe(.5)
 
     await user.click(screen.getByRole('tab', { name: 'Train' }))
     await user.click(screen.getByRole('button', { name: /Run one full training step/i }))
@@ -433,7 +434,8 @@ describe('Neural Canvas app', () => {
       fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
       const initialPrediction = visualizationPredictionPath()
 
-      fireEvent.change(screen.getByDisplayValue('0.5'), { target: { value: '1' } })
+      editSourceValue('w', '1')
+      fireEvent.click(screen.getByRole('tab', { name: 'Reporting' }))
       expect(visualizationPredictionPath()).toBe(initialPrediction)
 
       fireEvent.click(screen.getByRole('button', { name: 'Play' }))
@@ -449,19 +451,20 @@ describe('Neural Canvas app', () => {
     }
   })
 
-  it('shows connected variable names in starter graph node formulas', async () => {
+  it('keeps starter cards compact while retaining operation choices', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await chooseFileMenuItem(user, /^Starter$/i)
 
-    expect(screen.getByText('z1 = x * w')).toBeInTheDocument()
-    expect(screen.getByText('z2 = z1 + b')).toBeInTheDocument()
-    expect(screen.getAllByText('z3 = sigmoid(z2)').length).toBeGreaterThan(0)
-    expect(screen.getByText('L = 0.5 * (z3 - y)^2')).toBeInTheDocument()
+    expect(document.querySelector('.builder-node .node-formula')).toBeNull()
+    expect(screen.getByLabelText('activation')).toHaveValue('sigmoid')
+    expect(screen.getByLabelText('loss')).toHaveValue('squared-error')
+    expect(screen.getByLabelText('prediction input')).toBeInTheDocument()
+
   })
 
-  it('renders a loss dropdown and updates the displayed loss formula', () => {
+  it('keeps the loss dropdown editable on a compact card', () => {
     const graph: GraphModel = {
       learningRate: 0.1,
       nodes: [
@@ -528,7 +531,9 @@ describe('Neural Canvas app', () => {
       />,
     )
 
-    expect(screen.getByText('L = (pred - y)^2')).toBeInTheDocument()
+    expect(screen.getByLabelText('loss')).toHaveValue('mse')
+    expect(screen.getByLabelText('prediction input')).toBeInTheDocument()
+    expect(within(document.querySelector('.node-loss') as HTMLElement).getByLabelText('target input')).toBeInTheDocument()
   })
 
   it('keeps every loss selectable for tensor inputs and defaults to mean squared error', () => {
@@ -577,7 +582,7 @@ describe('Neural Canvas app', () => {
       'binary-cross-entropy-with-logits',
       'cross-entropy',
     ])
-    expect(screen.getByText('L = (1/n) * Σ_i (pred_i - y_i)^2')).toBeInTheDocument()
+    expect(screen.getByLabelText('prediction input')).toBeInTheDocument()
   })
 
   it('renders a dataset dropdown with toy dataset choices', () => {
@@ -697,25 +702,18 @@ describe('Neural Canvas app', () => {
     )
 
     expect(screen.queryAllByDisplayValue('0')).toHaveLength(0)
-    expect(screen.getByDisplayValue('4')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('5')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('4')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('5')).not.toBeInTheDocument()
   })
 
-  it('accepts tensor literals in source nodes and keeps node tensor displays compact with full hover text', async () => {
-    render(<App initialGraph={createStarterGraph()} />)
-
-
-    const xInput = screen.getByDisplayValue('2')
-    fireEvent.change(xInput, { target: { value: '[1,2,3]' } })
-
-    expect(screen.getByText('x = [1.000,...]')).toHaveAttribute(
-      'data-tooltip',
-      'x = [3] [1.000, 2.000, 3.000]',
-    )
-    expect(screen.getByText('out [1.000,...]')).toHaveAttribute(
-      'data-tooltip',
-      'out [3] [1.000, 2.000, 3.000]',
-    )
+  it('edits source tensors in Details while keeping canvas cards free of tensor readouts', () => {
+    const { container } = render(<App initialGraph={createStarterGraph()} />)
+    editSourceValue('x', '1,2,3', '3')
+    expect(screen.getByLabelText('Tensor values')).toHaveValue('1, 2, 3')
+    expect(container.querySelector('.builder-node .node-metrics')).toBeNull()
+    fireEvent.click(screen.getByRole('tab', { name: 'Data' }))
+    expect(screen.getByText('[3]')).toBeInTheDocument()
+    expect(screen.getByRole('table')).toBeInTheDocument()
   })
 
   it('starts visible forward stepping at the first computation after source values', async () => {
@@ -739,14 +737,12 @@ describe('Neural Canvas app', () => {
     await user.click(screen.getByRole('button', { name: /^Step$/i }))
 
     expect(screen.getByRole('heading', { name: 'Evaluate x * w' })).toBeInTheDocument()
-    expect(screen.queryByText('out 0.700')).not.toBeInTheDocument()
-    expect(screen.queryByText('out 0.668')).not.toBeInTheDocument()
+    inspectBlockData('add')
+    expect(screen.getByText(/No value has reached/)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /^Step$/i }))
 
-    expect(screen.getByRole('heading', { name: 'Evaluate xw + b' })).toBeInTheDocument()
-    expect(screen.getByText('out 0.700')).toBeInTheDocument()
-    expect(screen.queryByText('out 0.668')).not.toBeInTheDocument()
+    expect(Number(screen.getByLabelText('Scalar value').textContent)).toBeCloseTo(.7)
   })
 
   it('reveals backward gradients only after their backprop step is reached', async () => {
@@ -760,14 +756,16 @@ describe('Neural Canvas app', () => {
     }
 
     expect(screen.getByRole('heading', { name: 'Backpropagate through loss' })).toBeInTheDocument()
-    expect(screen.queryByText(/grad -0\.147/)).not.toBeInTheDocument()
+    inspectBlockData('w')
+    expect(screen.getByRole('tab', { name: '← Gradient' })).toBeDisabled()
 
     for (let index = 0; index < 3; index += 1) {
       await user.click(screen.getByRole('button', { name: /^Step$/i }))
     }
 
-    expect(screen.getByRole('heading', { name: 'Backpropagate through x * w' })).toBeInTheDocument()
-    expect(screen.getByText(/grad -0\.147/)).toBeInTheDocument()
+    inspectBlockData('w')
+    fireEvent.click(screen.getByRole('tab', { name: '← Gradient' }))
+    expect(Number(screen.getByLabelText('Scalar value').textContent)).toBeCloseTo(-.147, 3)
   })
 
   it('does not render floating edge value bubbles on the canvas', async () => {
@@ -957,14 +955,10 @@ describe('Neural Canvas app', () => {
   it('undoes source value edits with Command-Z', async () => {
     render(<App initialGraph={createStarterGraph()} />)
 
-    const xInput = screen.getByDisplayValue('2')
-    fireEvent.change(xInput, { target: { value: '[1,2,3]' } })
-
-    expect(screen.getByText('x = [1.000,...]')).toBeInTheDocument()
-
+    editSourceValue('x', '1,2,3', '3')
+    expect(screen.getByLabelText('Tensor values')).toHaveValue('1, 2, 3')
     fireEvent.keyDown(document, { key: 'z', metaKey: true })
-
-    expect(screen.getByText('x = 2.000')).toBeInTheDocument()
+    expect(screen.getByLabelText('Tensor values')).toHaveValue('2')
   })
 
   it('undoes a full training step with Command-Z', async () => {
@@ -1617,10 +1611,8 @@ describe('Neural Canvas app', () => {
 
     await waitFor(() => expect(screen.getByText(/Epoch 7/i)).toBeInTheDocument())
     expect(screen.getByText(/Current loss 0.123/i)).toBeInTheDocument()
-    expect(screen.getByText(/x = 2/i)).toBeInTheDocument()
-    expect(screen.getByText(/w = 0.500/i)).toBeInTheDocument()
-    expect(screen.getByText('z1 = x * w')).toBeInTheDocument()
-    expect(screen.getAllByText(/^grad /).length).toBeGreaterThan(0)
+    fireEvent.click(screen.getByRole('tab', { name: 'Data' }))
+    expect(Number(screen.getByLabelText('Scalar value').textContent)).toBeCloseTo(importedGraph.nodes.find(node => node.id === 'pred')!.value!.data[0], 3)
     expect(screen.queryByText('loss.backward()')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
     expect(screen.getByLabelText('Epochs per run')).toHaveValue(2000)
@@ -1655,4 +1647,16 @@ function fireFileMenuItem(name: RegExp): void {
 
 function visualizationPredictionPath(): string | null | undefined {
   return document.querySelector('.visualization-prediction-line')?.getAttribute('d')
+}
+
+function editSourceValue(id: string, values: string, shape?: string) {
+  fireEvent.click(document.querySelector(`[data-id="${id}"]`)!)
+  fireEvent.click(screen.getByRole('tab', { name: 'Details' }))
+  if (shape !== undefined) fireEvent.change(screen.getByLabelText('Tensor shape'), { target: { value: shape } })
+  fireEvent.change(screen.getByLabelText('Tensor values'), { target: { value: values } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply values' }))
+}
+function inspectBlockData(id: string) {
+  fireEvent.click(document.querySelector(`[data-id="${id}"]`)!)
+  fireEvent.click(screen.getByRole('tab', { name: 'Data' }))
 }

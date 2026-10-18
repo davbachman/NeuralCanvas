@@ -1,10 +1,14 @@
+import * as session from './domain/session'
+import { builderCardWidth } from './domain/builderGeometry'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { DATASET_MENU_OPTIONS, DATASET_OPTIONS, datasetExamples } from './domain/datasets'
 import { createNode, createSingleNeuronGraph } from './domain/examples'
-import { formatFullTensor, tensorValue } from './domain/tensor'
+import { tensorValue } from './domain/tensor'
+
+afterEach(() => vi.restoreAllMocks())
 
 function datasetModel(semanticZoom: boolean) {
   const graph = createSingleNeuronGraph('identity', { x: 1, w: 2, b: 0, target: 3 })
@@ -32,7 +36,7 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     fireEvent.change(input, { target: { files: [file] } })
     await waitFor(() => expect(selector).toHaveValue('custom-csv'))
     expect(screen.queryByRole('dialog', { name: 'Choose a CSV file' })).not.toBeInTheDocument()
-    expect(card.querySelector('.semantic-operation, .builder-node')).toHaveStyle({ width: '280px' })
+    expect(card.querySelector('.semantic-operation, .builder-node')).toHaveStyle({ width: `${builderCardWidth(createNode('dataset', 1))}px` })
     expect(within(card).getByLabelText('height output')).toHaveAttribute('data-handleid', 'out-0')
     expect(within(card).getByLabelText('width output')).toHaveAttribute('data-handleid', 'out-1')
     expect(within(card).getByLabelText('y output')).toHaveAttribute('data-handleid', 'out-2')
@@ -73,14 +77,19 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     expect(screen.queryByLabelText('Dataset outputs')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Dataset configuration')).toBeInTheDocument()
     expect(screen.queryByText('Ready to evaluate')).not.toBeInTheDocument()
+    const save = vi.spyOn(session, 'downloadProjectStateFile').mockImplementation(() => {})
     const expectResults = (kind: string) => {
       const dataset = DATASET_OPTIONS.find(option => option.kind === kind)!
       // Opening Train preserves the selected all-examples split, including after changing datasets or undoing.
       const examples = datasetExamples(dataset)
       const features = tensorValue([examples.length], examples.map(example => example.features[0].data[0]))
       const targets = tensorValue([examples.length], examples.map(example => example.target.data[0]))
-      expect(container.querySelector('[data-id="x"] .node-metrics .tensor-hover-text')).toHaveAttribute('data-tooltip', 'out ' + formatFullTensor(features))
-      expect(container.querySelector('[data-id="target"] .node-metrics .tensor-hover-text')).toHaveAttribute('data-tooltip', 'out ' + formatFullTensor(targets))
+      fireEvent.click(screen.getByRole('button', { name: 'File' }))
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Save' }))
+      const evaluated = save.mock.calls.at(-1)![0].state.graph
+      expect(evaluated.nodes.find(node => node.id === 'x')!.value).toEqual(features)
+      expect(evaluated.nodes.find(node => node.id === 'target')!.value).toEqual(targets)
+      expect(card.querySelector('.node-metrics')).toBeNull()
     }
     await user.click(screen.getByRole('tab', { name: 'Train' }))
     await user.click(screen.getByRole('button', { name: 'Run forward' }))

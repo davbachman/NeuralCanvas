@@ -1009,3 +1009,7 @@
 .node-output-labels { width: 72px; }
 .node-input-labels span, .node-output-labels span { white-space: nowrap; line-height: 16px; }
 .builder-node:not(.has-dataset-ports) .node-metrics > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+.builder-node.is-compact { min-height: 0; }
+.builder-node.is-compact .node-title-row { height: 20px; }
+.builder-node.is-compact .node-output-labels span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }

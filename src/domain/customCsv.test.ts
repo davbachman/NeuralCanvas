@@ -1,6 +1,7 @@
+import { builderCardWidth } from './builderGeometry'
 import { describe, expect, it } from 'vitest'
 import { analyzeCustomCsv, parseCustomCsv } from './customCsv'
-import { customCsvCardWidth, datasetExamples, datasetExamplesForNode, datasetForNode, datasetOutputValueForSlot } from './datasets'
+import { datasetExamples, datasetExamplesForNode, datasetForNode, datasetOutputValueForSlot } from './datasets'
 import { forwardPass, parameterValues, runTrainingStep } from './engine'
 import { createStarterGraph } from './examples'
 import { createProjectStateFile, parseProjectStateFile } from './session'
@@ -97,8 +98,8 @@ describe('custom CSV datasets', () => {
     const graph = createStarterGraph(true)
     const source = graph.nodes.find(node => node.type === 'dataset')!
     source.params = { dataset: 'custom-csv', customCsv: csv }
-    const width = customCsvCardWidth(source)
-    expect(width).toBeGreaterThan(350)
+    const width = builderCardWidth(source)
+    expect(width).toBeGreaterThan(200)
     expect(layoutSemanticGraph(graph).nodes.get(source.id)?.width).toBe(width)
   })
 })

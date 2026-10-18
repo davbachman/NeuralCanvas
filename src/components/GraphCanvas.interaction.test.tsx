@@ -512,7 +512,7 @@ describe('canvas movement gestures', () => {
     expect(graph).toEqual(before)
     rerenderGraph({ ...graph, view })
     const input = nodeById('input-0'), target = nodeById('target')
-    expect(target.position.y - input.position.y - input.height!).toBeLessThanOrEqual(40)
+    expect(target.position.y - input.position.y - input.height!).toBeLessThanOrEqual(80)
     expect(nodeById('layer-0/weight-0-0').data.graphNode).toMatchObject({ params: { value: 7 } })
   })
 

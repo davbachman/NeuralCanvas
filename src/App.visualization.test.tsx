@@ -64,7 +64,11 @@ describe('Neural Canvas visualization data edits', () => {
     const firstTargetPoint = () => container.querySelector('.visualization-target-point')
     const initialFill = firstTargetPoint()?.getAttribute('fill')
 
-    fireEvent.change(screen.getByDisplayValue('[0,1,1,2]'), { target: { value: '[2,1,1,0]' } })
+    fireEvent.click(container.querySelector('[data-id="target"]')!)
+    fireEvent.click(screen.getByRole('tab', { name: 'Details' }))
+    fireEvent.change(screen.getByLabelText('Tensor values'), { target: { value: '2,1,1,0' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply values' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Reporting' }))
 
     expect(firstTargetPoint()?.getAttribute('fill')).not.toBe(initialFill)
   })

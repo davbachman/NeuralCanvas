@@ -24,9 +24,8 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   MAX_FLEX_INPUT_COUNT,
-  NODE_WIDTH,
-  formulaForNode,
   arithmeticInputLabels,
+  NODE_WIDTH,
   heightForInputCount,
   inputArityForNode,
   isFlexibleInputNodeType,
@@ -49,7 +48,6 @@ import {
   visualGroupInterface,
   moveVisualGroup,
 } from '../domain/grouping'
-import { formatCompactTensor, formatFullTensor } from '../domain/tensor'
 import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
 import { blockSuggestions } from '../domain/blockPalette'
 import { appendArithmeticInput } from '../domain/arithmetic'
@@ -451,8 +449,8 @@ function GraphCanvasInner({
             compactStage: false,
             showMath,
             showGradient,
-            formula: formulaForNode(node, renderedGraph, formatCompactTensor),
-            fullFormula: formulaForNode(node, renderedGraph, formatFullTensor),
+            formula: '',
+            fullFormula: '',
             arithmeticInputLabels: node.type === 'arithmetic' ? arithmeticInputLabels(node, renderedGraph) : undefined,
             lossKind: node.type === 'loss' ? lossKindForNode(node, renderedGraph) : undefined,
             lossOptions: node.type === 'loss' ? lossOptionsForNode(node, renderedGraph) : undefined,
