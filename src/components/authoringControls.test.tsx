@@ -18,7 +18,7 @@ import { DatasetWorkbench } from './DatasetWorkbench'
 const callbacks = {onParams:vi.fn(),onValue:vi.fn(),onDataset:vi.fn(),onOpen:vi.fn(),onInspectNeuron:vi.fn(),onGroup:vi.fn(),selectionCount:1}
 function InspectorHarness({initial}: {initial:GraphNode}) {
   const [node,setNode] = useState(initial)
-  return <ModelInspector {...callbacks} graph={{nodes:[node],edges:[],learningRate:.01}} node={node} onParams={(_,params)=>setNode({...node,params:{...node.params,...params}})} onValue={(_,value)=>setNode({...node,params:{...node.params,value}})}/>
+  return <ModelInspector {...callbacks} onRename={vi.fn()} graph={{nodes:[node],edges:[],learningRate:.01}} node={node} onParams={(_,params)=>setNode({...node,params:{...node.params,...params}})} onValue={(_,value)=>setNode({...node,params:{...node.params,value}})}/>
 }
 
 describe('scratch model authoring controls',()=>{
@@ -130,15 +130,32 @@ describe('scratch model authoring controls',()=>{
   })
 
   it('renames a selected block from its title, without the old selection heading',()=>{
-    const node=createNode('weight',1), onRename=vi.fn()
+    const node=createNode('input',1), onRename=vi.fn()
     render(<ModelInspector {...callbacks} graph={{nodes:[node],edges:[],learningRate:.01}} node={node} onRename={onRename}/>)
     expect(screen.queryByText('Selected block')).not.toBeInTheDocument()
     expect(screen.queryByText('Rename block')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button',{name:'Rename Param 1'}))
+    fireEvent.click(screen.getByRole('button',{name:'Rename x1'}))
     const name=screen.getByRole('textbox',{name:'Block name'})
     fireEvent.change(name,{target:{value:'Kernel'}})
     fireEvent.keyDown(name,{key:'Enter'})
     expect(onRename).toHaveBeenCalledWith(node.id,'Kernel')
+  })
+
+  it.each(['weight', 'bias'] as const)('edits the %s output variable while keeping the Param heading', type => {
+    const node = createNode(type, 1)
+    render(<InspectorHarness initial={node}/>)
+    const field = screen.getByLabelText('Output variable')
+    expect(field).toHaveAttribute('placeholder', 'Automatic (p1, p2, …)')
+    expect(field).toHaveValue('')
+    fireEvent.change(field, { target: { value: 'kernel' } })
+    expect(field).toHaveValue('kernel')
+    expect(screen.getByRole('heading', { name: 'Param' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Rename/ })).not.toBeInTheDocument()
+    fireEvent.change(field, { target: { value: 'not a variable' } })
+    expect(field).toHaveValue('kernel')
+    fireEvent.change(field, { target: { value: '' } })
+    expect(field).toHaveValue('')
+    expect(screen.getByRole('heading', { name: 'Param' })).toBeInTheDocument()
   })
 
   it('renames a group from its title while keeping its kind selector',()=>{

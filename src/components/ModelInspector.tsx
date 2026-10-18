@@ -57,12 +57,13 @@ export function ModelInspector({
   const width = weight ? toTensor(weight.params.value).shape[1] : 0
   const children =
     graph.groups?.filter((candidate) => candidate.parentId === group?.id) ?? []
+  const parameter = node?.type === 'weight' || node?.type === 'bias'
   return (
     <section className="model-inspector">
       <EditableBlockTitle
         key={group?.id ?? node?.id ?? 'selection'}
-        label={group?.label ?? node?.label ?? `${selectionCount} blocks selected`}
-        onRename={group && onGroupChange ? label => onGroupChange(group.id, { label }) : node && onRename && !binding ? label => onRename(node.id, label) : undefined}
+        label={group?.label ?? (parameter ? 'Param' : node?.label) ?? `${selectionCount} blocks selected`}
+        onRename={group && onGroupChange ? label => onGroupChange(group.id, { label }) : node && onRename && !binding && !parameter ? label => onRename(node.id, label) : undefined}
       />
       {group && (
         <>
@@ -132,9 +133,9 @@ export function ModelInspector({
       )}
       {node && (
         <>
-          {!binding && !node.id.startsWith('inspect:') && !['dataset', 'input', 'target', 'weight', 'bias', 'loss', 'cross-entropy'].includes(node.type) &&
+          {!binding && !node.id.startsWith('inspect:') && !['dataset', 'input', 'target', 'loss', 'cross-entropy'].includes(node.type) &&
             <label className="inspector-field">Output variable
-              <input aria-label="Output variable" placeholder="Automatic (z1, z2, …)" value={node.params.outputName ?? ''}
+              <input aria-label="Output variable" placeholder={parameter ? 'Automatic (p1, p2, …)' : 'Automatic (z1, z2, …)'} value={node.params.outputName ?? ''}
                 onChange={event => {
                   const name = event.target.value
                   if (!name || /^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) onParams(node.id, { outputName: name || undefined })
