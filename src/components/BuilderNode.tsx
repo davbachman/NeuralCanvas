@@ -1,4 +1,5 @@
 import { ArithmeticExpressionInput } from './ArithmeticExpressionInput'
+import { NodeIcon } from './NodeIcon'
 import { Handle, Position, useUpdateNodeInternals, type NodeProps } from '@xyflow/react'
 import { Plus } from 'lucide-react'
 import { useEffect, type ReactElement } from 'react'
@@ -46,7 +47,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
   return <div className={`builder-node is-compact node-${node.type} ${data.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data.validationError ? 'has-error' : ''}`}
     aria-hidden={!accessible} inert={!accessible} aria-invalid={data.validationError || undefined}
     style={{ width, height, ...(typeof data.sceneScale === 'number' ? { transform: `scale(${data.sceneScale})`, transformOrigin: 'top left' } : {}) }}>
-    <div className="node-title-row"><strong title={node.label}>{node.label}</strong></div>
+    <div className="node-title-row"><NodeIcon type={node.type}/><strong title={node.label}>{node.label}</strong></div>
     {node.type === 'activation' && !data.coordinate && <label className="node-field">activation<select aria-label="activation" className="nodrag nowheel" value={node.params.activation ?? 'identity'} onChange={event => data.onActivationChange(node.id, event.target.value)}>
       {['identity', 'relu', 'sigmoid', 'tanh'].map(kind => <option key={kind} value={kind}>{kind === 'relu' ? 'ReLU' : kind}</option>)}
     </select></label>}
@@ -75,8 +76,8 @@ export function BuilderNode(props: NodeProps): ReactElement {
         className={`node-handle source-handle${target ? ' dataset-target-handle' : ''}`} aria-label={description} title={description}
         style={{ top: builderOutputPortY(node, index) }}/>
     })}
-    <div className="node-output-labels" aria-hidden="true" style={node.type === 'dataset' ? { width: width - 28 } : undefined}>
+    {node.type === 'dataset' && <div className="node-output-labels" aria-hidden="true" style={{ width: width - 28 }}>
       {Array.from({ length: outputCount }, (_, index) => <span key={index} style={{ top: builderOutputPortY(node, index) }} title={outputConnectionLabel(node, index)}>{outputConnectionLabel(node, index)}</span>)}
-    </div>
+    </div>}
   </div>
 }

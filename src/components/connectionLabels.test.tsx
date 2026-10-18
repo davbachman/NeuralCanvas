@@ -13,12 +13,14 @@ function card(node: GraphNode) {
   const data = { graphNode: node, showMath: true, showGradient: true, formula: 'formula', fullFormula: 'formula', active: false, hasIncomingValue: false } as BuilderNodeData
   return render(<ReactFlowProvider><BuilderNode {...{ id: node.id, data, selected: false } as unknown as NodeProps}/></ReactFlowProvider>)
 }
-it.each(Object.keys(inputArityByType) as NodeType[])('labels every %s socket and keeps its label aligned with routing geometry', type => {
+it.each(Object.keys(inputArityByType) as NodeType[])('keeps %s sockets accessible, shows input labels, and only labels dataset outputs', type => {
   const node = createNode(type, 1), view = card(node)
   const inputs = view.container.querySelectorAll('.react-flow__handle.target')
   const outputs = view.container.querySelectorAll('.react-flow__handle.source')
   expect(view.container.querySelector('.node-formula, .node-metrics, .node-kind')).toBeNull()
   expect(view.container.querySelector('.node-title-row')).toHaveTextContent(node.label)
+  expect(view.container.querySelector('.node-icon')).toHaveAttribute('aria-hidden', 'true')
+  expect(view.container.querySelector('.node-icon svg')).not.toBeNull()
   expect(inputs).toHaveLength(inputArityForNode(node))
   expect(outputs).toHaveLength(outputArityForNode(node))
   for (const [handles, selector, portY] of [
@@ -26,12 +28,16 @@ it.each(Object.keys(inputArityByType) as NodeType[])('labels every %s socket and
     [outputs, '.node-output-labels span', builderOutputPortY],
   ] as const) {
     const labels = view.container.querySelectorAll<HTMLElement>(selector)
-    expect(labels).toHaveLength(handles.length)
+    const visibleLabels = selector === '.node-input-labels span' || type === 'dataset'
+    expect(labels).toHaveLength(visibleLabels ? handles.length : 0)
     handles.forEach((handle, i) => {
       expect(handle.getAttribute('aria-label')).toBeTruthy()
-      expect(labels[i].textContent).toBeTruthy()
-      expect(labels[i].style.top).toBe(`${portY(node, i)}px`)
-      expect((handle as HTMLElement).style.top).toBe(labels[i].style.top)
+      expect(handle.getAttribute('title')).toBeTruthy()
+      expect((handle as HTMLElement).style.top).toBe(`${portY(node, i)}px`)
+      if (visibleLabels) {
+        expect(labels[i].textContent).toBeTruthy()
+        expect(labels[i].style.top).toBe(`${portY(node, i)}px`)
+      }
       expect(portY(node, i)).toBeLessThan(builderCardHeight(node))
     })
   }
