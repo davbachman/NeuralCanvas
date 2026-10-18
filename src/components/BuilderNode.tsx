@@ -46,7 +46,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
   const width = builderCardWidth(node), height = builderCardHeight(node)
   const parameterShape = node.type === 'weight' || node.type === 'bias'
     ? (typeof node.params.value === 'object' ? node.params.value.shape : []) : undefined
-  const shapeDescription = parameterShape ? `Shape ${formatShape(parameterShape)}${parameterShape.length === 0 ? ' (scalar)' : ''}` : undefined
+  const shapeDescription = parameterShape ? `${formatShape(parameterShape)}${parameterShape.length === 0 ? ' (scalar)' : ''}` : undefined
   useEffect(() => { updateNodeInternals(node.id) }, [inputCount, outputCount, width, height, node.id, updateNodeInternals])
   return <div className={`builder-node is-compact node-${node.type} ${data.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data.validationError ? 'has-error' : ''}`}
     aria-hidden={!accessible} inert={!accessible} aria-invalid={data.validationError || undefined}
