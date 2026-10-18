@@ -1,4 +1,4 @@
-import { ArithmeticExpressionInput } from './ArithmeticExpressionInput'
+import { ARITHMETIC_OPERATIONS, arithmeticOperation, arithmeticOperationExpression, type ArithmeticOperation } from '../domain/arithmetic'
 import { NodeIcon } from './NodeIcon'
 import { Handle, Position, useUpdateNodeInternals, type NodeProps } from '@xyflow/react'
 import { Plus } from 'lucide-react'
@@ -60,7 +60,12 @@ export function BuilderNode(props: NodeProps): ReactElement {
     {node.type === 'dataset' && <label className="node-field">dataset<select aria-label={`Dataset for ${node.label}`} className="nodrag nowheel" value={node.params.dataset ?? 'line-1d'} onChange={event => data.onDatasetChange(node.id, event.target.value as DatasetKind)}>
       {DATASET_MENU_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
     </select></label>}
-    {node.type === 'arithmetic' && <label className="node-field">operation<ArithmeticExpressionInput node={node} inputLabels={data.arithmeticInputLabels ?? []} onChange={expression => data.onExpressionChange(node.id, expression)}/></label>}
+    {node.type === 'arithmetic' && <label className="node-field">operation<select aria-label="Arithmetic operation" className="nodrag nowheel"
+      value={arithmeticOperation(node.params.expression ?? 'x1 * x2')}
+      onChange={event => data.onExpressionChange(node.id, arithmeticOperationExpression(event.target.value as ArithmeticOperation, inputCount))}>
+      {ARITHMETIC_OPERATIONS.map(operation => <option key={operation.kind} value={operation.kind}>{operation.label}</option>)}
+      <option value="custom" disabled>Custom (see Details)</option>
+    </select></label>}
     {inputLabels.map((label, index) => <Handle key={`in-${index}`} id={`in-${index}`} type="target" position={Position.Left}
       className="node-handle" aria-label={`${label} input`} title={`${label} input`} style={{ top: builderInputPortY(node, index) }}/>) }
     <div className="node-input-labels" aria-hidden="true">{inputLabels.map((label, index) =>

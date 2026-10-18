@@ -10,9 +10,17 @@ it.each(['Enter', 'click'])('creates an editable addition block from the canvas 
   fireEvent.change(search, { target: { value: '+' } })
   if (method === 'Enter') fireEvent.keyDown(search, { key: 'Enter' })
   else fireEvent.click(screen.getByRole('option', { name: /Arithmetic/ }))
-  await waitFor(() => expect(within(container.querySelector('.node-arithmetic') as HTMLElement).getByRole('textbox', { name: 'Arithmetic expression' })).toHaveValue('x1 + x2'))
+  await waitFor(() => expect(within(container.querySelector('.node-arithmetic') as HTMLElement).getByRole('combobox', { name: 'Arithmetic operation' })).toHaveValue('+'))
   expect(container.querySelectorAll('.builder-node .node-handle.target')).toHaveLength(2)
   expect(screen.queryByRole('dialog', { name: 'Add a block' })).not.toBeInTheDocument()
+  const operation = within(container.querySelector('.node-arithmetic') as HTMLElement).getByRole('combobox', { name: 'Arithmetic operation' })
+  fireEvent.change(operation, { target: { value: '*' } })
+  expect(operation).toHaveValue('*')
+  expect(screen.getByRole('textbox', { name: 'Arithmetic expression' })).toHaveValue('x1 * x2')
+  fireEvent.change(operation, { target: { value: 'square' } })
+  expect(operation).toHaveValue('square')
+  expect(screen.getByRole('textbox', { name: 'Arithmetic expression' })).toHaveValue('x1 ^ 2')
+  await waitFor(() => expect(container.querySelectorAll('.node-arithmetic .node-handle.target')).toHaveLength(1))
 })
 
 it.each([

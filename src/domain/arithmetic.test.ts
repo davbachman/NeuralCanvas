@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { arithmeticVariableNames, canonicalArithmeticExpression, displayArithmeticExpression, appendArithmeticInput, arithmeticInputCount, evaluateArithmetic, parseArithmetic } from './arithmetic'
+import { arithmeticOperation, arithmeticOperationExpression, arithmeticVariableNames, canonicalArithmeticExpression, displayArithmeticExpression, appendArithmeticInput, arithmeticInputCount, evaluateArithmetic, parseArithmetic } from './arithmetic'
 import { backwardPass, forwardPass, runTrainingStep } from './engine'
 import { blockPalette } from './blockPalette'
 import { createNode } from './examples'
@@ -8,6 +8,30 @@ import { scalarValue, tensorValue } from './tensor'
 import type { GraphGroup, GraphModel } from './types'
 
 describe('editable arithmetic block', () => {
+  it.each([
+    ['+', 14], ['-', 2], ['*', 64], ['/', 1], ['square', 64], ['negate', -8],
+  ] as const)('selects %s with the correct operands and numerical result', (operation, expected) => {
+    const expression = arithmeticOperationExpression(operation, 3)
+    const count = arithmeticInputCount(expression)
+    expect(count).toBe(operation === 'square' || operation === 'negate' ? 1 : 3)
+    expect(arithmeticOperation(expression)).toBe(operation)
+    expect(evaluateArithmetic(expression, [8, 4, 2].slice(0, count).map(scalarValue)).value.data).toEqual([expected])
+  })
+
+  it('recognizes parentheses and spacing while keeping custom formulas distinct', () => {
+    expect(arithmeticOperation(' ((x1 + x2)) + x3 ')).toBe('+')
+    for (const expression of ['x1 + x2 * x3', 'x1 - (x2 - x3)', 'x1^3', 'x1 + 1', 'x1', 'x1 +']) {
+      expect(arithmeticOperation(expression)).toBe('custom')
+    }
+    expect(arithmeticOperationExpression('*', 1)).toBe('x1 * x2')
+  })
+
+  it.each(['+', '-', '*', '/'] as const)('keeps %s selected when adding an operand', operation => {
+    const extended = appendArithmeticInput(arithmeticOperationExpression(operation, 2))
+    expect(arithmeticInputCount(extended)).toBe(3)
+    expect(arithmeticOperation(extended)).toBe(operation)
+  })
+
   it('round-trips named expressions without confusing slots, labels, or numeric constants', () => {
     for (const labels of [['x2', 'x1'], ['u', 'u'], ['mean radius', 'Param 1'], ['e3', 'x10'], ['a"b', 'x + y']]) {
       const names = arithmeticVariableNames(labels)

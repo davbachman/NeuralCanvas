@@ -89,11 +89,43 @@ export function parseArithmetic(source: string): ParsedArithmetic {
 
 export function arithmeticInputCount(source: string): number { return parseArithmetic(source).inputCount }
 
+export const ARITHMETIC_OPERATIONS = [
+  { kind: '+', label: 'Addition (+)' },
+  { kind: '-', label: 'Subtraction (−)' },
+  { kind: '*', label: 'Multiplication (×)' },
+  { kind: '/', label: 'Division (÷)' },
+  { kind: 'square', label: 'Square (x²)' },
+  { kind: 'negate', label: 'Negation (−x)' },
+] as const
+export type ArithmeticOperation = typeof ARITHMETIC_OPERATIONS[number]['kind']
+
+/** Recognize only whole operations; mixed/custom expressions must retain their identity. */
+export function arithmeticOperation(source: string): ArithmeticOperation | 'custom' {
+  try {
+    const { expression, inputCount } = parseArithmetic(source)
+    if (expression.kind === 'negate' && expression.child.kind === 'input') return 'negate'
+    if (expression.kind === 'binary' && expression.op === '^' && expression.left.kind === 'input' && expression.right.kind === 'number' && expression.right.value === 2) return 'square'
+    if (expression.kind !== 'binary' || expression.op === '^') return 'custom'
+    const op = expression.op
+    const matches = (expr: Expr, count: number): boolean => count === 1
+      ? expr.kind === 'input' && expr.index === 0
+      : expr.kind === 'binary' && expr.op === op && expr.right.kind === 'input' && expr.right.index === count - 1 && matches(expr.left, count - 1)
+    return matches(expression, inputCount) ? op : 'custom'
+  } catch { return 'custom' }
+}
+
+/** Keep existing input slots when switching between operations with multiple operands. */
+export function arithmeticOperationExpression(operation: ArithmeticOperation, inputCount: number): string {
+  if (operation === 'square') return 'x1 ^ 2'
+  if (operation === 'negate') return '-x1'
+  return Array.from({ length: Math.max(2, inputCount) }, (_, index) => `x${index + 1}`).join(` ${operation} `)
+}
+
 /** Add a real input to an editable expression, preserving its top-level operation. */
 export function appendArithmeticInput(source: string): string {
   const parsed = parseArithmetic(source)
   if (parsed.inputCount >= 64) throw new Error('Arithmetic expressions support up to 64 inputs.')
-  const operator = parsed.expression.kind === 'binary' && parsed.expression.op === '*' ? '*' : '+'
+  const operator = parsed.expression.kind === 'binary' && parsed.expression.op !== '^' ? parsed.expression.op : '+'
   return `${source.trim()} ${operator} x${parsed.inputCount + 1}`
 }
 
