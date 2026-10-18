@@ -5,7 +5,7 @@ import { initializeTensor, initializerForNode, INITIALIZERS, operationHelp, type
 import { ConvolutionInspector } from './ConvolutionInspector'
 import { TensorHeatmap } from './TensorHeatmap'
 import { EditableBlockTitle } from './EditableBlockTitle'
-import { arithmeticInputLabels, formulaForNode, isLossNode, lossKindForNode, lossOptionsForNode, TENSOR_TRANSFORM_OPTIONS } from '../domain/engine'
+import { arithmeticInputLabels, isLossNode, lossFormulaForNode, lossKindForNode, lossOptionsForNode, TENSOR_TRANSFORM_OPTIONS } from '../domain/engine'
 import { formatFullTensor, toTensor } from '../domain/tensor'
 import type { CoordinateBinding } from '../domain/neuronProjection'
 import type {
@@ -147,7 +147,9 @@ export function ModelInspector({
           {node.type === 'one-hot' && <label className="inspector-field">Vocabulary size<input aria-label="One-hot vocabulary size" type="number" min="2" max="8192" value={node.params.numClasses ?? 2} onChange={event => onParams(node.id, {numClasses: Number(event.target.value)})}/></label>}
           {node.type === 'conv2d' && <ConvolutionInspector graph={graph} node={node} onValue={onValue}/>}
           {node.type === 'loss' && <label className="inspector-field">Loss<select aria-label="Loss function" value={lossKindForNode(node, graph)} onChange={event => onParams(node.id,{loss:event.target.value as NodeParams['loss']})}>{lossOptionsForNode(node, graph).map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}</select></label>}
-          {isLossNode(node) && <div className="inspector-field">Formula<code className="inspector-formula" aria-label="Loss formula">{formulaForNode(node, graph)}</code></div>}
+          {isLossNode(node) && <div className="inspector-field">Formula<code className="inspector-formula" aria-label="Loss formula">{lossFormulaForNode(node, graph, lossKindForNode(node, graph) === 'cross-entropy' ? 'target' : undefined)}</code>
+            {lossKindForNode(node, graph) === 'cross-entropy' && <span>target is the correct-class index supplied to the target input. [target] selects that class’s probability.</span>}
+          </div>}
           {(node.type==='loss'||node.type==='cross-entropy') && <fieldset><legend>Parameter regularization</legend>
             <label className="inspector-field">Penalty<select aria-label="Regularization penalty" value={node.params.regularization??'none'} onChange={event=>onParams(node.id,{regularization:event.target.value as NodeParams['regularization']})}><option value="none">None</option><option value="l1">L1 · λ Σ |w|</option><option value="l2">L2 · λ/2 Σ w²</option></select></label>
             {node.params.regularization && node.params.regularization!=='none' && <>

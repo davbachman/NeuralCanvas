@@ -65,17 +65,19 @@ export function CodeOutline({ graph, selected, active, onNavigate }: CodeOutline
     const number = ++lineNumber
     const group = line.kind === 'group'
     const opened = expanded.has(line.id)
+    const code = opened && line.expandedCode ? line.expandedCode() : line.code
+    const disclosureLabel = group ? line.label : `parameter values for ${line.code.split(' = ')[0]}`
     const selectedLine = selected?.id === line.id && selected.kind === line.kind
     const comment = !group && !line.code.startsWith(`${line.label} = `) ? line.label : undefined
     const row = <div className={`code-outline-row ${selectedLine ? 'is-selected' : ''}`} key={line.id}>
       <span className="code-outline-number" aria-hidden="true">{number}</span>
       <span className="code-outline-indent" aria-hidden="true" style={{ width: `${depth * 15}px` }} />
-      {group ? <button type="button" className="code-outline-disclosure" aria-label={`${opened ? 'Collapse' : 'Expand'} ${line.label}`} aria-expanded={opened} onClick={() => toggle(line.id)}>{opened ? <ChevronDown size={13} /> : <ChevronRight size={13} />}</button>
+      {group || line.expandedCode ? <button type="button" className="code-outline-disclosure" aria-label={`${opened ? 'Collapse' : 'Expand'} ${disclosureLabel}`} aria-expanded={opened} onClick={() => toggle(line.id)}>{opened ? <ChevronDown size={13} /> : <ChevronRight size={13} />}</button>
         : <span className="code-outline-spacer" aria-hidden="true" />}
-      <button type="button" className="code-outline-line" aria-current={selectedLine ? 'true' : undefined} aria-label={`${line.label}: ${line.code}`} title={line.label}
+      <button type="button" className="code-outline-line" aria-current={selectedLine ? 'true' : undefined} aria-label={`${line.label}: ${code}`} title={line.label}
         ref={element => { if (element) rows.current.set(line.id, element); else rows.current.delete(line.id) }}
         onClick={() => onNavigate({ kind: line.kind, id: line.id })}>
-        {syntax(line.code)}{comment ? <span className="code-outline-comment">  # {comment}</span> : null}
+        {syntax(code)}{comment ? <span className="code-outline-comment">  # {comment}</span> : null}
       </button>
     </div>
     return [row, ...(group && opened ? renderLines(line.children, depth + 1) : [])]

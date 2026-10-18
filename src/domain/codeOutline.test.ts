@@ -49,7 +49,7 @@ describe('code outline', () => {
     expect(lines.filter(line => line.kind === 'group').map(line => line.id).sort()).toEqual((graph.groups ?? []).map(group => group.id).sort())
     for (const node of graph.nodes) {
       const line = lines.find(candidate => candidate.kind === 'node' && candidate.id === node.id)!
-      expect(line.code).toBe(formulaForNode(node, graph))
+      expect(line.expandedCode?.() ?? line.code).toBe(formulaForNode(node, graph))
     }
     for (const group of graph.groups ?? []) {
       const line = lines.find(candidate => candidate.kind === 'group' && candidate.id === group.id)!

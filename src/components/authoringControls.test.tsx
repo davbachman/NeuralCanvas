@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { scratchModel } from '../test/scratchModels'
 import { createNode } from '../domain/examples'
 import { blockPalette } from '../domain/blockPalette'
-import { forwardPass } from '../domain/engine'
+import { formulaForNode, forwardPass } from '../domain/engine'
 import { datasetOutputValueForSlot } from '../domain/datasets'
 import { tensorValue } from '../domain/tensor'
 import { predictionNode } from '../domain/datasetTraining'
@@ -126,6 +126,22 @@ describe('scratch model authoring controls',()=>{
     expect(screen.getByLabelText('Loss formula')).toHaveTextContent(type === 'loss'
       ? 'L = -(target * log(prediction) + (1 - target) * log(1 - prediction))'
       : 'L = mean(−log softmax(prediction)[target])')
+  })
+
+  it.each(['loss', 'cross-entropy'] as const)('explains the target index in %s Details without renaming the connected answer', type => {
+    const prediction = createNode('input', 1), target = createNode('target', 1), loss = createNode(type, 1)
+    prediction.label = 'z7'
+    target.label = 'answer'
+    loss.params.loss = 'cross-entropy'
+    const graph: GraphModel = { nodes: [prediction, target, loss], learningRate: .1, edges: [
+      { id: 'prediction', source: prediction.id, target: loss.id, inputSlot: 0 },
+      { id: 'target', source: target.id, target: loss.id, inputSlot: 1 },
+    ] }
+    render(<ModelInspector {...callbacks} graph={graph} node={loss}/>)
+    expect(screen.getByLabelText('Loss formula')).toHaveTextContent('softmax(z7)[target]')
+    expect(screen.getByText(/target is the correct-class index/)).toBeInTheDocument()
+    expect(target.label).toBe('answer')
+    expect(formulaForNode(loss, graph)).toContain('softmax(z7)[answer]')
   })
 
   it('shows inputs inferred from the loss path and updates after disconnecting it', () => {

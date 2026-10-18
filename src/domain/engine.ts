@@ -175,7 +175,6 @@ export function formatNumber(value: TensorValue | number | undefined, digits = 3
 type TensorFormatter = (value: TensorValue | number | undefined, digits?: number) => string
 
 export function formulaForNode(node: GraphNode, graph?: GraphModel, valueFormatter: TensorFormatter = formatNumber): string {
-  if(isLossNode(node) && node.params.regularization && node.params.regularization!=='none') return formulaForNode({...node,params:{...node.params,regularization:'none'}},graph,valueFormatter) + (node.params.regularization==='l1' ? ` + ${node.params.regularizationStrength??0} Σ |w|` : ` + ${(node.params.regularizationStrength??0)/2} Σ w²`)
   const inputLabels = inputLabelsForFormula(node, graph)
   const outputLabel = outputLabelForFormula(node, graph)
   switch (node.type) {
@@ -217,10 +216,23 @@ export function formulaForNode(node: GraphNode, graph?: GraphModel, valueFormatt
     case 'reshape': return `${outputLabel} = reshape(${inputLabels[0]}, [${node.params.shape ?? []}])`
     case 'mean': return `${outputLabel} = mean(${inputLabels[0]}${node.params.axis === undefined ? '' : `, axis=${node.params.axis}`})`
     case 'tensor-transform': return formulaForNode({ ...node, type: selectedTensorTransform(node) }, graph, valueFormatter)
-    case 'cross-entropy': return `L = mean(−log softmax(${inputLabels[0]})[${inputLabels[1]}])`
+    case 'cross-entropy':
     case 'loss':
-      return lossFormula(lossKindForNode(node, graph), inputLabels, Boolean(graph && hasNonScalarIncomingValue(node, graph)))
+      return lossFormulaForNode(node, graph)
   }
+}
+
+/** Details may name the target's role while code retains its connected variable. */
+export function lossFormulaForNode(node: GraphNode, graph?: GraphModel, targetLabel?: string): string {
+  const inputs = inputLabelsForFormula(node, graph)
+  if (targetLabel) inputs[1] = targetLabel
+  const formula = node.type === 'cross-entropy'
+    ? `L = mean(−log softmax(${inputs[0]})[${inputs[1]}])`
+    : lossFormula(lossKindForNode(node, graph), inputs, Boolean(graph && hasNonScalarIncomingValue(node, graph)))
+  if (!node.params.regularization || node.params.regularization === 'none') return formula
+  return formula + (node.params.regularization === 'l1'
+    ? ` + ${node.params.regularizationStrength ?? 0} Σ |w|`
+    : ` + ${(node.params.regularizationStrength ?? 0) / 2} Σ w²`)
 }
 
 export function lossOptionsForNode(node: GraphNode, graph?: GraphModel): Array<{ kind: LossKind; label: string }> {

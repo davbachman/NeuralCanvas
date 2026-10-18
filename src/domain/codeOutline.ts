@@ -1,5 +1,6 @@
 import { compactVisualHierarchy } from './continuousScene'
 import { formulaForNode, outputLabelForFormula } from './engine'
+import { formatCompactTensor, formatShape } from './tensor'
 import type { GraphGroup, GraphModel, GraphNode } from './types'
 
 export interface CodeOutlineLine {
@@ -7,6 +8,8 @@ export interface CodeOutlineLine {
   kind: 'group' | 'node'
   label: string
   code: string
+  /** Format full parameter values only when their visible line is expanded. */
+  expandedCode?: () => string
   parentId?: string
   children: CodeOutlineLine[]
 }
@@ -74,10 +77,16 @@ export function buildCodeOutline(source: GraphModel): CodeOutlineLine[] {
       id: group.id, kind: 'group' as const, label: group.label, code: codeForGroup(graph, group), parentId,
       children: build(group.id), rank: groupRank(group),
     })),
-    ...(ownNodes.get(parentId) ?? []).map(node => ({
-      id: node.id, kind: 'node' as const, label: node.label, code: formulaForNode(node, graph), parentId,
-      children: [], rank: rank.get(node.id) ?? 0,
-    })),
+    ...(ownNodes.get(parentId) ?? []).map(node => {
+      const value = node.params.value
+      const collapsible = (node.type === 'weight' || node.type === 'bias') && typeof value === 'object' && value.data.length > 1
+      return {
+        id: node.id, kind: 'node' as const, label: node.label,
+        code: collapsible ? `${outputLabelForFormula(node, graph)} = ${formatShape(value.shape)} ${formatCompactTensor(value)}` : formulaForNode(node, graph),
+        expandedCode: collapsible ? () => formulaForNode(node, graph) : undefined,
+        parentId, children: [], rank: rank.get(node.id) ?? 0,
+      }
+    }),
   ].sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label))
     .map(({ rank: _rank, ...line }) => { void _rank; return line })
   return build()
