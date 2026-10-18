@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Calculator, ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { NodeIcon } from './NodeIcon'
 import { blockPalette, blockCategories } from '../domain/blockPalette'
 import type { NodeType } from '../domain/types'
 import './BlockPalette.css'
@@ -44,7 +45,7 @@ export function BlockPalette({ selected, onSelect }: { selected?: NodeType; onSe
           </button></h3>}
         <div id={`block-category-${category.id}`} className="palette-grid" hidden={!expanded}>
           {category.items.map(item => <button key={item.type} type="button" className={`palette-button ${selected === item.type ? 'is-selected' : ''}`} aria-pressed={selected === item.type} onClick={() => onSelect(item.type)}>
-            <Calculator size={15} />{item.label}
+            <NodeIcon type={item.type}/>{item.label}
           </button>)}
         </div>
       </section>
