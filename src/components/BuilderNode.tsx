@@ -7,6 +7,7 @@ import { LOSS_OPTIONS, TENSOR_TRANSFORM_OPTIONS, lossKindForNode, inputArityForN
 import { DATASET_MENU_OPTIONS, datasetTargetSlotForNode } from '../domain/datasets'
 import { inputConnectionLabels, outputConnectionLabel } from '../domain/connectionLabels'
 import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
+import { formatShape } from '../domain/tensor'
 import type { DatasetKind, GraphNode, LossKind, TensorTransformKind, TensorValue } from '../domain/types'
 
 export interface BuilderNodeData extends Record<string, unknown> {
@@ -43,11 +44,15 @@ export function BuilderNode(props: NodeProps): ReactElement {
   const canAddInput = !data.coordinate && (isFlexibleInputNodeType(node.type) || node.type === 'arithmetic') && inputCount < MAX_FLEX_INPUT_COUNT
   const accessible = data.accessible !== false
   const width = builderCardWidth(node), height = builderCardHeight(node)
+  const parameterShape = node.type === 'weight' || node.type === 'bias'
+    ? (typeof node.params.value === 'object' ? node.params.value.shape : []) : undefined
+  const shapeDescription = parameterShape ? `Shape ${formatShape(parameterShape)}${parameterShape.length === 0 ? ' (scalar)' : ''}` : undefined
   useEffect(() => { updateNodeInternals(node.id) }, [inputCount, outputCount, width, height, node.id, updateNodeInternals])
   return <div className={`builder-node is-compact node-${node.type} ${data.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data.validationError ? 'has-error' : ''}`}
     aria-hidden={!accessible} inert={!accessible} aria-invalid={data.validationError || undefined}
     style={{ width, height, ...(typeof data.sceneScale === 'number' ? { transform: `scale(${data.sceneScale})`, transformOrigin: 'top left' } : {}) }}>
     <div className="node-title-row"><NodeIcon type={node.type}/><strong title={node.label}>{node.label}</strong></div>
+    {shapeDescription && <div className="node-parameter-shape" title={shapeDescription}>{shapeDescription}</div>}
     {node.type === 'activation' && !data.coordinate && <label className="node-field">activation<select aria-label="activation" className="nodrag nowheel" value={node.params.activation ?? 'identity'} onChange={event => data.onActivationChange(node.id, event.target.value)}>
       {['identity', 'relu', 'sigmoid', 'tanh'].map(kind => <option key={kind} value={kind}>{kind === 'relu' ? 'ReLU' : kind}</option>)}
     </select></label>}

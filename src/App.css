@@ -1013,4 +1013,13 @@
 
 .builder-node.is-compact { min-height: 0; }
 .builder-node.is-compact .node-title-row { height: 20px; }
+.node-parameter-shape {
+  margin-top: 8px;
+  padding-right: 4px;
+  color: var(--muted);
+  font: 11px/16px var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .builder-node.is-compact .node-output-labels span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
