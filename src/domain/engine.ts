@@ -186,9 +186,8 @@ export function formulaForNode(node: GraphNode, graph?: GraphModel, valueFormatt
     case 'input':
       return `${node.label} = ${inputLabels[0] ?? valueFormatter(node.params.value)}`
     case 'weight':
-      return `${node.label} = ${valueFormatter(node.params.value)}`
     case 'bias':
-      return `${node.label} = ${valueFormatter(node.params.value)}`
+      return `${outputLabel} = ${valueFormatter(node.params.value)}`
     case 'target':
       return `${node.label} = ${inputLabels[0] ?? valueFormatter(node.params.value)}`
     case 'matmul':
@@ -362,13 +361,14 @@ function inputLabelForIndex(index: number): string {
 export function outputLabelForFormula(node: GraphNode | undefined, graph?: GraphModel, sourceSlot = 0): string | undefined {
   if (!node) return undefined
   if (node.type === 'dataset') return datasetOutputLabelForSlot(node, sourceSlot)
+  if (node.type === 'weight' || node.type === 'bias') return graph ? computedOutputLabels(graph).get(node.id) ?? 'p' : 'p'
   if (SOURCE_TYPES.has(node.type)) return node.label
   if (isLossNode(node)) return 'L'
   if (!graph) return node.params.outputName || 'z'
   return computedOutputLabels(graph).get(node.id) ?? 'z'
 }
 
-function computedOutputLabels(graph: GraphModel): Map<string, string> {
+export function computedOutputLabels(graph: GraphModel): Map<string, string> {
   const order = topologicalSort(graph)
   const orderedIds = new Set(order)
   const fallbackIds = graph.nodes
@@ -383,7 +383,7 @@ function computedOutputLabels(graph: GraphModel): Map<string, string> {
 
   let index = 1
   const labels = new Map<string, string>()
-  const used = new Set(['L', ...graph.nodes.filter(node => SOURCE_TYPES.has(node.type)).flatMap(node =>
+  const used = new Set(['L', ...graph.nodes.filter(node => SOURCE_TYPES.has(node.type) && node.type !== 'weight' && node.type !== 'bias').flatMap(node =>
     node.type === 'dataset' ? Array.from({ length: outputArityForNode(node) }, (_, slot) => datasetOutputLabelForSlot(node, slot)) : [node.label])])
   // Reserve explicit names before allocating automatic names.
   for (const nodeId of [...order, ...fallbackIds]) {
@@ -392,6 +392,15 @@ function computedOutputLabels(graph: GraphModel): Map<string, string> {
     const base = node.params.outputName
     let name = base, suffix = 2
     while (used.has(name)) name = `${base}_${suffix++}`
+    labels.set(node.id, name)
+    used.add(name)
+  }
+  // Parameters share one sequence, independent of wiring and canvas position.
+  let parameterIndex = 1
+  for (const node of graph.nodes) {
+    if (node.type !== 'weight' && node.type !== 'bias') continue
+    while (used.has(`p${parameterIndex}`)) parameterIndex += 1
+    const name = `p${parameterIndex++}`
     labels.set(node.id, name)
     used.add(name)
   }
@@ -1502,7 +1511,7 @@ function regularizationPseudocode(node: GraphNode, backward: boolean): string[] 
 function pseudocodeForNode(node: GraphNode, graph?: GraphModel): string[] {
   if (node.params.outputName || node.type === 'standardize' || TENSOR_OPERATION_TYPES.has(node.type)) return [formulaForNode(node, graph)]
   if (node.type === 'input') return [`${node.label} = ${formatNumber(node.params.value)}`]
-  if (node.type === 'weight' || node.type === 'bias') return [`${node.label} = Parameter(${formatNumber(node.params.value)})`]
+  if (node.type === 'weight' || node.type === 'bias') return [`${outputLabelForFormula(node, graph)} = Parameter(${formatNumber(node.params.value)})`]
   if (node.type === 'target') return [`${node.label} = ${formatNumber(node.params.value)}`]
   if (node.type === 'matmul') return ['z = a @ b']
   if (node.type === 'multiply') return ['z = product(inputs)']

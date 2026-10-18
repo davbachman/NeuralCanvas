@@ -997,7 +997,7 @@ describe('Neural Canvas app', () => {
       element.textContent?.trim(),
     )
 
-    expect(nodeTitles).toEqual(expect.arrayContaining(['x1', 'x2', 'Param 1', 'y1']))
+    expect(nodeTitles).toEqual(expect.arrayContaining(['x1', 'x2', 'Param', 'y1']))
     expect(nodeTitles).not.toEqual(expect.arrayContaining(['Param 3', 'y4']))
   })
 

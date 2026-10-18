@@ -29,7 +29,7 @@ it('keeps covered cards inert and exposes only names and ports after zooming in'
   await waitFor(() => expect(node()).not.toHaveAttribute('inert'))
   expect(node()).toHaveAttribute('aria-hidden', 'false')
   expect(node().querySelector('.node-metrics')).toBeNull()
-  expect(node().querySelector('[aria-label="parameter output"]')).toBeInTheDocument()
+  expect(node().querySelector('[aria-label="p1 output"]')).toBeInTheDocument()
 })
 
 it('keeps projected cards free of inline editing controls', () => {

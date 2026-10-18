@@ -18,17 +18,17 @@ it('displays connected variable names, saves edited slots, and follows renames a
     onParams={(id, params) => onExpressionChange(id, params.expression)} onValue={vi.fn()} onOpen={vi.fn()} onInspectNeuron={vi.fn()} onGroup={vi.fn()} selectionCount={1}/>
   const { rerender } = render(canvas(graph))
   const field = await screen.findByRole('textbox', { name: 'Arithmetic expression' })
-  expect(field).toHaveValue('u * w')
-  fireEvent.change(field, { target: { value: 'u + w^2' } })
+  expect(field).toHaveValue('u * p1')
+  fireEvent.change(field, { target: { value: 'u + p1^2' } })
   fireEvent.blur(field)
   expect(onExpressionChange).toHaveBeenLastCalledWith(arithmetic.id, 'x1 + x2^2')
   arithmetic.params.expression = 'x1 + x2^2'
   standard.params.outputName = 'scaled'
   rerender(canvas({ ...graph, nodes: [...graph.nodes] }))
-  await waitFor(() => expect(field).toHaveValue('scaled + w^2'))
+  await waitFor(() => expect(field).toHaveValue('scaled + p1^2'))
   rerender(canvas({ ...graph, edges: graph.edges.map(edge => edge.id === 'left' ? { ...edge, source: weight.id } : edge.id === 'right' ? { ...edge, source: standard.id } : edge) }))
-  await waitFor(() => expect(field).toHaveValue('w + scaled^2'))
-  fireEvent.change(field, { target: { value: 'w +' } })
+  await waitFor(() => expect(field).toHaveValue('p1 + scaled^2'))
+  fireEvent.change(field, { target: { value: 'p1 +' } })
   fireEvent.blur(field)
   expect(field).toHaveClass('is-invalid')
   expect(onExpressionChange).toHaveBeenCalledTimes(1)

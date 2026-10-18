@@ -325,8 +325,8 @@ describe('scalar autodiff engine', () => {
       ],
     }
 
-    expect(formulaForNode(graph.nodes[2], graph)).toBe('z2 = x1 * w3')
-    expect(formulaForNode(graph.nodes[3], graph)).toBe('z1 = x1 + w3')
+    expect(formulaForNode(graph.nodes[2], graph)).toBe('z2 = x1 * p1')
+    expect(formulaForNode(graph.nodes[3], graph)).toBe('z1 = x1 + p1')
     expect(formulaForNode(graph.nodes[4], graph)).toBe('z3 = sigmoid(z1)')
     expect(formulaForNode(graph.nodes[6], graph)).toBe('L = 0.5 * (z3 - y1)^2')
   })

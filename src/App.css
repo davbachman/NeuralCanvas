@@ -1014,6 +1014,7 @@
 .builder-node.is-compact { min-height: 0; }
 .builder-node.is-compact .node-title-row { height: 20px; }
 .node-parameter-shape {
+  max-width: calc(100% - 76px);
   margin-top: 8px;
   padding-right: 4px;
   color: var(--muted);

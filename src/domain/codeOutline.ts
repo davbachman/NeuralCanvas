@@ -26,7 +26,7 @@ export function codeForGroup(graph: GraphModel, group: GraphGroup): string {
   const names = new Map(graph.nodes.map(node => [node.id, node]))
   const variable = (id: string) => {
     const node = names.get(id)
-    return node?.params.outputName ? outputLabelForFormula(node, graph)! : identifier(node?.label ?? id)
+    return node && (node.params.outputName || node.type === 'weight' || node.type === 'bias') ? outputLabelForFormula(node, graph)! : identifier(node?.label ?? id)
   }
   const sources = [...new Set(graph.edges.filter(edge => contained.has(edge.target) && !contained.has(edge.source)).map(edge => edge.source))]
   const argumentsList = sources.map(variable).join(', ')

@@ -25,6 +25,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import {
   MAX_FLEX_INPUT_COUNT,
   arithmeticInputLabels,
+  computedOutputLabels,
   NODE_WIDTH,
   heightForInputCount,
   inputArityForNode,
@@ -382,6 +383,7 @@ function GraphCanvasInner({
 
   const reactNodes = useMemo(
     () => {
+      const outputVariables = computedOutputLabels(renderedGraph)
       const groupNodes = (continuous ? renderedGraph.groups ?? [] : visibleGroups(renderedGraph)).map<CanvasNode>((group) => {
         const groupInterface = groupInterfaces.get(group.id)
         const expanded = continuous || (renderedGraph.view?.expandedGroupIds.includes(group.id) ?? false)
@@ -442,6 +444,7 @@ function GraphCanvasInner({
           selected: selectedNodeIdSet.has(node.id),
           data: {
             graphNode: node,
+            outputVariable: outputVariables.get(node.id),
             sceneScale: scene?.scales.get(node.id),
             displayInputCount: Math.max(0, ...renderedGraph.edges.filter(edge => edge.target === node.id).map(edge => (edge.inputSlot ?? 0) + 1)),
             coordinate: node.id.startsWith('inspect:'),

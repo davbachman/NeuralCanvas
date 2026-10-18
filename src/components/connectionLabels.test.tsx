@@ -3,22 +3,22 @@ import { afterEach, expect, it } from 'vitest'
 import { ReactFlowProvider, type NodeProps } from '@xyflow/react'
 import { BuilderNode, type BuilderNodeData } from './BuilderNode'
 import { createNode } from '../domain/examples'
-import { inputArityByType, inputArityForNode, outputArityForNode, LOSS_OPTIONS } from '../domain/engine'
+import { computedOutputLabels, inputArityByType, inputArityForNode, outputArityForNode, LOSS_OPTIONS } from '../domain/engine'
 import { inputConnectionLabels } from '../domain/connectionLabels'
 import { builderCardHeight, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
 import type { GraphNode, NodeType } from '../domain/types'
 
 afterEach(cleanup)
 function card(node: GraphNode) {
-  const data = { graphNode: node, showMath: true, showGradient: true, formula: 'formula', fullFormula: 'formula', active: false, hasIncomingValue: false } as BuilderNodeData
+  const data = { graphNode: node, outputVariable: computedOutputLabels({ nodes: [node], edges: [], learningRate: .1 }).get(node.id), showMath: true, showGradient: true, formula: 'formula', fullFormula: 'formula', active: false, hasIncomingValue: false } as BuilderNodeData
   return render(<ReactFlowProvider><BuilderNode {...{ id: node.id, data, selected: false } as unknown as NodeProps}/></ReactFlowProvider>)
 }
-it.each(Object.keys(inputArityByType) as NodeType[])('keeps %s sockets accessible, shows input labels, and only labels dataset outputs', type => {
+it.each(Object.keys(inputArityByType) as NodeType[])('keeps %s sockets accessible, shows input roles and output variables', type => {
   const node = createNode(type, 1), view = card(node)
   const inputs = view.container.querySelectorAll('.react-flow__handle.target')
   const outputs = view.container.querySelectorAll('.react-flow__handle.source')
   expect(view.container.querySelector('.node-formula, .node-metrics, .node-kind')).toBeNull()
-  expect(view.container.querySelector('.node-title-row')).toHaveTextContent(node.label)
+  expect(view.container.querySelector('.node-title-row')).toHaveTextContent(type === 'weight' || type === 'bias' ? 'Param' : node.label)
   expect(view.container.querySelector('.node-icon')).toHaveAttribute('aria-hidden', 'true')
   expect(view.container.querySelector('.node-icon svg')).not.toBeNull()
   expect(inputs).toHaveLength(inputArityForNode(node))
@@ -28,19 +28,33 @@ it.each(Object.keys(inputArityByType) as NodeType[])('keeps %s sockets accessibl
     [outputs, '.node-output-labels span', builderOutputPortY],
   ] as const) {
     const labels = view.container.querySelectorAll<HTMLElement>(selector)
-    const visibleLabels = selector === '.node-input-labels span' || type === 'dataset'
-    expect(labels).toHaveLength(visibleLabels ? handles.length : 0)
+    expect(labels).toHaveLength(handles.length)
     handles.forEach((handle, i) => {
       expect(handle.getAttribute('aria-label')).toBeTruthy()
       expect(handle.getAttribute('title')).toBeTruthy()
       expect((handle as HTMLElement).style.top).toBe(`${portY(node, i)}px`)
-      if (visibleLabels) {
-        expect(labels[i].textContent).toBeTruthy()
-        expect(labels[i].style.top).toBe(`${portY(node, i)}px`)
-      }
+      expect(labels[i].textContent).toBeTruthy()
+      expect(labels[i].style.top).toBe(`${portY(node, i)}px`)
       expect(portY(node, i)).toBeLessThan(builderCardHeight(node))
     })
   }
+})
+it('shows parameter variables separately from the generic card name and its shape', () => {
+  const node = createNode('weight', 9)
+  node.params.value = { shape: [2, 3], data: [1, 2, 3, 4, 5, 6] }
+  const { container, getByLabelText } = card(node)
+  expect(container.querySelector('.node-title-row strong')).toHaveTextContent(/^Param$/)
+  expect(container.querySelector('.node-output-labels')).toHaveTextContent('p1')
+  expect(container.querySelector('.node-parameter-shape')).toHaveTextContent('[2, 3]')
+  expect(getByLabelText('p1 output')).toBeInTheDocument()
+})
+
+it('uses the custom output variable on both the visible label and accessible handle', () => {
+  const node = createNode('standardize', 1)
+  node.params.outputName = 'u'
+  const { container, getByLabelText } = card(node)
+  expect(container.querySelector('.node-output-labels')).toHaveTextContent('u')
+  expect(getByLabelText('u output')).toBeInTheDocument()
 })
 it('uses operation roles in slot order, including all loss conventions', () => {
   expect(inputConnectionLabels(createNode('embedding', 1))).toEqual(['table', 'token IDs'])

@@ -17,6 +17,7 @@ export interface BuilderNodeData extends Record<string, unknown> {
   formula: string
   fullFormula: string
   arithmeticInputLabels?: string[]
+  outputVariable?: string
   lossKind?: LossKind
   lossOptions?: Array<{ kind: LossKind; label: string }>
   active: boolean
@@ -51,7 +52,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
   return <div className={`builder-node is-compact node-${node.type} ${data.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data.validationError ? 'has-error' : ''}`}
     aria-hidden={!accessible} inert={!accessible} aria-invalid={data.validationError || undefined}
     style={{ width, height, ...(typeof data.sceneScale === 'number' ? { transform: `scale(${data.sceneScale})`, transformOrigin: 'top left' } : {}) }}>
-    <div className="node-title-row"><NodeIcon type={node.type}/><strong title={node.label}>{node.label}</strong></div>
+    <div className="node-title-row"><NodeIcon type={node.type}/><strong title={node.label}>{node.type === 'weight' || node.type === 'bias' ? 'Param' : node.label}</strong></div>
     {shapeDescription && <div className="node-parameter-shape" title={shapeDescription}>{shapeDescription}</div>}
     {node.type === 'activation' && !data.coordinate && <label className="node-field">activation<select aria-label="activation" className="nodrag nowheel" value={node.params.activation ?? 'identity'} onChange={event => data.onActivationChange(node.id, event.target.value)}>
       {['identity', 'relu', 'sigmoid', 'tanh'].map(kind => <option key={kind} value={kind}>{kind === 'relu' ? 'ReLU' : kind}</option>)}
@@ -79,15 +80,15 @@ export function BuilderNode(props: NodeProps): ReactElement {
       aria-label={`Add input to ${node.label}`} onPointerDown={event => event.stopPropagation()}
       onClick={event => { event.stopPropagation(); data.onFlexibleInputAdd(node.id) }}><Plus size={12} strokeWidth={3}/></button>}
     {Array.from({ length: outputCount }, (_, index) => {
-      const label = outputConnectionLabel(node, index)
+      const label = outputConnectionLabel(node, index, data.outputVariable)
       const target = node.type === 'dataset' && node.params.dataset !== 'custom-csv' && index === datasetTargetSlotForNode(node)
       const description = node.type === 'dataset' && node.params.dataset !== 'custom-csv' ? `${target ? 'Target' : 'Feature'} ${label} output` : `${label} output`
       return <Handle key={`out-${index}`} id={outputCount === 1 ? 'out' : `out-${index}`} type="source" position={Position.Right}
         className={`node-handle source-handle${target ? ' dataset-target-handle' : ''}`} aria-label={description} title={description}
         style={{ top: builderOutputPortY(node, index) }}/>
     })}
-    {node.type === 'dataset' && <div className="node-output-labels" aria-hidden="true" style={{ width: width - 28 }}>
-      {Array.from({ length: outputCount }, (_, index) => <span key={index} style={{ top: builderOutputPortY(node, index) }} title={outputConnectionLabel(node, index)}>{outputConnectionLabel(node, index)}</span>)}
-    </div>}
+    <div className="node-output-labels" aria-hidden="true" style={node.type === 'dataset' ? { width: width - 28 } : undefined}>
+      {Array.from({ length: outputCount }, (_, index) => <span key={index} style={{ top: builderOutputPortY(node, index) }} title={outputConnectionLabel(node, index, data.outputVariable)}>{outputConnectionLabel(node, index, data.outputVariable)}</span>)}
+    </div>
   </div>
 }
