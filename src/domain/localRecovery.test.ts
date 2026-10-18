@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { IDBFactory } from 'fake-indexeddb'
 import { deleteRecovery, parseRecovery, readRecovery, writeRecovery } from './localRecovery'
 import { createProjectStateFile } from './session'
+import { toTensor } from './tensor'
 import { recoveryWorkspace } from '../test/recoveryWorkspace'
 
 beforeEach(() => vi.stubGlobal('indexedDB', new IDBFactory()))
@@ -73,4 +74,18 @@ it('does not confuse selection, settings, or tensor edits with a viewport-only u
   await writeRecovery(withViewport)
   await writeRecovery(settings)
   expect((await readRecovery())!.file.state.graph.view!.viewport).toBeUndefined()
+})
+
+it('recovers changes to parameter initialization preferences with unchanged values', async () => {
+  const original = recoveryWorkspace()
+  await writeRecovery(original)
+  const graph = original.state.graph
+  const changed = { ...original, state: { ...original.state, graph: { ...graph, nodes: graph.nodes.map(node =>
+    node.type === 'weight' ? { ...node, params: { ...node.params, initializer: 'ones' as const } } : node) } } }
+  await writeRecovery(changed)
+  const recovered = (await readRecovery())!.file.state.graph
+  for (const node of recovered.nodes.filter(node => node.type === 'weight')) {
+    expect(node.params.initializer).toBe('ones')
+    expect(node.params.value).toEqual(toTensor(graph.nodes.find(item => item.id === node.id)!.params.value))
+  }
 })

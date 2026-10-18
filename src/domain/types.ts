@@ -98,7 +98,11 @@ export interface Position {
   y: number
 }
 
+export type Initializer = 'zeros' | 'ones' | 'xavier' | 'he' | 'uniform'
+
 export interface NodeParams {
+  /** Preferred method for initializing or randomizing this parameter. */
+  initializer?: Initializer
   /** Optional variable name used in displayed formulas and pseudocode. */
   outputName?: string
   value?: TensorValue | number

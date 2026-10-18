@@ -1,3 +1,4 @@
+import { initializeTensor, initializerForNode } from './domain/authoring'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import App from './App'
@@ -17,7 +18,7 @@ function lesson() {
 }
 afterEach(() => vi.restoreAllMocks())
 
-it('runs forward and randomizes One-hot models with the existing parameter distribution', () => {
+it('runs forward and randomizes One-hot models with the preferred parameter initialization', () => {
   const graph = oneHotModel(), spy = download()
   render(<App initialGraph={graph}/>)
   lesson()
@@ -32,7 +33,9 @@ it('runs forward and randomizes One-hot models with the existing parameter distr
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   expect(after.epoch).toBe(0)
   expect(after.traceSteps).toEqual([])
-  for (const parameter of Object.values(parameterValues(after.graph))) expect(parameter.data.every(value => value === .5)).toBe(true)
+  for (const node of graph.nodes.filter(node => node.type === 'weight')) {
+    expect(parameterValues(after.graph)[node.id]).toEqual(initializeTensor(parameterValues(graph)[node.id].shape, initializerForNode(node), 0xc0000000))
+  }
   expect(after.initialParameterValues).toEqual(parameterValues(after.graph))
   expect(after.graph.nodes.find(node => node.id === 'ids')!.params).toEqual(graph.nodes.find(node => node.id === 'ids')!.params)
   expect(after.graph.nodes.find(node => node.id === 'probability')!.value).toEqual(forwardPass(after.graph, false).graph.nodes.find(node => node.id === 'probability')!.value)
@@ -44,7 +47,7 @@ it('keeps parameters, execution state, reports, and undo history when randomized
   // Valid initial IDs become nonintegers when randomized. This exercises a real
   // evaluation error rather than mocking the forward evaluator.
   const graph = oneHotModel(false, true), spy = download()
-  render(<App initialGraph={graph}/>)
+  const { container } = render(<App initialGraph={graph}/>)
   lesson()
   fireEvent.click(screen.getByRole('button', { name: 'Run one full training step' }))
   expect(screen.getByText('Epoch 1')).toBeInTheDocument()
@@ -52,7 +55,7 @@ it('keeps parameters, execution state, reports, and undo history when randomized
   await waitFor(() => expect(screen.getByRole('list', { name: 'Reported losses' }).children).toHaveLength(2))
   const reports = screen.getByRole('list', { name: 'Reported losses' }).textContent
   const before = saved(spy)
-  const random = vi.spyOn(Math, 'random').mockReturnValue(.25)
+  vi.spyOn(Math, 'random').mockReturnValue(.25)
   fireEvent.click(screen.getByRole('button', { name: /Randomize parameters/ }))
   expect(screen.getByRole('alert')).toHaveTextContent('Could not randomize parameters: One-hot needs integer IDs')
   expect(screen.getByRole('alert')).toHaveTextContent('previous parameters and execution state were kept')
@@ -66,8 +69,11 @@ it('keeps parameters, execution state, reports, and undo history when randomized
   expect(parameterValues(saved(spy).graph)).toEqual(parameterValues(graph))
   fireEvent.click(screen.getByRole('button', { name: 'Run forward' }))
   expect(saved(spy).traceSteps.some(step => step.nodeId === 'encoding')).toBe(true)
-  random.mockReturnValue(.5) // Zero is a valid token ID: a subsequent action succeeds.
+  // Choose a valid initialization for the discrete IDs and retry.
+  fireEvent.click(container.querySelector('[data-id="ids"]')!)
+  fireEvent.click(screen.getByRole('tab', { name: 'Details' }))
+  fireEvent.change(screen.getByLabelText('Tensor initializer'), { target: { value: 'zeros' } })
   fireEvent.click(screen.getByRole('button', { name: /Randomize parameters/ }))
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-  expect(Object.values(parameterValues(saved(spy).graph)).every(value => value.data.every(entry => entry === 0))).toBe(true)
+  expect(parameterValues(saved(spy).graph).ids.data).toEqual([0, 0, 0])
 })

@@ -1,6 +1,10 @@
-import type { GraphGroup, GraphModel, NodeType, TensorValue } from './types'
+import type { GraphGroup, GraphModel, GraphNode, Initializer, NodeType, TensorValue } from './types'
 
-export type Initializer = 'zeros' | 'ones' | 'xavier' | 'he' | 'uniform'
+export type { Initializer } from './types'
+export const INITIALIZERS: readonly Initializer[] = ['xavier', 'he', 'zeros', 'ones', 'uniform']
+export function initializerForNode(node: GraphNode): Initializer {
+  return node.params.initializer ?? (node.type === 'bias' ? 'zeros' : 'xavier')
+}
 export function initializeTensor(shape: number[], mode: Initializer, seed = 42): TensorValue {
   const size = shape.reduce((a, b) => a * b, 1)
   if (shape.some(n => !Number.isInteger(n) || n < 1) || size > 1_048_576) throw new Error('Use positive dimensions and at most 1,048,576 values.')

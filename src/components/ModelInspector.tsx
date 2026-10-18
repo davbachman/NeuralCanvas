@@ -1,6 +1,6 @@
 import {StandardizationInspector} from './StandardizationInspector'
 import { useState } from 'react'
-import { initializeTensor, operationHelp, type Initializer } from '../domain/authoring'
+import { initializeTensor, initializerForNode, INITIALIZERS, operationHelp, type Initializer } from '../domain/authoring'
 import { ConvolutionInspector } from './ConvolutionInspector'
 import { TensorHeatmap } from './TensorHeatmap'
 import { EditableBlockTitle } from './EditableBlockTitle'
@@ -191,6 +191,7 @@ export function ModelInspector({
                 key={canonical.id}
                 node={canonical}
                 onValue={onValue}
+                onParams={onParams}
               />
             )}
           {node.type === 'standardize' && !node.id.startsWith('inspect:') && <StandardizationInspector key={node.id} graph={graph} node={node} onParams={onParams}/>}
@@ -275,9 +276,11 @@ export function ModelInspector({
 function TensorEditor({
   node,
   onValue,
+  onParams,
 }: {
   node: GraphNode
   onValue: Props['onValue']
+  onParams: Props['onParams']
 }) {
   const value = toTensor(node.params.value)
   const [shape, setShape] = useState(value.shape.join(', ')),
@@ -285,7 +288,7 @@ function TensorEditor({
       value.data.map((item) => String(item)).join(', '),
     ),
     [error, setError] = useState('')
-  const [initializer, setInitializer] = useState<Initializer>(node.type === 'bias' ? 'zeros' : 'xavier')
+  const initializer = initializerForNode(node)
   const [seed, setSeed] = useState(() => [...node.id].reduce((seed,letter) => (seed*31+letter.charCodeAt(0)) >>> 0,42))
   const signature = JSON.stringify(value)
   const [source, setSource] = useState(signature)
@@ -342,7 +345,8 @@ function TensorEditor({
         />
       </label>
       <p className="coordinate-note">Enter a shape, then initialize its values or enter all values below and apply them.</p>
-      <div className="tensor-initializer"><label className="inspector-field">Initialize<select aria-label="Tensor initializer" value={initializer} onChange={event => setInitializer(event.target.value as Initializer)}>{(['xavier','he','zeros','ones','uniform'] as const).map(kind => <option key={kind} value={kind}>{kind === 'xavier' ? 'Xavier · matrices' : kind === 'he' ? 'He · ReLU / filters' : kind}</option>)}</select></label><button type="button" onClick={initializeShape}>Initialize tensor</button></div>
+      <div className="tensor-initializer"><label className="inspector-field">Initialize<select aria-label="Tensor initializer" value={initializer} onChange={event => onParams(node.id, { initializer: event.target.value as Initializer })}>{INITIALIZERS.map(kind => <option key={kind} value={kind}>{kind === 'xavier' ? 'Xavier · matrices' : kind === 'he' ? 'He · ReLU / filters' : kind}</option>)}</select></label><button type="button" onClick={initializeShape}>Initialize tensor</button></div>
+      {(node.type === 'weight' || node.type === 'bias') && <p className="coordinate-note">Saved with this block. Train → Randomize parameters uses this method with fresh random draws.</p>}
       <label className="inspector-field">Random seed<input aria-label="Initializer seed" type="number" value={seed} onChange={event => setSeed(Number(event.target.value))}/></label>
       <label className="inspector-field">
         Values

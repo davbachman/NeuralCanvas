@@ -1,3 +1,4 @@
+import { INITIALIZERS } from './authoring'
 import {isStandardizationStats} from './standardization'
 import {isTrainingSettings} from './trainingSettings'
 import { cloneGraph } from './engine'
@@ -15,6 +16,7 @@ import type {
   GraphNode,
   GraphPhase,
   LossKind,
+  Initializer,
   NodeDimensions,
   NodeParams,
   Position,
@@ -231,6 +233,7 @@ function isGraphGroup(value: unknown): boolean {
 function isNodeParams(value: unknown): value is NodeParams {
   if (!isRecord(value)) return false
   return (
+    (value.initializer === undefined || INITIALIZERS.includes(value.initializer as Initializer)) &&
     (value.value === undefined || isFiniteNumber(value.value) || isTensorValue(value.value)) &&
     (value.outputName === undefined || (typeof value.outputName === 'string' && /^[A-Za-z_][A-Za-z0-9_]*$/.test(value.outputName))) &&
     (value.activation === undefined || ACTIVATION_KINDS.has(value.activation as ActivationKind)) &&

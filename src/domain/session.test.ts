@@ -215,3 +215,15 @@ describe('project state files', () => {
   file.state.graph.training!.patience=-1
   expect(parseProjectStateFile(JSON.stringify(file)).ok).toBe(false)
  })
+
+it('saves preferred initializers and rejects unknown initialization methods', () => {
+  const state = projectSnapshot()
+  state.graph.nodes.find(node => node.id === 'w')!.params.initializer = 'he'
+  const file = createProjectStateFile(state)
+  const parsed = parseProjectStateFile(JSON.stringify(file))
+  expect(parsed.ok).toBe(true)
+  if (parsed.ok) expect(parsed.file.state.graph.nodes.find(node => node.id === 'w')!.params.initializer).toBe('he')
+  const invalid = JSON.parse(JSON.stringify(file))
+  invalid.state.graph.nodes.find((node: { id: string }) => node.id === 'w').params.initializer = 'unknown'
+  expect(parseProjectStateFile(JSON.stringify(invalid)).ok).toBe(false)
+})

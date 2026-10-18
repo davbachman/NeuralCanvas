@@ -1,3 +1,4 @@
+import { initializeTensor, initializerForNode } from './domain/authoring'
 import { useModelGraph } from './hooks/useModelGraph'
 import { hasStoryExperiment } from './domain/textData'
 import { InferenceInspection, inferenceSignature } from './domain/inferenceInspection'
@@ -1131,12 +1132,7 @@ function App({
         nodes: graph.nodes.map((node) => {
           if (node.type !== 'weight' && node.type !== 'bias') return node
           const original = toTensor(node.params.value)
-          const value = {
-            ...original,
-            data: original.data.map(() =>
-              Number((Math.random() * 2 - 1).toFixed(2)),
-            ),
-          }
+          const value = initializeTensor(original.shape, initializerForNode(node), Math.floor(Math.random() * 0x100000000))
           return { ...node, params: { ...node.params, value }, value }
         }),
       }
@@ -2103,7 +2099,7 @@ function summarizeUpdateSteps(steps: EvaluationTraceStep[]): EvaluationTraceStep
 
 function computationSignature(graph: GraphModel): string {
   return JSON.stringify({
-    nodes: graph.nodes.map(({ id, type, params }) => ({ id, type, params })),
+    nodes: graph.nodes.map(({ id, type, params }) => ({ id, type, params: Object.fromEntries(Object.entries(params).filter(([key]) => key !== 'initializer')) })),
     edges: graph.edges.map(({ id, source, sourceSlot, target, inputSlot }) => ({
       id,
       source,
@@ -2122,7 +2118,7 @@ function mergeExecutionGraph(current: GraphModel, evaluated: GraphModel): GraphM
     ...current,
     nodes: current.nodes.map(node => {
       const result = nodes.get(node.id)
-      return result ? { ...result, label: node.label, position: node.position, dimensions: node.dimensions } : node
+      return result ? { ...result, params: { ...result.params, initializer: node.params.initializer }, label: node.label, position: node.position, dimensions: node.dimensions } : node
     }),
     edges: current.edges.map(edge => ({ ...edge, value: edges.get(edge.id)?.value, grad: edges.get(edge.id)?.grad })),
   }

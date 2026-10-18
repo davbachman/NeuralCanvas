@@ -114,6 +114,7 @@ it('invalidates numerical and topology changes but tolerates layout and canvas n
   navigation.nodes[0].params.datasetIndex = 5
   navigation.nodes[0].params.datasetSplit = 'test'
   navigation.nodes[0].position.x += 100
+  navigation.nodes.find(node => node.type === 'weight')!.params.initializer = 'he'
   expect(inferenceSignature(navigation)).toBe(signature)
   for (const edit of [
     (g: GraphModel) => { g.nodes.find(n => n.id === 'scaled')!.params.standardization!.scale[0] = 5 },
