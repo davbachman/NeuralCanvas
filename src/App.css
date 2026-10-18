@@ -1023,4 +1023,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.inspector-formula {
+  display: block;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font: 12px/1.6 var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .builder-node.is-compact .node-output-labels span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }

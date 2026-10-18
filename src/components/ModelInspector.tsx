@@ -5,7 +5,7 @@ import { initializeTensor, initializerForNode, INITIALIZERS, operationHelp, type
 import { ConvolutionInspector } from './ConvolutionInspector'
 import { TensorHeatmap } from './TensorHeatmap'
 import { EditableBlockTitle } from './EditableBlockTitle'
-import { arithmeticInputLabels, lossKindForNode, lossOptionsForNode, TENSOR_TRANSFORM_OPTIONS } from '../domain/engine'
+import { arithmeticInputLabels, formulaForNode, isLossNode, lossKindForNode, lossOptionsForNode, TENSOR_TRANSFORM_OPTIONS } from '../domain/engine'
 import { formatFullTensor, toTensor } from '../domain/tensor'
 import type { CoordinateBinding } from '../domain/neuronProjection'
 import type {
@@ -146,6 +146,8 @@ export function ModelInspector({
           {node.type === 'arithmetic' && !node.id.startsWith('inspect:') && <ArithmeticEditor key={node.id} graph={graph} node={node} onParams={onParams}/>}
           {node.type === 'one-hot' && <label className="inspector-field">Vocabulary size<input aria-label="One-hot vocabulary size" type="number" min="2" max="8192" value={node.params.numClasses ?? 2} onChange={event => onParams(node.id, {numClasses: Number(event.target.value)})}/></label>}
           {node.type === 'conv2d' && <ConvolutionInspector graph={graph} node={node} onValue={onValue}/>}
+          {node.type === 'loss' && <label className="inspector-field">Loss<select aria-label="Loss function" value={lossKindForNode(node, graph)} onChange={event => onParams(node.id,{loss:event.target.value as NodeParams['loss']})}>{lossOptionsForNode(node, graph).map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}</select></label>}
+          {isLossNode(node) && <div className="inspector-field">Formula<code className="inspector-formula" aria-label="Loss formula">{formulaForNode(node, graph)}</code></div>}
           {(node.type==='loss'||node.type==='cross-entropy') && <fieldset><legend>Parameter regularization</legend>
             <label className="inspector-field">Penalty<select aria-label="Regularization penalty" value={node.params.regularization??'none'} onChange={event=>onParams(node.id,{regularization:event.target.value as NodeParams['regularization']})}><option value="none">None</option><option value="l1">L1 · λ Σ |w|</option><option value="l2">L2 · λ/2 Σ w²</option></select></label>
             {node.params.regularization && node.params.regularization!=='none' && <>
@@ -154,7 +156,6 @@ export function ModelInspector({
               {graph.nodes.filter(n=>n.type==='weight'||n.type==='bias').map(n=>{const ids=node.params.regularizationParameterIds??graph.nodes.filter(p=>p.type==='weight').map(p=>p.id);return <label key={n.id} style={{display:'block'}}><input type="checkbox" checked={ids.includes(n.id)} onChange={event=>onParams(node.id,{regularizationParameterIds:event.target.checked?[...ids,n.id]:ids.filter(id=>id!==n.id)})}/>{n.label}</label>})}
             </>}
           </fieldset>}
-          {node.type === 'loss' && <label className="inspector-field">Loss<select aria-label="Loss function" value={lossKindForNode(node, graph)} onChange={event => onParams(node.id,{loss:event.target.value as NodeParams['loss']})}>{lossOptionsForNode(node, graph).map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}</select></label>}
           {node.type === 'loss' && lossKindForNode(node, graph) === 'binary-cross-entropy-with-logits' && <p className="coordinate-note">Connect raw scores directly. This loss includes sigmoid; use a separate sigmoid only to inspect probabilities.</p>}
           {node.type === 'loss' && lossKindForNode(node, graph) === 'binary-cross-entropy' && <p className="coordinate-note">Legacy probability loss: keep the sigmoid before this block. To use logits, remove that sigmoid connection and choose Binary cross entropy (logits).</p>}
           {node.type === 'tensor-transform' && <label className="inspector-field">Transform<select aria-label="Tensor transform operation" value={node.params.transform ?? 'reshape'} onChange={event => onParams(node.id, { transform: event.target.value as TensorTransformKind })}>{TENSOR_TRANSFORM_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}</select></label>}

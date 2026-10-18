@@ -94,11 +94,38 @@ describe('scratch model authoring controls',()=>{
     const evaluated=forwardPass(graph).graph
     render(<ModelInspector {...callbacks} graph={evaluated} node={evaluated.nodes.find(node=>node.id===loss.id)}/>)
     expect(screen.getByLabelText('Loss function')).toHaveValue('mse')
+    expect(screen.getByLabelText('Loss formula')).toHaveTextContent('L = (1/n) * Σ_i (x1_i - y1_i)^2')
     const disclosure=screen.getByText('Exact values and gradients').closest('details')!
     expect(disclosure).not.toHaveAttribute('open')
     fireEvent.click(screen.getByText('Exact values and gradients'))
     expect(disclosure).toHaveAttribute('open')
     expect(disclosure).toHaveTextContent('Value')
+  })
+
+  it('updates the formula when choosing a loss or changing regularization', () => {
+    render(<InspectorHarness initial={createNode('loss', 1)}/>)
+    expect(screen.getByLabelText('Loss formula')).toHaveTextContent('L = 0.5 * (prediction - target)^2')
+    for (const [kind, formula] of [
+      ['mse', 'L = (prediction - target)^2'],
+      ['mae', 'L = |prediction - target|'],
+      ['binary-cross-entropy-with-logits', 'L = mean(softplus(prediction) - target * prediction)'],
+      ['cross-entropy', 'L = mean(-log softmax(prediction)[target])'],
+    ]) {
+      fireEvent.change(screen.getByLabelText('Loss function'), { target: { value: kind } })
+      expect(screen.getByLabelText('Loss formula')).toHaveTextContent(formula)
+    }
+    fireEvent.change(screen.getByLabelText('Regularization penalty'), { target: { value: 'l1' } })
+    fireEvent.change(screen.getByLabelText('Strength λ'), { target: { value: '0.2' } })
+    expect(screen.getByLabelText('Loss formula')).toHaveTextContent('+ 0.2 Σ |w|')
+  })
+
+  it.each(['loss', 'cross-entropy'] as const)('shows the formula for imported legacy %s blocks', type => {
+    const node = createNode(type, 1)
+    node.params.loss = 'binary-cross-entropy'
+    render(<InspectorHarness initial={node}/>)
+    expect(screen.getByLabelText('Loss formula')).toHaveTextContent(type === 'loss'
+      ? 'L = -(target * log(prediction) + (1 - target) * log(1 - prediction))'
+      : 'L = mean(−log softmax(prediction)[target])')
   })
 
   it('shows inputs inferred from the loss path and updates after disconnecting it', () => {
