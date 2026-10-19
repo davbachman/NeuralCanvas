@@ -36,13 +36,15 @@ function handBuiltLinearGraph(): GraphModel {
 }
 
 describe('Neural Canvas app', () => {
-  it('puts epoch training first and keeps lesson tracing collapsed', () => {
+  it('puts Run forward first, followed by epoch training, and keeps lesson tracing collapsed', () => {
     render(<App initialGraph={createModelPreset('linear')} />)
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
     const panel = screen.getByRole('tabpanel', { name: 'Train controls' })
     expect(within(panel).getByLabelText('Training execution')).toHaveValue('tensor')
     const run = within(panel).getByRole('button', { name: /Run 10 epochs/ })
-    expect(panel.querySelector('button')).toBe(run)
+    const forward = within(panel).getByRole('button', { name: 'Run forward' })
+    expect(panel.firstElementChild).toBe(forward)
+    expect(forward.compareDocumentPosition(run) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     const summary = within(panel).getByText('Step through a lesson')
     const lesson = summary.closest('details')!
     expect(lesson).not.toHaveAttribute('open')

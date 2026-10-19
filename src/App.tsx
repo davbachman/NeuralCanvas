@@ -1699,6 +1699,8 @@ function App({
           ) : null}
         </section>
         <section className="panel-section run-panel" role="tabpanel" aria-label="Train controls" hidden={leftTab !== 'train'}>
+          <button type="button" className="run-epochs-button primary-button" onClick={() => runCanvasAction(evaluateModel)} disabled={blockingIssues.length > 0 || isTraining}>Run forward</button>
+          <div className="run-section-divider" />
           <p className="eyebrow">Train the model</p>
           {isTraining ? <button type="button" className="run-epochs-button" onClick={() => trainingController.current?.abort()}>Stop training</button>
             : <button type="button" className="run-epochs-button primary-button" aria-keyshortcuts="Shift+Enter" onClick={() => void runEpochs()} disabled={!canRunEpochs}>Run {validRunSettings ? epochCount : '—'} {epochCount === 1 ? 'epoch' : 'epochs'} <kbd aria-hidden="true">⇧ Return</kbd></button>}
@@ -1735,7 +1737,6 @@ function App({
             <summary>Step through a lesson</summary>
             <p className="run-intro">Inspect forward computation, gradients, and a single SGD update on the canvas example.</p>
           <div className="run-button-grid">
-            <button type="button" onClick={() => runCanvasAction(evaluateModel)} disabled={blockingIssues.length > 0 || isTraining}>Run forward</button>
             <button type="button" aria-keyshortcuts="Shift+Space" onClick={() => runCanvasAction(stepForward)} disabled={blockingIssues.length > 0 || isTraining}><StepForward size={15} /> Step <kbd aria-hidden="true">⇧ Space</kbd></button>
             <button type="button" disabled={!activeStep || !collapsedGroupForNode(graph, activeStep.nodeId ?? '') || isTraining} onClick={() => {
               const group = collapsedGroupForNode(graph, activeStep?.nodeId ?? '')
