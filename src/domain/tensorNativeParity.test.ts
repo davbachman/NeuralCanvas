@@ -11,7 +11,7 @@ beforeAll(async()=>{await tf.setBackend('cpu');await tf.ready()})
 afterEach(()=>expect(tf.memory().numTensors).toBe(0))
 it.skipIf(!python).each(['counts-linear','mean','position-attention','transformer','two-head-transformer'])('matches native batched PyTorch loss, gradients and three AdamW updates: %s',async kind=>{
  const data=prepareTextDocuments([{text:'good funny good film',label:'positive',split:'train'},{text:'bad film',label:'negative',split:'train'},{text:'good film',label:'positive',split:'test'}],'test.csv',{task:'sentiment',maxLength:4})
- const graph=kind==='two-head-transformer'?withTwoAttentionHeads(buildTextModel(data,'transformer',4)):buildTextModel(data,kind as TextModelKind,4),model=new TensorGraph(graph),options={...DEFAULT_TRAINING,weightDecay:.01,clipNorm:1}
+ const graph=kind==='two-head-transformer'?withTwoAttentionHeads(buildTextModel(data,'transformer',4)):buildTextModel(data,kind as TextModelKind,4),model=new TensorGraph(graph),options={...DEFAULT_TRAINING,optimizer:'adamw' as const,weightDecay:.01,clipNorm:1}
  const optimizer=new TensorOptimizer(options,.001)
  try {
   const rows=model.examples.slice(0,2),ids=rows.map(row=>data.representation==='tokens'?row.features[0].data:[])
