@@ -207,6 +207,7 @@
 .theme-dark .builder-edge-flow { --edge-flow-color: #a78bfa; }
 .theme-dark .builder-edge-flow.is-backward { --edge-flow-color: #ff9b7b; }
 .theme-dark .react-flow .react-flow__edge .builder-edge-flow.is-unreached path.builder-edge { stroke: #7c8ca6; stroke-opacity: .5; }
+.theme-dark .react-flow .react-flow__edge .builder-edge-flow.is-highlighted path.builder-edge { stroke: var(--edge-flow-color); stroke-opacity: 1; }
 .theme-dark .builder-edge-flow .builder-edge-bands { stroke: #f4efff; stroke-opacity: .55; }
 .theme-dark .neuron-glyph circle { fill: #234540; stroke: #80cabb; }
 .theme-dark .neuron-glyph text { fill: #a6ebd6; }

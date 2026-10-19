@@ -9,7 +9,7 @@ import { projectDenseNeurons } from '../domain/neuronProjection'
 import { compactVisualHierarchy, continuousSceneMaxZoom, layoutContinuousScene } from '../domain/continuousScene'
 import type { GraphModel } from '../domain/types'
 import { LESSONS } from '../learning/presets'
-import { createNode } from '../domain/examples'
+import { createNode, createStarterGraph } from '../domain/examples'
 import { placeCanvasNode } from '../domain/nodePlacement'
 import { parseCustomCsv } from '../domain/customCsv'
 import { DEFAULT_TRAINING } from '../domain/trainingSettings'
@@ -43,14 +43,15 @@ function mountCanvas(graph: GraphModel, displayGraph?: GraphModel, problemNodeId
   const onViewChange = vi.fn()
   const onSelectionChange = vi.fn()
   const onCreateNode = vi.fn()
-  const canvas = (current: GraphModel, focus = focusRequest) => <GraphCanvas
+  const canvas = (current: GraphModel, focus = focusRequest, selection: { selectedNodeIds?: string[]; selectedGroupId?: string } = {}) => <GraphCanvas
+    {...selection}
     graph={current} displayGraph={displayGraph} problemNodeIds={problemNodeIds} focusRequest={focus} showMath showGradient={false} phase="edit"
     onGraphChange={onGraphChange} onViewChange={onViewChange} onSelectionChange={onSelectionChange}
     onCreateNode={onCreateNode} onCancelPendingPlacement={vi.fn()} onNodeValueChange={vi.fn()}
     onActivationChange={vi.fn()} onGroupCreate={vi.fn()} onGroupExplode={vi.fn()} onGroupMove={vi.fn()}
   />
   const result = render(canvas(graph))
-  return { ...result, rerenderGraph: (current: GraphModel, focus?: CanvasFocus) => result.rerender(canvas(current, focus)), onGraphChange, onViewChange, onSelectionChange, onCreateNode }
+  return { ...result, rerenderGraph: (current: GraphModel, focus?: CanvasFocus) => result.rerender(canvas(current, focus)), select: (selection: { selectedNodeIds?: string[]; selectedGroupId?: string }) => result.rerender(canvas(graph, focusRequest, selection)), onGraphChange, onViewChange, onSelectionChange, onCreateNode }
 }
 
 function nodeById(id: string): Node {
@@ -84,6 +85,33 @@ function dragStop(nodes: Node[]) {
 
 describe('canvas movement gestures', () => {
   beforeEach(() => vi.clearAllMocks())
+
+  it('highlights incoming and outgoing wires for the selected blocks without selecting the wires', () => {
+    const graph = createStarterGraph()
+    const { select, onGraphChange } = mountCanvas(graph)
+    const highlighted = () => flow.props!.edges!.filter(edge => edge.data?.highlighted).map(edge => edge.id).sort()
+    select({ selectedNodeIds: ['mul'] })
+    expect(highlighted()).toEqual(graph.edges.filter(edge => edge.source === 'mul' || edge.target === 'mul').map(edge => edge.id).sort())
+    select({ selectedNodeIds: ['mul', 'pred'] })
+    expect(highlighted()).toEqual(graph.edges.filter(edge => ['mul', 'pred'].includes(edge.source) || ['mul', 'pred'].includes(edge.target)).map(edge => edge.id).sort())
+    expect(flow.props!.edges!.every(edge => !edge.selected)).toBe(true)
+    select({ selectedNodeIds: [] })
+    expect(highlighted()).toEqual([])
+    expect(onGraphChange).not.toHaveBeenCalled()
+  })
+
+  it('carries group connection highlighting through nested wire segments', () => {
+    const graph = createStarterGraph()
+    graph.groups = [{ id: 'g', label: 'Product', nodeIds: ['w', 'mul'], position: { x: 0, y: 0 }, dimensions: { width: 400, height: 300 } }]
+    const { select } = mountCanvas(graph)
+    select({ selectedGroupId: 'g' })
+    const highlighted = flow.props!.edges!.filter(edge => edge.data?.highlighted)
+    expect(highlighted.length).toBeGreaterThan(0)
+    for (const wire of flow.props!.edges!) {
+      const edge = graph.edges.find(edge => edge.id === (wire.data?.canonicalEdgeId ?? wire.id))!
+      expect(wire.data?.highlighted).toBe(['w', 'mul'].includes(edge.source) || ['w', 'mul'].includes(edge.target))
+    }
+  })
 
   it.each([false, true])('keeps editing callbacks current after training settings change (dragging: %s)', dragging => {
     const graph: GraphModel = { learningRate: .1, nodes: [createNode('add', 1)], edges: [] }

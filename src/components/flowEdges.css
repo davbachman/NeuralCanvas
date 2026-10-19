@@ -36,9 +36,14 @@
 }
 
 .react-flow .react-flow__edge .builder-edge-flow.is-selected path.builder-edge,
+.react-flow .react-flow__edge .builder-edge-flow.is-highlighted path.builder-edge,
 .react-flow .react-flow__edge .builder-edge-flow:focus-visible path.builder-edge {
   stroke-width: calc(3.2 * var(--edge-scale));
   stroke-opacity: 1;
+}
+
+.react-flow .react-flow__edge .builder-edge-flow.is-highlighted path.builder-edge {
+  stroke: var(--edge-flow-color);
 }
 
 .builder-edge-flow .builder-edge-bands {
@@ -56,7 +61,8 @@
   animation-name: edge-band-backward;
 }
 
-.builder-edge-flow.is-selected .builder-edge-bands {
+.builder-edge-flow.is-selected .builder-edge-bands,
+.builder-edge-flow.is-highlighted .builder-edge-bands {
   stroke-width: calc(3.2 * var(--edge-scale));
 }
 

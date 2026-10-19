@@ -331,6 +331,10 @@ function GraphCanvasInner({
     return () => window.clearTimeout(timeout)
   }, [focusNodeId, expansionKey, fitView, semantic, continuous, zoomToGroup, focusRequest, selectedNodeIds])
   const selectedNodeIdSet = useMemo(() => new Set(selectedNodeIds), [selectedNodeIds])
+  const connectedSelectionIds = useMemo(() => new Set([
+    ...selectedNodeIds,
+    ...(renderedGraph.groups?.find(group => group.id === selectedGroupId)?.nodeIds ?? []),
+  ]), [selectedNodeIds, selectedGroupId, renderedGraph.groups])
   const groupInterfaces = useMemo(
     () => new Map((renderedGraph.groups ?? []).map((group) => [group.id, visualGroupInterface(renderedGraph, group)])),
     [renderedGraph],
@@ -526,6 +530,7 @@ function GraphCanvasInner({
               gradient: edge.grad,
               showGradient,
               active: activeStep?.edgeIds.includes(edge.id) ?? false,
+              highlighted: connectedSelectionIds.has(edge.source) || connectedSelectionIds.has(edge.target),
               phase,
               residual: semantic && /residual|skip/i.test(renderedGraph.nodes.find((node) => node.id === edge.target)?.label ?? '') && (edge.inputSlot ?? 0) === 0,
               label: `${renderedGraph.nodes.find((node) => node.id === edge.source)?.label ?? edge.source} → ${renderedGraph.nodes.find((node) => node.id === edge.target)?.label ?? edge.target}`,
@@ -534,7 +539,7 @@ function GraphCanvasInner({
           },
         ]
       }),
-    [activeStep?.edgeIds, groupInterfaces, phase, renderedGraph, showGradient, semantic, continuous, selectedEdgeId, edgeAction],
+    [activeStep?.edgeIds, groupInterfaces, phase, renderedGraph, showGradient, semantic, continuous, selectedEdgeId, edgeAction, connectedSelectionIds],
   )
 
   const [nodes, setNodes, onNodesChangeBase] = useNodesState(reactNodes)

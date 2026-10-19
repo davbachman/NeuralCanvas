@@ -10,6 +10,14 @@ function renderEdge(data: Partial<BuilderEdgeData> = {}, selected = false, y = 8
 }
 
 describe('clean directional connection flow', () => {
+  it('highlights a connected wire without making it selected or animating an unreached value', () => {
+    const { container } = renderEdge({ highlighted: true, active: false })
+    expect(container.querySelector('.builder-edge-flow')).toHaveClass('is-highlighted', 'is-unreached')
+    expect(container.querySelector('.builder-edge-flow')).not.toHaveClass('is-selected')
+    expect(container.querySelector('.builder-edge-bands')).toBeNull()
+    expect(screen.getByRole('button', { name: /not reached in this trace/ })).toBeInTheDocument()
+  })
+
   it('shows forward bands without visible numerical labels', () => {
     const { container } = renderEdge({ forward: { shape: [], data: [2.5] } })
     expect(screen.getByRole('button', { name: /Input → Product · forward value: 2.500/ })).toBeInTheDocument()

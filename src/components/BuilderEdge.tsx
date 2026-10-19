@@ -12,6 +12,7 @@ export interface BuilderEdgeData extends Record<string, unknown> {
   gradient?: TensorValue
   showGradient: boolean
   active: boolean
+  highlighted?: boolean
   phase: string
   residual?: boolean
   route?: Position[]
@@ -50,7 +51,7 @@ export function BuilderEdge(props: EdgeProps): ReactElement {
   const edgePath = scenePath ?? defaultPath
   const value = isBackward ? data?.gradient : data?.forward
   const description = useMemo(() => `${data?.label ?? 'Connection'} · ${isBackward ? 'backward gradient' : 'forward value'}: ${value === undefined ? 'not reached in this trace' : formatFullTensor(value)}`, [data?.label, isBackward, value])
-  const className = `builder-edge-flow ${isBackward ? 'is-backward' : 'is-forward'} ${value === undefined ? 'is-unreached' : 'has-signal'} ${data?.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''}`
+  const className = `builder-edge-flow ${isBackward ? 'is-backward' : 'is-forward'} ${value === undefined ? 'is-unreached' : 'has-signal'} ${data?.active ? 'is-active' : ''} ${props.selected ? 'is-selected' : ''} ${data?.highlighted ? 'is-highlighted' : ''}`
   const intensity = edgeSignalIntensity(value)
   const inspect = () => data?.onInspect?.(props.id)
 
