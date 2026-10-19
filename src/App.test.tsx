@@ -87,6 +87,28 @@ describe('Neural Canvas app', () => {
     expect(screen.queryByRole('button', { name: /Download session summary/i })).not.toBeInTheDocument()
   })
 
+  it('counts parameter tensor entries once per block and updates after editing their shape', () => {
+    const graph = createStarterGraph()
+    graph.nodes.find(node => node.id === 'w')!.params.value = tensorValue([2, 3], [1, 2, 3, 4, 5, 6])
+    graph.nodes.find(node => node.id === 'b')!.params.value = tensorValue([2], [0, 0])
+    graph.nodes.push(createNode('weight', 2))
+    graph.edges.push({ id: 'shared-weight', source: 'w', target: 'add', inputSlot: 2 })
+    render(<App initialGraph={graph} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    const count = screen.getByLabelText('Trainable parameter count')
+    expect(count).toHaveTextContent(/^9$/)
+    expect(screen.getByRole('button', { name: 'Run forward' }).compareDocumentPosition(count) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(count.compareDocumentPosition(screen.getByRole('button', { name: /Run 10 epochs/ })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    editSourceValue('w', '1,2,3,4', '2,2')
+    expect(count).toHaveTextContent(/^7$/)
+  })
+
+  it('shows zero trainable parameters for an empty graph', () => {
+    render(<App initialGraph={createModelPreset('blank')} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    expect(screen.getByLabelText('Trainable parameter count')).toHaveTextContent(/^0$/)
+  })
+
   it('runs configured epochs by shortcut with the left sidebar collapsed and reports at the chosen interval', async () => {
     render(<App initialGraph={createModelPreset('linear')} />)
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))

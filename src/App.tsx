@@ -319,6 +319,11 @@ function App({
   ), [validationIssues])
   const problemNodes = useMemo(() => problemNodeIds(modelGraph, blockingIssues), [modelGraph, blockingIssues])
   const hasLoss = graph.nodes.some(isLossNode)
+  const trainableParameterCount = useMemo(() => graph.nodes.reduce((count, node) => {
+    if (node.type !== 'weight' && node.type !== 'bias') return count
+    const value = node.params.value
+    return count + (typeof value === 'object' ? value.data.length : 1)
+  }, 0), [graph.nodes])
   const storyExperiment = hasStoryExperiment(graph)
   const heldOutSample = isHeldOutSample(graph)
   const inspectionOnly = heldOutSample || storyExperiment
@@ -1700,6 +1705,7 @@ function App({
         </section>
         <section className="panel-section run-panel" role="tabpanel" aria-label="Train controls" hidden={leftTab !== 'train'}>
           <button type="button" className="run-epochs-button primary-button" onClick={() => runCanvasAction(evaluateModel)} disabled={blockingIssues.length > 0 || isTraining}>Run forward</button>
+          <div className="run-metrics"><span title="Total scalar values in all Param blocks. Shared blocks are counted once.">Trainable parameters: <strong aria-label="Trainable parameter count">{trainableParameterCount.toLocaleString('en-US')}</strong></span></div>
           <div className="run-section-divider" />
           <p className="eyebrow">Train the model</p>
           {isTraining ? <button type="button" className="run-epochs-button" onClick={() => trainingController.current?.abort()}>Stop training</button>
