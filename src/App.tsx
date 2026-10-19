@@ -310,7 +310,7 @@ function App({
     },
     lossReports, shuffleEachEpoch,
   }), [graph, visualizationGraph, initialParams, selectedNodeIds, selectedGroupId, phase, traceSteps, traceIndex, epoch, currentLoss, epochsPerRun, reportEvery, batchSizeInput, rightTab, lossReports, shuffleEachEpoch])
-  const recovery = useLocalRecovery(recoveryWorkspace, isTraining && graph.training?.engine === 'tensor')
+  const recovery = useLocalRecovery(recoveryWorkspace, isTraining && (graph.training ?? DEFAULT_TRAINING).engine === 'tensor')
   const saveRecoveryCheckpoint = recovery.save
 
   const validationIssues = useMemo(() => validateGraph(modelGraph), [modelGraph])

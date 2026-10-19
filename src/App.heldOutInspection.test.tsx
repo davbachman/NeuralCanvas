@@ -73,6 +73,7 @@ it('runs epochs on training rows only while leaving the selected held-out row in
   let expected = before
   for (const index of [0, 1]) expected = runTrainingStep(withDatasetExample(expected, 'starter-data', index)).graph
   fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+  fireEvent.change(screen.getByLabelText('Training execution'), { target: { value: 'trace' } })
   fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '1' } })
   fireEvent.change(screen.getByLabelText('Examples per update'), { target: { value: '1' } })
   fireEvent.click(screen.getByLabelText('Reshuffle training examples each epoch'))

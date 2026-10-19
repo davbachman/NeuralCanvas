@@ -40,6 +40,7 @@ describe('Neural Canvas app', () => {
     render(<App initialGraph={createModelPreset('linear')} />)
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
     const panel = screen.getByRole('tabpanel', { name: 'Train controls' })
+    expect(within(panel).getByLabelText('Training execution')).toHaveValue('tensor')
     const run = within(panel).getByRole('button', { name: /Run 10 epochs/ })
     expect(panel.querySelector('button')).toBe(run)
     const summary = within(panel).getByText('Step through a lesson')
@@ -87,6 +88,7 @@ describe('Neural Canvas app', () => {
   it('runs configured epochs by shortcut with the left sidebar collapsed and reports at the chosen interval', async () => {
     render(<App initialGraph={createModelPreset('linear')} />)
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    fireEvent.change(screen.getByLabelText('Training execution'), { target: { value: 'trace' } })
     fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '5' } })
     fireEvent.change(screen.getByLabelText(/Report loss every/), { target: { value: '2' } })
     expect(screen.getByRole('button', { name: /^Step$/i })).toHaveAttribute('aria-keyshortcuts', 'Shift+Space')
@@ -126,7 +128,7 @@ describe('Neural Canvas app', () => {
       const run = screen.getByRole('button', { name: /Run 1 epoch/ })
       expect(run).toBeEnabled()
       fireEvent.click(run)
-      await waitFor(() => expect(screen.getByText('Completed 1 epoch.')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText('Completed after 1 epochs on cpu. Kept final parameters.')).toBeInTheDocument())
     }
     expect(screen.getByText('Epoch 1')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Reporting' }))
@@ -143,7 +145,7 @@ describe('Neural Canvas app', () => {
     expect(screen.getByText(/Batch size 4 of 15 training examples for Run epochs/)).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: /Run 2 epochs/ }))
-    await waitFor(() => expect(screen.getByText('Completed 2 epochs.')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Completed after 2 epochs on cpu. Kept final parameters.')).toBeInTheDocument())
     fireEvent.click(screen.getByRole('tab', { name: 'Reporting' }))
     expect(screen.getByRole('img', { name: 'Training and held-out loss chart' })).toBeInTheDocument()
   })
@@ -151,6 +153,8 @@ describe('Neural Canvas app', () => {
   it('shows held-out predictions and final accuracy from the Test tab', async () => {
     const { graph } = scratchModel('transformer')
     render(<App initialGraph={graph} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    fireEvent.change(screen.getByLabelText('Training execution'), { target: { value: 'trace' } })
     fireEvent.click(screen.getByRole('tab', { name: 'Test' }))
     fireEvent.click(screen.getByRole('button', { name: 'Run inference' }))
     expect(screen.getByRole('tab', { name: 'Test' })).toHaveAttribute('aria-selected', 'true')
@@ -1548,6 +1552,8 @@ describe('Neural Canvas app', () => {
     try {
       const user = userEvent.setup()
       render(<App initialGraph={createModelPreset('linear')} />)
+      await user.click(screen.getByRole('tab', { name: 'Train' }))
+      await user.selectOptions(screen.getByLabelText('Training execution'), 'trace')
       await chooseFileMenuItem(user, /^Export PyTorch notebook$/i)
       expect(downloads).toEqual(['neural-canvas-model.ipynb', 'neural-canvas-dataset.json'])
       const blob = createObjectURL.mock.calls[0]?.[0]
@@ -1567,6 +1573,8 @@ describe('Neural Canvas app', () => {
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
     try {
       render(<App initialGraph={createModelPreset('linear')} />)
+      fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+      fireEvent.change(screen.getByLabelText('Training execution'), { target: { value: 'trace' } })
       vi.useFakeTimers()
       act(() => fireEvent.click(screen.getByRole('button', { name: /^File$/i })))
       act(() => fireEvent.click(screen.getByRole('menuitem', { name: /^Export PyTorch notebook$/i })))

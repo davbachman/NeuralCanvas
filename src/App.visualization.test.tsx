@@ -37,6 +37,7 @@ describe('Neural Canvas visualization data edits', () => {
     const initialLoss = trainingLoss(), initialHeldOutLoss = heldOutLoss(), initialLine = line()
 
     fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    fireEvent.change(screen.getByLabelText('Training execution'), { target: { value: 'trace' } })
     fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '1' } })
     fireEvent.click(screen.getByRole('button', { name: /Run 1 epoch/ }))
     await waitFor(() => expect(screen.getByText('Completed 1 epoch.')).toBeInTheDocument())

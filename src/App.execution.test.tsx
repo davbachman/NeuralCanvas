@@ -17,6 +17,7 @@ function deferred<T>() {
 
 function startTraining() {
   fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+  fireEvent.change(screen.getByLabelText('Training execution'), { target: { value: 'trace' } })
   fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '1' } })
   fireEvent.click(screen.getByRole('button', { name: /Run 1 epoch/ }))
 }
@@ -237,6 +238,7 @@ describe('execution ownership and reports', () => {
 
   it('discards inference results after workspace replacement', async () => {
     const graph = createStarterGraph(true), pending = deferred<datasetTraining.DatasetMetrics>()
+    graph.training = { ...DEFAULT_TRAINING, engine: 'trace' }
     const evaluate = vi.spyOn(datasetTraining, 'evaluateDatasetAsync').mockReturnValueOnce(pending.promise)
     const { container } = render(<App initialGraph={graph} />)
     fireEvent.click(screen.getByRole('tab', { name: 'Test' }))
@@ -253,6 +255,8 @@ describe('execution ownership and reports', () => {
 
   it.each(['value', 'activation', 'loss', 'dataset'])('clears inference reports after a %s edit', async field => {
     const { container } = render(<App initialGraph={createStarterGraph(true)} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+    fireEvent.change(screen.getByLabelText('Training execution'), { target: { value: 'trace' } })
     fireEvent.click(screen.getByRole('tab', { name: 'Test' }))
     fireEvent.click(screen.getByRole('button', { name: 'Run inference' }))
     await screen.findByRole('region', { name: 'Inference report' })
