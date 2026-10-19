@@ -870,7 +870,7 @@ function GraphCanvasInner({
       setRenameGroup(undefined)
       // React Flow already toggled this node through onNodesChange. Replacing
       // the selection here would discard the other modifier-selected nodes.
-      if (event.metaKey || event.ctrlKey) return
+      if (event.shiftKey || event.metaKey || event.ctrlKey) return
       const groupId = groupIdFromNodeId(node.id)
       const group = renderedGraph.groups?.find((candidate) => candidate.id === groupId)
       if (group?.detail?.virtual && typeof group.detail.layerId === 'string' && typeof group.detail.unitIndex === 'number') {
@@ -1033,6 +1033,7 @@ function GraphCanvasInner({
           autoPanOnNodeDrag={false}
           selectNodesOnDrag
           selectionKeyCode={null}
+          multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
           className={pendingNodeType ? 'placement-mode' : undefined}
         >
           <Background color="var(--grid-dot)" gap={24 / cameraZoom} size={1 / cameraZoom} variant={BackgroundVariant.Dots} />

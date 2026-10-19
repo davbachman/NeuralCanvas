@@ -956,6 +956,30 @@ describe('Neural Canvas app', () => {
     expect(screen.getByText('9 nodes, 9 edges')).toBeInTheDocument()
   })
 
+  it('Shift-clicks multiple blocks and copies their internal connections', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<App initialGraph={createStarterGraph()} />)
+    const node = (id: string) => container.querySelector(`.react-flow__node[data-id="${id}"]`)!
+    fireEvent.click(node('x'))
+    await user.keyboard('{Shift>}')
+    fireEvent.click(node('w'), { shiftKey: true })
+    fireEvent.click(node('mul'), { shiftKey: true })
+    await user.keyboard('{/Shift}')
+    expect(container.querySelectorAll('.react-flow__node.selected')).toHaveLength(3)
+
+    fireEvent.keyDown(document, { key: 'c', ctrlKey: true })
+    fireEvent.keyDown(document, { key: 'v', ctrlKey: true })
+    expect(screen.getByText('11 nodes, 9 edges')).toBeInTheDocument()
+    expect(container.querySelectorAll('.react-flow__node.selected')).toHaveLength(3)
+    expect(node('input-1')).toBeInTheDocument()
+    expect(node('weight-1')).toBeInTheDocument()
+    expect(node('multiply-1')).toBeInTheDocument()
+
+    fireEvent.click(node('x'))
+    expect(container.querySelectorAll('.react-flow__node.selected')).toHaveLength(1)
+    expect(node('x')).toHaveClass('selected')
+  })
+
   it('undoes source value edits with Command-Z', async () => {
     render(<App initialGraph={createStarterGraph()} />)
 

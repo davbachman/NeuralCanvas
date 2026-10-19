@@ -103,9 +103,10 @@ describe('canvas movement gestures', () => {
     expect(onGraphChange.mock.lastCall![0].nodes[0].params.inputCount).toBe(3)
   })
 
-  it.each(['metaKey', 'ctrlKey'])('preserves React Flow modifier selection and deselection with %s', modifier => {
+  it.each(['shiftKey', 'metaKey', 'ctrlKey'])('preserves React Flow modifier selection and deselection with %s', modifier => {
     const graph: GraphModel = { learningRate: .1, nodes: [createNode('input', 1), createNode('weight', 1)], edges: [] }
     const { onSelectionChange } = mountCanvas(graph)
+    expect(flow.props!.multiSelectionKeyCode).toEqual(['Shift', 'Meta', 'Control'])
     const [first, second] = graph.nodes
     act(() => flow.props!.onNodesChange!([{ type: 'select', id: first.id, selected: true }]))
     act(() => flow.props!.onNodesChange!([{ type: 'select', id: second.id, selected: true }]))
