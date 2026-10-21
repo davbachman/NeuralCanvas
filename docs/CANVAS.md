@@ -18,6 +18,8 @@ Hold Shift while clicking to select several blocks. **Merge selection** creates 
 
 Groups can represent a neuron, a layer, a head of attention, or a whole block; groups can contain other groups. Right-click a group to rename it. Its name appears in the code outline. Copy and paste or duplicate a selection from **Edit** or with ⌘/Ctrl+C and ⌘/Ctrl+V. Copies have independent parameters. **Ungroup module** removes the container while retaining its calculations.
 
+Containers grow when their contents spread apart and shrink when you bring them closer together, including during dragging and inside nested groups. They retain a minimum size for the heading and connections. Resizing a container does not move or rescale its contents; each block's scale follows its containment depth.
+
 Double-click a group or its corner arrow to explore inside. Zooming fades the group's card as it fills the view and exposes its real inner wires and Builder cards. The breadcrumb and **Up one level** move between regions. Very simple groups may skip redundant intermediate cards.
 
 ## Navigate with code

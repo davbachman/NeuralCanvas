@@ -14,6 +14,8 @@ import { placeCanvasNode } from '../domain/nodePlacement'
 import { parseCustomCsv } from '../domain/customCsv'
 import { DEFAULT_TRAINING } from '../domain/trainingSettings'
 import type { BuilderNodeData } from './BuilderNode'
+import { mergePreservingLayout } from '../domain/mergeLayout'
+import { captureCanvasLayout } from '../domain/deletionLayout'
 
 // Keep React Flow's real state hooks. Capture its boundary so these tests can
 // exercise our drag lifecycle without relying on jsdom's missing geometry.
@@ -336,6 +338,13 @@ describe('canvas movement gestures', () => {
     for (const node of flow.props!.nodes!) {
       const previous = before.get(node.id)
       if (!previous) continue
+      if (kind === 'nested' && node.type === 'groupNode') {
+        // Removing contents may shrink their container, while surviving
+        // calculations stay in place.
+        expect(node.width).toBeLessThanOrEqual(previous.width!)
+        expect(node.height).toBeLessThanOrEqual(previous.height!)
+        continue
+      }
       expect(node.position.x).toBeCloseTo(previous.position.x, 8)
       expect(node.position.y).toBeCloseTo(previous.position.y, 8)
       expect(node.width).toBeCloseTo(previous.width!, 8)
@@ -344,10 +353,11 @@ describe('canvas movement gestures', () => {
     expect(flow.fitView).not.toHaveBeenCalled()
     expect(flow.setViewport).not.toHaveBeenCalled()
     // The saved geometry survives reload, and undo returns the deleted block.
+    const saved = new Map(flow.props!.nodes!.map(node => [node.id, node.position]))
     rerenderGraph(JSON.parse(JSON.stringify(next)))
     for (const node of flow.props!.nodes!) {
-      expect(node.position.x).toBeCloseTo(before.get(node.id)!.position.x, 8)
-      expect(node.position.y).toBeCloseTo(before.get(node.id)!.position.y, 8)
+      expect(node.position.x).toBeCloseTo(saved.get(node.id)!.x, 8)
+      expect(node.position.y).toBeCloseTo(saved.get(node.id)!.y, 8)
     }
     rerenderGraph(graph)
     expect(flow.props!.nodes!.some(node => node.id === id)).toBe(true)
@@ -459,6 +469,43 @@ describe('canvas movement gestures', () => {
     expect(nodeById(member.id).position.y).toBeCloseTo(member.position.y + 30)
     dragStop([moved])
     expect(onViewChange).toHaveBeenLastCalledWith(expect.objectContaining({ layoutOffsets: { [block.id]: { x: 20, y: 30 } } }))
+  })
+
+  it('shrinks merged containers during inward drags and retains the result after committing and reopening', () => {
+    const outer = mergePreservingLayout(createStarterGraph(), ['x', 'w', 'mul', 'b', 'add', 'pred'])
+    const inner = mergePreservingLayout(outer.graph, ['x', 'w', 'mul'])
+    const spread = { ...inner.graph, view: { ...inner.graph.view!, layoutOffsets: { w: { x: 500, y: 350 } } } }
+    const graph = { ...spread, view: captureCanvasLayout(spread) }
+    const { onViewChange, rerenderGraph } = mountCanvas(graph)
+    const before = new Map(flow.props!.nodes!.map(node => [node.id, node]))
+    const source = nodeById('w'), moved = displaced(source, -400, -250)
+    dragStart([source])
+    dragMove([moved])
+    const live = new Map(flow.props!.nodes!.map(node => [node.id, node]))
+    for (const id of [inner.group!.id, outer.group!.id]) {
+      const key = `visual-group:${id}`, frame = nodeById(key)
+      expect(frame.width).toBeLessThan(before.get(key)!.width!)
+      expect(frame.height).toBeLessThan(before.get(key)!.height!)
+      expect(frame.data.group).toMatchObject({ dimensions: { width: frame.width, height: frame.height } })
+    }
+    for (const node of live.values()) if (node.type === 'builderNode') {
+      expect(node.width).toBe(before.get(node.id)!.width)
+      expect(node.height).toBe(before.get(node.id)!.height)
+      expect(node.position).toEqual(node.id === 'w' ? moved.position : before.get(node.id)!.position)
+    }
+    dragStop([moved])
+    const committed = { ...graph, view: onViewChange.mock.lastCall![0] }
+    for (const next of [committed, JSON.parse(JSON.stringify({ ...committed, view: captureCanvasLayout(committed) }))]) {
+      rerenderGraph(next)
+      for (const node of flow.props!.nodes!) {
+        expect(node.position.x).toBeCloseTo(live.get(node.id)!.position.x, 8)
+        expect(node.position.y).toBeCloseTo(live.get(node.id)!.position.y, 8)
+        expect(node.width).toBeCloseTo(live.get(node.id)!.width!, 8)
+        expect(node.height).toBeCloseTo(live.get(node.id)!.height!, 8)
+      }
+    }
+    expect(committed.nodes).toBe(graph.nodes)
+    expect(committed.edges).toBe(graph.edges)
   })
 
   it('reveals the linear arithmetic without duplicate wrappers and keeps it accessible at maximum zoom', () => {
@@ -643,7 +690,8 @@ describe('canvas movement gestures', () => {
     expect(onSelectionChange).toHaveBeenLastCalledWith({ nodeIds: [], groupId: 'blocks.0' })
     const moved = [displaced(block, 80, -25), displaced(child, 80, -25)]
     dragMove(moved)
-    expect(nodeById(child.id).position).toEqual(moved[1].position)
+    expect(nodeById(child.id).position.x).toBeCloseTo(moved[1].position.x, 8)
+    expect(nodeById(child.id).position.y).toBeCloseTo(moved[1].position.y, 8)
     expect(nodeById(scalar.id).position.x).toBeCloseTo(displaced(scalar, 80, -25).position.x, 8)
     expect(nodeById(scalar.id).position.y).toBeCloseTo(displaced(scalar, 80, -25).position.y, 8)
     expect(nodeById(otherBlock.id).position).toEqual(otherBlock.position)
@@ -665,8 +713,8 @@ describe('canvas movement gestures', () => {
     dragMove(moved)
     dragStop(moved)
     expect(onViewChange).toHaveBeenLastCalledWith(expect.objectContaining({ layoutOffsets: {
-      'visual-group:blocks.0': { x: 45, y: 70 },
-      'visual-group:blocks.1': { x: 45, y: 70 },
+      'visual-group:blocks.0': { x: expect.closeTo(45, 8), y: expect.closeTo(70, 8) },
+      'visual-group:blocks.1': { x: expect.closeTo(45, 8), y: expect.closeTo(70, 8) },
     } }))
   })
 

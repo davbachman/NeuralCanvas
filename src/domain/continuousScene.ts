@@ -7,7 +7,7 @@ import type { WireEndpoint } from './wireRouting'
 
 export const sceneGroupId = (id: string) => `visual-group:${id}`
 export const CONTAINMENT_SCALE = .25
-export interface SceneLevel { parentId?: string; ids: string[]; scale: number; x: number; y: number; bounds: SemanticRect }
+export interface SceneLevel { parentId?: string; ids: string[]; scale: number; x: number; y: number; bounds: SemanticRect; minimumFrameHeight?: number }
 export interface ContinuousScene extends SemanticLayout {
   scales: Map<string, number>
   parents: Map<string, string | undefined>
@@ -185,21 +185,23 @@ export function layoutContinuousScene(graph: GraphModel): ContinuousScene {
       scene.parents.set(node.id, parent?.id)
       ids.push(node.id)
     }
-    scene.levels.push({ parentId: parent?.id, ids, scale, x, y, bounds: { x: left, y: top, width, height } })
+    scene.levels.push({ parentId: parent?.id, ids, scale, x, y, bounds: { x: left, y: top, width, height },
+      minimumFrameHeight: parent?.detail?.userCreated && parent.kind === 'module' ? 136 : 172 })
     for (const child of children) level(child, new Set([...ancestors, ...(parent ? [parent.id] : [])]))
   }
   level()
-  growSceneContainers(scene)
+  fitSceneContainers(scene)
   return scene
 }
 
-/** Expand outwards from the contents, deepest frames first. Children keep
- * their positions and scales; only the containment windows change. */
-function growSceneContainers(scene: ContinuousScene) {
+/** Fit the current contents, deepest frames first, rather than retaining an
+ * earlier frame's empty space. Children keep their positions and scales; only
+ * the windows change. Minimum sizes leave room for headings and connections. */
+function fitSceneContainers(scene: ContinuousScene) {
   for (const level of [...scene.levels].reverse()) {
-    if (!level.parentId) continue
-    const frame = scene.groups.get(level.parentId)!, scale = scene.scales.get(sceneGroupId(level.parentId))!
-    let left = frame.x, top = frame.y, right = frame.x + frame.width, bottom = frame.y + frame.height
+    if (!level.parentId || !level.ids.length) continue
+    const scale = scene.scales.get(sceneGroupId(level.parentId))!
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity
     for (const id of level.ids) {
       const rect = id.startsWith('visual-group:') ? scene.groups.get(id.slice(13))! : scene.nodes.get(id)!
       left = Math.min(left, rect.x - 16 * scale)
@@ -207,7 +209,10 @@ function growSceneContainers(scene: ContinuousScene) {
       right = Math.max(right, rect.x + rect.width + 16 * scale)
       bottom = Math.max(bottom, rect.y + rect.height + 16 * scale)
     }
-    scene.groups.set(level.parentId, { x: left, y: top, width: right - left, height: bottom - top })
+    const width = Math.max(238 * scale, right - left)
+    const height = Math.max((level.minimumFrameHeight ?? 172) * scale, bottom - top)
+    scene.groups.set(level.parentId, { x: left - (width - (right - left)) / 2,
+      y: top - (height - (bottom - top)) / 2, width, height })
   }
 }
 
@@ -217,7 +222,7 @@ export function sceneAtPositions(scene: ContinuousScene, positions: Map<string, 
     nodes: new Map([...scene.nodes].map(([id, rect]) => [id, { ...rect, ...positions.get(id) }])),
     groups: new Map([...scene.groups].map(([id, rect]) => [id, { ...rect, ...positions.get(sceneGroupId(id)) }])),
   }
-  growSceneContainers(current)
+  fitSceneContainers(current)
   return current
 }
 

@@ -144,6 +144,8 @@ it.each([.25, 1, 20])('keeps repeated copies inside their containing block at zo
   const viewport = { ...bounds, zoom }
   const loss = forwardPass(graph).loss
   for (let count = 0; count < 6; count++) {
+    // Minimum-sized frames can recenter around their current contents.
+    const bounds = sceneContentBounds(sceneFor(graph), parentId)
     const offset = clipboardPasteOffset(graph, fragment, count, viewport)
     const pasted = pasteGraphClipboard(graph, fragment, offset)
     const id = pasted.selection.nodeIds[0], after = sceneFor(pasted.graph), rect = after.nodes.get(id)!
@@ -152,6 +154,11 @@ it.each([.25, 1, 20])('keeps repeated copies inside their containing block at zo
     expect(rect.y).toBeGreaterThanOrEqual(bounds.y - 1e-9)
     expect(rect.x + rect.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1e-9)
     expect(rect.y + rect.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1e-9)
+    const fitted = sceneContentBounds(after, parentId)
+    expect(rect.x).toBeGreaterThanOrEqual(fitted.x - 1e-9)
+    expect(rect.y).toBeGreaterThanOrEqual(fitted.y - 1e-9)
+    expect(rect.x + rect.width).toBeLessThanOrEqual(fitted.x + fitted.width + 1e-9)
+    expect(rect.y + rect.height).toBeLessThanOrEqual(fitted.y + fitted.height + 1e-9)
     expect(rect.width).toBeCloseTo(before.nodes.get('w')!.width, 8)
     expect(rect.height).toBeCloseTo(before.nodes.get('w')!.height, 8)
     for (const [originalId, originalRect] of before.nodes) expectRect(after.nodes.get(originalId)!, originalRect)
