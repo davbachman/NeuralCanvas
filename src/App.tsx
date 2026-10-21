@@ -1731,11 +1731,17 @@ function App({
             {tensorTraining && <>
               <label className="run-field">Backend<select aria-label="Training backend" disabled={isTraining} value={training.backend} onChange={event=>setTraining({backend:event.target.value as TrainingSettings['backend']})}><option value="auto">Auto · WebGL, then CPU</option><option value="webgl">WebGL</option><option value="webgpu">WebGPU (experimental)</option><option value="cpu">Tensor CPU</option></select></label>
               <label className="run-field">Optimizer<select aria-label="Optimizer" disabled={isTraining} value={training.optimizer} onChange={event=>setTraining({optimizer:event.target.value as TrainingSettings['optimizer']})}><option value="sgd">SGD</option><option value="adam">Adam</option><option value="adamw">AdamW</option></select></label>
+              <p className="run-intro">{training.optimizer === 'sgd'
+                ? 'SGD applies the batch gradient using the learning rate.'
+                : training.optimizer === 'adam'
+                  ? 'Adam adapts updates using running gradient averages. Weight decay is not applied.'
+                  : 'AdamW adapts updates using running gradient averages and applies weight decay.'}
+                {training.optimizer !== 'sgd' && ' Running gradient averages start fresh for each run.'}</p>
               {training.optimizer==='adamw' && <label className="run-field">Weight decay<input aria-label="Weight decay" disabled={isTraining} type="number" min="0" step="0.001" value={training.weightDecay} onChange={event=>setTraining({weightDecay:Number(event.target.value)})}/></label>}
               <label className="run-field">Gradient norm limit (0 = off)<input aria-label="Gradient norm limit" disabled={isTraining} type="number" min="0" step="0.1" value={training.clipNorm} onChange={event=>setTraining({clipNorm:Number(event.target.value)})}/></label>
               <label className="run-field">Early stopping patience (0 = off)<input aria-label="Early stopping patience" disabled={isTraining} type="number" min="0" step="1" value={training.patience} onChange={event=>setTraining({patience:Number(event.target.value)})}/></label>
-              <label className="run-field">Minimum validation improvement<input aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>
-              <p className="run-intro">Tensor runs use padded batches and report at the selected interval. Early stopping checks validation every epoch. Early stopping uses the held-out split as validation and restores its best checkpoint. Adam moments start fresh for each run.</p>
+              {training.patience > 0 && <label className="run-field">Minimum validation improvement<input aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>}
+              <p className="run-intro">Tensor runs use padded batches and report at the selected interval.{training.patience > 0 && ' Early stopping checks the held-out validation split every epoch and restores its best checkpoint.'}</p>
             </>}
           <details className="training-walkthrough">
             <summary>Step through a lesson</summary>
