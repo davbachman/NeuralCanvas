@@ -58,14 +58,19 @@ export function createProjectStateFile(state: ProjectStateSnapshot): ProjectStat
   }
 }
 
-export function downloadProjectStateFile(file: ProjectStateFile): void {
+export function projectStateFilename(name: string): string {
+  const trimmed = name.trim()
+  return /\.json$/i.test(trimmed) ? trimmed : `${trimmed}.json`
+}
+
+export function downloadProjectStateFile(file: ProjectStateFile, filename?: string): void {
   const blob = new Blob([JSON.stringify(file, null, 2)], {
     type: 'application/json',
   })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = `neural-canvas-state-${file.savedAt.slice(0, 10)}.json`
+  anchor.download = projectStateFilename(filename ?? `neural-canvas-state-${file.savedAt.slice(0, 10)}`)
   anchor.click()
   URL.revokeObjectURL(url)
 }

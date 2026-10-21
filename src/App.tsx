@@ -1,4 +1,5 @@
 import { NumberInput } from './components/NumberInput'
+import { SaveAsDialog } from './components/SaveAsDialog'
 import { initializeTensor, initializerForNode } from './domain/authoring'
 import { useModelGraph } from './hooks/useModelGraph'
 import { hasStoryExperiment } from './domain/textData'
@@ -209,6 +210,7 @@ function App({
   const [isEditMenuOpen, setIsEditMenuOpen] = useState(false)
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false)
   const [isAboutOpen, setIsAboutOpen] = useState(false)
+  const [isSaveAsOpen, setIsSaveAsOpen] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const runCanvasAction = useCallback((action: () => void) => {
     setExecutionError(undefined)
@@ -1307,7 +1309,7 @@ function App({
     setIsPlaying(false)
   }
 
-  const saveProjectState = () => {
+  const saveProjectState = (filename?: string) => {
     setImportError(undefined)
     setExportNotice(undefined)
     downloadProjectStateFile(
@@ -1330,7 +1332,13 @@ function App({
           showVisualization: rightTab === 'visualization',
         },
       }),
+      filename,
     )
+  }
+
+  const closeSaveAs = () => {
+    setIsSaveAsOpen(false)
+    window.setTimeout(() => document.getElementById('file-menu-trigger')?.focus(), 0)
   }
 
   const exportPyTorch = (format: 'notebook' | 'python') => {
@@ -1527,6 +1535,7 @@ function App({
             </>
           <div className="topbar-menu">
             <button
+              id="file-menu-trigger"
               type="button"
               className="topbar-menu-trigger"
               aria-haspopup="menu"
@@ -1555,6 +1564,9 @@ function App({
                 >
                   <Download size={15} />
                   Save
+                </button>
+                <button type="button" role="menuitem" onClick={() => runFileMenuAction(() => setIsSaveAsOpen(true))}>
+                  <Download size={15} /> Save as…
                 </button>
                 <button
                   type="button"
@@ -1627,6 +1639,8 @@ function App({
           {exportNotice ? <p className="export-notice" role="status">{exportNotice}</p> : null}
         </div>
       </header>
+
+      {isSaveAsOpen && <SaveAsDialog onCancel={closeSaveAs} onSave={filename => { saveProjectState(filename); closeSaveAs() }} />}
 
       {isAboutOpen ? <div className="about-backdrop" onPointerDown={event => { if (event.target === event.currentTarget) closeAbout() }}>
         <section role="dialog" aria-modal="true" aria-labelledby="about-title" aria-describedby="about-description" className="about-dialog" onKeyDown={event => {

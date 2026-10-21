@@ -5,6 +5,7 @@ import { createModelPreset } from './modelPresets'
 import {
   createProjectStateFile,
   parseProjectStateFile,
+  projectStateFilename,
 } from './session'
 import {DEFAULT_TRAINING} from './trainingSettings'
 import { mergePreservingLayout } from './mergeLayout'
@@ -37,6 +38,16 @@ function projectSnapshot(): ProjectStateSnapshot {
 }
 
 describe('project state files', () => {
+  it.each([
+    ['Assignment 10', 'Assignment 10.json'],
+    ['  My model  ', 'My model.json'],
+    ['model.json', 'model.json'],
+    ['model.JSON', 'model.JSON'],
+    ['model.v2', 'model.v2.json'],
+  ])('uses a JSON filename for %s', (name, expected) => {
+    expect(projectStateFilename(name)).toBe(expected)
+  })
+
   it.each(['', '100'])('round-trips run settings with batch size %s', examplesPerUpdate => {
     const snapshot = projectSnapshot()
     snapshot.runSettings = { epochsPerRun: '2000', reportEvery: '500', examplesPerUpdate }
