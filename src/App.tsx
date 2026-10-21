@@ -76,6 +76,7 @@ import { InferenceReportPanel } from './components/InferenceReportPanel'
 import { evaluateDataset, evaluateDatasetAsync, supportsNumericBatches, trainDataset } from './domain/datasetTraining'
 import {
   copyGraphSelection,
+  clipboardPasteOffset,
   pasteGraphClipboard,
   type GraphClipboardFragment,
 } from './domain/clipboard'
@@ -143,7 +144,6 @@ const DEFAULT_PLAY_DELAY_MS = 900
 const DEFAULT_SPEED_SLIDER_VALUE =
   MIN_PLAY_DELAY_MS + MAX_PLAY_DELAY_MS - DEFAULT_PLAY_DELAY_MS
 const HISTORY_LIMIT = 100
-const PASTE_OFFSET_STEP = 36
 const SHOW_MATH_LAYER = true
 const SHOW_GRADIENT_LAYER = true
 const SHOW_CODE_LAYER = false
@@ -498,11 +498,7 @@ function App({
 
     pushHistory()
     clearRecordedExecution()
-    const offset = PASTE_OFFSET_STEP * (clipboardPasteCount + 1)
-    const result = pasteGraphClipboard(graph, clipboard, {
-      x: offset,
-      y: offset,
-    })
+    const result = pasteGraphClipboard(graph, clipboard, clipboardPasteOffset(graph, clipboard, clipboardPasteCount, clipboardViewport(graph)))
     setGraph(result.graph)
     setSelectedNodeIds(result.selection.nodeIds)
     setSelectedGroupId(result.selection.groupId)
@@ -1292,7 +1288,7 @@ function App({
       groupId: selectedGroupId,
     })
     if (!fragment) return
-    const result = pasteGraphClipboard(graph, fragment, { x: 64, y: 64 })
+    const result = pasteGraphClipboard(graph, fragment, clipboardPasteOffset(graph, fragment, 0, clipboardViewport(graph)))
     applyGraphChange(result.graph)
     setSelectedNodeIds(result.selection.nodeIds)
     setSelectedGroupId(result.selection.groupId)
@@ -2228,6 +2224,14 @@ function edgeWithSourceSlot(
     value: edge.value,
     grad: edge.grad,
   }
+}
+
+function clipboardViewport(graph: GraphModel) {
+  const canvas = document.querySelector('.react-flow')?.getBoundingClientRect()
+  const viewport = graph.view?.viewport
+  if (!canvas?.width || !canvas.height || !viewport) return undefined
+  return { x: -viewport.x / viewport.zoom, y: -viewport.y / viewport.zoom,
+    width: canvas.width / viewport.zoom, height: canvas.height / viewport.zoom, zoom: viewport.zoom }
 }
 
 export default App
