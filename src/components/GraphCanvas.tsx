@@ -47,6 +47,7 @@ import {
   resolveVisualGroupInputHandle,
   resolveVisualGroupOutputHandle,
   visualGroupInterface,
+  visualSelectionItems,
   moveVisualGroup,
 } from '../domain/grouping'
 import { showsTraceMetrics, builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
@@ -91,6 +92,7 @@ const focusEase = (progress: number) => progress * progress * (3 - 2 * progress)
 interface CanvasSelection {
   nodeIds: string[]
   groupId?: string
+  groupIds?: string[]
 }
 
 type CanvasNode = Node<BuilderNodeData | GroupNodeData>
@@ -103,6 +105,7 @@ interface GraphCanvasProps {
   selectedNodeIds?: string[]
   problemNodeIds?: ReadonlySet<string>
   selectedGroupId?: string
+  selectedGroupIds?: string[]
   selectedEdgeId?: string
   focusRequest?: { kind: 'group' | 'node'; id: string; serial: number }
   showMath: boolean
@@ -122,6 +125,7 @@ interface GraphCanvasProps {
   onLossChange?: (nodeId: string, loss: LossKind) => void
   onDatasetChange?: (nodeId: string, dataset: DatasetKind) => void
   onGroupCreate: () => void
+  onGroupUnion?: () => void
   onGroupExplode: (groupId: string) => void
   onGroupRename?: (groupId: string, label: string) => void
   onGroupMove: (groupId: string, position: GraphPosition) => void
@@ -144,6 +148,7 @@ function GraphCanvasInner({
   selectedNodeIds = EMPTY_SELECTED_NODE_IDS,
   problemNodeIds = EMPTY_PROBLEM_NODE_IDS,
   selectedGroupId,
+  selectedGroupIds = EMPTY_SELECTED_NODE_IDS,
   selectedEdgeId,
   focusRequest,
   showMath,
@@ -163,6 +168,7 @@ function GraphCanvasInner({
   onDatasetChange,
   onNavigationChange,
   onGroupCreate,
+  onGroupUnion,
   onGroupExplode,
   onGroupRename,
   onInspectNeuron,
@@ -185,7 +191,7 @@ function GraphCanvasInner({
   const scene = useMemo(() => continuous ? layoutContinuousScene(geometryGraph) : undefined, [geometryGraph, continuous])
   const layout = useMemo(() => scene ?? (semantic ? layoutSemanticGraph(renderedGraph) : undefined), [renderedGraph, semantic, scene])
   const shell = useRef<HTMLDivElement>(null)
-  useCanvasSelectionRepaint(shell, JSON.stringify([selectedNodeIds, selectedGroupId, selectedEdgeId]))
+  useCanvasSelectionRepaint(shell, JSON.stringify([selectedNodeIds, selectedGroupId, selectedGroupIds, selectedEdgeId]))
   const [camera, setCamera] = useState(graph.view?.viewport ?? { x: 0, y: 0, zoom: 1 })
   const [addMenu, setAddMenu] = useState<{ x: number; y: number; position: GraphPosition; parentGroupId?: string; sceneScale?: number }>()
   const [renameGroup, setRenameGroup] = useState<{ id: string; x: number; y: number; label: string }>()
@@ -410,7 +416,7 @@ function GraphCanvasInner({
           dragHandle: expanded ? '.visual-group-title-row' : undefined,
           zIndex: continuous ? 100 - semanticGroupDepth(renderedGraph, group.id) : expanded ? -10 + semanticGroupDepth(renderedGraph, group.id) : 0,
           className: expanded ? 'expanded-module-frame' : undefined,
-          selected: group.id === selectedGroupId || group.nodeIds.length > 0 && group.nodeIds.every(id => selectedNodeIdSet.has(id)),
+          selected: group.id === selectedGroupId || (selectedGroupIds.length ? selectedGroupIds.includes(group.id) : group.nodeIds.length > 0 && group.nodeIds.every(id => selectedNodeIdSet.has(id))),
           data: {
             group: rect ? { ...group, dimensions: { width: rect.width, height: rect.height } } : group,
             codeLine: codeForGroup(renderedGraph, group),
@@ -495,6 +501,7 @@ function GraphCanvasInner({
       groupedNodeIds,
       renderedGraph,
       selectedGroupId,
+      selectedGroupIds,
       selectedNodeIdSet,
       problemNodeIds,
       showGradient,
@@ -670,12 +677,12 @@ function GraphCanvasInner({
       let nextGraph: GraphModel | undefined
 
       if (selectionChanges.length > 0) {
-        const selectedById = new Map(nodes.map((node) => [node.id, Boolean(node.selected)]))
+        const selectedById = new Map(presentedNodes.map((node) => [node.id, Boolean(node.selected)]))
         for (const change of selectionChanges) {
           selectedById.set(change.id, change.selected)
         }
 
-        const nextSelectedNodes = nodes.filter((node) => selectedById.get(node.id))
+        const nextSelectedNodes = presentedNodes.filter((node) => selectedById.get(node.id))
         const selectedGroupIds = nextSelectedNodes
           .map((node) => groupIdFromNodeId(node.id))
           .filter((groupId): groupId is string => Boolean(groupId))
@@ -687,6 +694,7 @@ function GraphCanvasInner({
         onSelectionChange({
           nodeIds,
           groupId: nodeIds.length === 0 && selectedGroupIds.length === 1 ? selectedGroupIds[0] : undefined,
+          ...(nodeIds.length > 0 && selectedGroupIds.length ? { groupIds: selectedGroupIds } : {}),
         })
       }
 
@@ -717,7 +725,7 @@ function GraphCanvasInner({
       }
       onNodesChangeBase(changes)
     },
-    [graph, sourceGraph, nodes, onCancelPendingPlacement, onGraphChange, onNodesChangeBase, onSelectionChange],
+    [graph, sourceGraph, presentedNodes, onCancelPendingPlacement, onGraphChange, onNodesChangeBase, onSelectionChange],
   )
 
   const onEdgesChange = useCallback(
@@ -904,6 +912,8 @@ function GraphCanvasInner({
   }
 
   const selectedGroup = selectedGroupId ? graph.groups?.find((group) => group.id === selectedGroupId) : undefined
+  const selectedItems = useMemo(() => visualSelectionItems({ groups: graph.groups }, selectedNodeIds, selectedGroupIds), [graph.groups, selectedNodeIds, selectedGroupIds])
+  const selectionCount = selectedItems.nodeIds.length + selectedItems.groupIds.length
   const groupCount = renderedGraph.groups?.length ?? 0
   const center = { x: (canvasSize.width / 2 - camera.x) / camera.zoom, y: (canvasSize.height / 2 - camera.y) / camera.zoom }
   const cameraFocus = scene && [...scene.groups].filter(([id, rect]) => (reveals.get(id) ?? 0) > .95 && center.x >= rect.x && center.x <= rect.x + rect.width && center.y >= rect.y && center.y <= rect.y + rect.height)
@@ -931,12 +941,15 @@ function GraphCanvasInner({
           <p>
             {graph.nodes.length} nodes, {graph.edges.length} edges{groupCount > 0 ? `, ${groupCount} ${groupCount === 1 ? 'group' : 'groups'}` : ''}
           </p>
-          {selectedNodeIds.length >= 2 ? (
-            <button type="button" className="canvas-action-button" onClick={onGroupCreate}>
+          {selectionCount >= 2 ? (
+            <button type="button" className="canvas-action-button" title="Create an outer block containing the selected blocks and modules." onClick={onGroupCreate}>
               <Combine size={15} />
               Merge selection
             </button>
           ) : null}
+          {selectionCount >= 2 && selectedItems.groupIds.length > 0 && onGroupUnion && <button type="button" className="canvas-action-button" title="Combine the contents of the selected modules in one block. Deeper modules stay intact." onClick={onGroupUnion}>
+            <Combine size={15} /> Union selection
+          </button>}
           {selectedGroup ? (
             <button type="button" className="canvas-action-button" onClick={() => onGroupExplode(selectedGroup.id)}>
               <Ungroup size={15} />

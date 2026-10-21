@@ -30,6 +30,7 @@ interface Props {
   onOpen: (id: string) => void
   onInspectNeuron: (id: string, unit: number, row?: number) => void
   onGroup: () => void
+  onUnion?: () => void
   selectionCount: number
 }
 
@@ -45,6 +46,7 @@ export function ModelInspector({
   onOpen,
   onInspectNeuron,
   onGroup,
+  onUnion,
   selectionCount,
 }: Props) {
   const canonical = binding
@@ -273,7 +275,8 @@ export function ModelInspector({
       )}
       {selectionCount > 1 && (
         <div className="inspector-actions">
-          <button onClick={onGroup}>Group selection</button>
+          <button title="Create an outer block around the selection." onClick={onGroup}>Merge blocks</button>
+          {onUnion && <button title="Combine the selected modules’ contents in one block." onClick={onUnion}>Union contents</button>}
         </div>
       )}
     </section>

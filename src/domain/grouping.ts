@@ -37,19 +37,39 @@ interface NodeRect {
   height: number
 }
 
-export function mergeNodesIntoVisualGroup(graph: GraphModel, nodeIds: string[]): MergeResult {
-  const ids = unique(nodeIds).filter((id) => graph.nodes.some((node) => node.id === id))
+/** Selected containers are units, even though nodeIds also lists their members. */
+export function visualSelectionItems(graph: Pick<GraphModel, 'groups'>, nodeIds: string[], groupIds: string[] = []) {
+  const selectedGroups = (graph.groups ?? []).filter(group => groupIds.includes(group.id))
+    .filter(group => !groupAncestors(graph, group.id).slice(0, -1).some(parent => groupIds.includes(parent.id)))
+  const covered = new Set(selectedGroups.flatMap(group => group.nodeIds))
+  return { nodeIds: unique(nodeIds).filter(id => !covered.has(id)), groupIds: selectedGroups.map(group => group.id) }
+}
+
+export function mergeNodesIntoVisualGroup(graph: GraphModel, nodeIds: string[], groupIds?: string[]): MergeResult {
+  const groups = graph.groups ?? []
+  const selection = groupIds && visualSelectionItems(graph, nodeIds, groupIds)
+  if (selection && selection.nodeIds.length + selection.groupIds.length < 2) return { graph }
+  if (selection) {
+    const parents = [
+      ...selection.groupIds.map(id => groups.find(group => group.id === id)?.parentId),
+      ...selection.nodeIds.map(id => groups.filter(group => group.nodeIds.includes(id))
+        .sort((a, b) => groupAncestors(graph, b.id).length - groupAncestors(graph, a.id).length)[0]?.id),
+    ]
+    if (parents.some(parent => parent !== parents[0])) return { graph }
+  }
+  const ids = unique([...nodeIds, ...groups.filter(group => groupIds?.includes(group.id)).flatMap(group => group.nodeIds)])
+    .filter((id) => graph.nodes.some((node) => node.id === id))
   if (ids.length < 2) return { graph }
   const selected = new Set(ids)
-  const groups = graph.groups ?? []
   // A selection can contain complete modules or sit inside a module, but cannot
   // cut across a module boundary. This keeps the hierarchy a genuine tree.
   if (groups.some((group) => {
     const overlap = group.nodeIds.filter((id) => selected.has(id)).length
     return overlap > 0 && overlap < group.nodeIds.length && overlap < selected.size
   })) return { graph }
-  const parent = groups.filter((group) => ids.every((id) => group.nodeIds.includes(id)) && group.nodeIds.length > ids.length)
-    .sort((a, b) => a.nodeIds.length - b.nodeIds.length)[0]
+  const parent = groups.filter((group) => ids.every((id) => group.nodeIds.includes(id)) &&
+    (groupIds ? !groupIds.includes(group.id) : group.nodeIds.length > ids.length))
+    .sort((a, b) => groupAncestors(graph, b.id).length - groupAncestors(graph, a.id).length)[0]
   const nodes = ids.map((id) => graph.nodes.find((node) => node.id === id)!)
   const id = nextGroupId(graph)
   const group: GraphGroup = {
@@ -91,7 +111,7 @@ export function explodeVisualGroup(graph: GraphModel, groupId: string): GraphMod
   }
 }
 
-export function groupAncestors(graph: GraphModel, groupId: string): GraphGroup[] {
+export function groupAncestors(graph: Pick<GraphModel, 'groups'>, groupId: string): GraphGroup[] {
   const ancestors: GraphGroup[] = []
   const seen = new Set<string>()
   let group = graph.groups?.find((candidate) => candidate.id === groupId)

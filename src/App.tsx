@@ -8,7 +8,7 @@ import { useLocalRecovery } from './hooks/useLocalRecovery'
 import type { RecoveryWorkspace } from './domain/localRecovery'
 import { LearningRateControl } from './components/LearningRateControl'
 import {DEFAULT_TRAINING, type TrainingSettings} from './domain/trainingSettings'
-import { mergePreservingLayout, ungroupPreservingLayout } from './domain/mergeLayout'
+import { mergePreservingLayout, ungroupPreservingLayout, unionPreservingLayout } from './domain/mergeLayout'
 import { DatasetWorkbench } from './components/DatasetWorkbench'
 import { datasetExamplesForNode, datasetForNode, datasetMode } from './domain/datasets'
 import { parseCustomCsv } from './domain/customCsv'
@@ -102,6 +102,7 @@ import {
   collapsedGroupForNode,
   moveVisualGroup,
   setVisualGroupExpanded,
+  visualSelectionItems,
 } from './domain/grouping'
 import {
   createProjectStateFile,
@@ -153,6 +154,7 @@ interface HistorySnapshot {
   visualizationGraph: GraphModel
   initialParams: Record<string, TensorValue>
   selectedNodeIds: string[]
+  selectedGroupIds?: string[]
   selectedGroupId?: string
   phase: GraphPhase
   traceSteps: EvaluationTraceStep[]
@@ -183,6 +185,8 @@ function App({
     Record<string, TensorValue>
   >(() => parameterValues(initialGraph ?? createEmptyGraph()))
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
+  const selectedItems = useMemo(() => visualSelectionItems({ groups: graph.groups }, selectedNodeIds, selectedGroupIds), [graph.groups, selectedNodeIds, selectedGroupIds])
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>()
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | undefined>()
   const [inspectorOpen, setInspectorOpen] = useState(false)
@@ -307,13 +311,13 @@ function App({
 
   const recoveryWorkspace = useMemo<RecoveryWorkspace>(() => ({
     state: {
-      graph, visualizationGraph, initialParameterValues: initialParams, selectedNodeIds, selectedGroupId,
+      graph, visualizationGraph, initialParameterValues: initialParams, selectedNodeIds, selectedGroupId, selectedGroupIds: selectedGroupIds.length ? selectedGroupIds : undefined,
       phase, traceSteps, traceIndex, epoch, currentLoss,
       runSettings: { epochsPerRun, reportEvery, examplesPerUpdate: batchSizeInput },
       display: { showMath: SHOW_MATH_LAYER, showGradient: SHOW_GRADIENT_LAYER, showCode: SHOW_CODE_LAYER, showVisualization: rightTab === 'visualization' },
     },
     lossReports, shuffleEachEpoch,
-  }), [graph, visualizationGraph, initialParams, selectedNodeIds, selectedGroupId, phase, traceSteps, traceIndex, epoch, currentLoss, epochsPerRun, reportEvery, batchSizeInput, rightTab, lossReports, shuffleEachEpoch])
+  }), [graph, visualizationGraph, initialParams, selectedNodeIds, selectedGroupId, selectedGroupIds, phase, traceSteps, traceIndex, epoch, currentLoss, epochsPerRun, reportEvery, batchSizeInput, rightTab, lossReports, shuffleEachEpoch])
   const recovery = useLocalRecovery(recoveryWorkspace, isTraining && (graph.training ?? DEFAULT_TRAINING).engine === 'tensor')
   const saveRecoveryCheckpoint = recovery.save
 
@@ -398,6 +402,7 @@ function App({
       visualizationGraph: cloneGraph(visualizationGraph),
       initialParams: cloneParameterValueMap(initialParams),
       selectedNodeIds: [...selectedNodeIds],
+      selectedGroupIds: [...selectedGroupIds],
       selectedGroupId,
       phase,
       traceSteps: cloneTraceSteps(traceSteps),
@@ -415,6 +420,7 @@ function App({
       phase,
       selectedGroupId,
       selectedNodeIds,
+      selectedGroupIds,
       traceIndex,
       traceSteps,
       visualizationGraph,
@@ -433,6 +439,7 @@ function App({
     setVisualizationGraph(cloneGraph(snapshot.visualizationGraph))
     setInitialParams(cloneParameterValueMap(snapshot.initialParams))
     setSelectedNodeIds([...snapshot.selectedNodeIds])
+    setSelectedGroupIds(snapshot.selectedGroupIds ?? [])
     setSelectedGroupId(snapshot.selectedGroupId)
     setPhase(snapshot.phase)
     setTraceSteps(cloneTraceSteps(snapshot.traceSteps))
@@ -455,11 +462,12 @@ function App({
   const selectSingleNode = useCallback((nodeId?: string) => {
     setCodeFocus(undefined)
     setSelectedNodeIds(nodeId ? [nodeId] : [])
+    setSelectedGroupIds([])
     setSelectedGroupId(undefined)
   }, [])
 
   const selectCanvasSelection = useCallback(
-    (selection: { nodeIds: string[]; groupId?: string }) => {
+    (selection: { nodeIds: string[]; groupId?: string; groupIds?: string[] }) => {
       setCodeFocus(undefined)
       setSelectedEdgeId(undefined)
       setSelectedNodeIds((existing) =>
@@ -470,6 +478,7 @@ function App({
       setSelectedGroupId((existing) =>
         existing === selection.groupId ? existing : selection.groupId,
       )
+      setSelectedGroupIds(existing => stringArraysEqual(existing, selection.groupIds ?? []) ? existing : selection.groupIds ?? [])
       if (selection.nodeIds.length > 0 || selection.groupId)
         setPendingNodeType(undefined)
       const groupNodeIds = graph.groups?.find(group => group.id === selection.groupId)?.nodeIds ?? []
@@ -501,6 +510,7 @@ function App({
     const result = pasteGraphClipboard(graph, clipboard, clipboardPasteOffset(graph, clipboard, clipboardPasteCount, clipboardViewport(graph)))
     setGraph(result.graph)
     setSelectedNodeIds(result.selection.nodeIds)
+    setSelectedGroupIds([])
     setSelectedGroupId(result.selection.groupId)
     setPhase('edit')
     setTraceSteps([])
@@ -1184,16 +1194,21 @@ function App({
     })
   }, [applyGraphChange, graph])
 
-  const mergeSelectedNodes = useCallback(() => {
-    const result = mergePreservingLayout(graph, selectedNodeIds, displayGraph)
+  const combineSelectedNodes = useCallback((union: boolean) => {
+    const result = union
+      ? unionPreservingLayout(graph, selectedNodeIds, selectedGroupIds, displayGraph)
+      : mergePreservingLayout(graph, selectedNodeIds, displayGraph, selectedGroupIds)
     if (!result.group) return
 
     pushHistory()
     setGraph(result.graph)
     setSelectedNodeIds([])
+    setSelectedGroupIds([])
     setSelectedGroupId(result.group.id)
     setPendingNodeType(undefined)
-  }, [graph, displayGraph, pushHistory, selectedNodeIds])
+  }, [graph, displayGraph, pushHistory, selectedNodeIds, selectedGroupIds])
+  const mergeSelectedNodes = useCallback(() => combineSelectedNodes(false), [combineSelectedNodes])
+  const unionSelectedNodes = useCallback(() => combineSelectedNodes(true), [combineSelectedNodes])
 
   const explodeGroup = useCallback(
     (groupId: string) => {
@@ -1203,6 +1218,7 @@ function App({
       pushHistory()
       setGraph(ungroupPreservingLayout(graph, groupId))
       setSelectedNodeIds(group.nodeIds)
+      setSelectedGroupIds([])
       setSelectedGroupId(undefined)
       setPendingNodeType(undefined)
     },
@@ -1228,6 +1244,7 @@ function App({
     setGraph({ ...next, view: { ...next.view!, focusedGroupId: groupId } })
     setSelectedGroupId(groupId)
     setSelectedNodeIds([])
+    setSelectedGroupIds([])
     setSelectedEdgeId(undefined)
   }
 
@@ -1255,6 +1272,7 @@ function App({
     })
     setSelectedGroupId(groupId)
     setSelectedNodeIds([])
+    setSelectedGroupIds([])
   }
 
   const navigateFromCode = (target: CodeTarget) => {
@@ -1268,6 +1286,7 @@ function App({
       }
     } else {
       setSelectedNodeIds([target.id])
+      setSelectedGroupIds([])
       setSelectedGroupId(undefined)
     }
     setCodeFocus({ ...target, serial: ++nextCodeFocus.current })
@@ -1291,6 +1310,7 @@ function App({
     const result = pasteGraphClipboard(graph, fragment, clipboardPasteOffset(graph, fragment, 0, clipboardViewport(graph)))
     applyGraphChange(result.graph)
     setSelectedNodeIds(result.selection.nodeIds)
+    setSelectedGroupIds([])
     setSelectedGroupId(result.selection.groupId)
   }
   const evaluateModel = () => {
@@ -1316,6 +1336,7 @@ function App({
         visualizationGraph,
         initialParameterValues: initialParams,
         selectedNodeIds,
+        ...(selectedGroupIds.length ? { selectedGroupIds } : {}),
         selectedGroupId,
         phase,
         traceSteps,
@@ -1439,6 +1460,7 @@ function App({
     setVisualizationGraph(cloneGraph(nextState.visualizationGraph))
     setInitialParams(cloneParameterValueMap(nextState.initialParameterValues))
     setSelectedNodeIds([...nextState.selectedNodeIds])
+    setSelectedGroupIds(nextState.selectedGroupIds ?? [])
     setSelectedGroupId(nextState.selectedGroupId)
     setPhase(nextState.phase)
     setTraceSteps(cloneTraceSteps(nextState.traceSteps))
@@ -1801,11 +1823,13 @@ function App({
         activeStep={canvasStep}
         selectedNodeIds={selectedNodeIds}
         selectedGroupId={selectedGroupId}
+        selectedGroupIds={selectedGroupIds}
         selectedEdgeId={selectedEdgeId}
         focusRequest={codeFocus}
         onInspectEdge={(edgeId) => {
           setSelectedEdgeId(edgeId)
           setSelectedNodeIds([])
+          setSelectedGroupIds([])
           setSelectedGroupId(undefined)
           setInspectorOpen(true)
           setRightOpen(true)
@@ -1857,6 +1881,7 @@ function App({
         onLossChange={updateLoss}
         onDatasetChange={updateDataset}
         onGroupCreate={mergeSelectedNodes}
+        onGroupUnion={unionSelectedNodes}
         onGroupExplode={explodeGroup}
         onGroupRename={(id, label) => applyGraphChange({ ...graph, groups: graph.groups?.map(group => group.id === id ? { ...group, label } : group) })}
         onGroupMove={moveGroup}
@@ -1994,7 +2019,8 @@ function App({
           onOpen={openGroup}
           onInspectNeuron={inspectNeuron}
           onGroup={mergeSelectedNodes}
-          selectionCount={selectedNodeIds.length}
+          onUnion={selectedItems.groupIds.length ? unionSelectedNodes : undefined}
+          selectionCount={selectedItems.nodeIds.length + selectedItems.groupIds.length}
         />}
         {(activeStep || (!selectedNodeId && !selectedGroupId && !selectedEdgeId)) && <section className="inspector-card">
           <p className="eyebrow">Current step</p>

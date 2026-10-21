@@ -14,7 +14,9 @@ Drag a block to move it. Drag empty canvas to select several blocks. Two-finger 
 
 ## Group and reuse calculations
 
-Select several blocks and group them. Groups can represent a neuron, a layer, a head of attention, or a whole block; groups can contain other groups. Right-click a group to rename it. Its name appears in the code outline. Copy and paste or duplicate a selection from **Edit** or with ⌘/Ctrl+C and ⌘/Ctrl+V. Copies have independent parameters. **Ungroup module** removes the container while retaining its calculations.
+Hold Shift while clicking to select several blocks. **Merge selection** creates an outer group containing those blocks, retaining any selected groups as nested blocks. When the selection includes a group, **Union selection** combines the selected groups’ contents and any selected individual blocks into one group. Union removes the selected group wrappers and retains deeper nested groups. Both actions preserve calculations and parameter values.
+
+Groups can represent a neuron, a layer, a head of attention, or a whole block; groups can contain other groups. Right-click a group to rename it. Its name appears in the code outline. Copy and paste or duplicate a selection from **Edit** or with ⌘/Ctrl+C and ⌘/Ctrl+V. Copies have independent parameters. **Ungroup module** removes the container while retaining its calculations.
 
 Double-click a group or its corner arrow to explore inside. Zooming fades the group's card as it fills the view and exposes its real inner wires and Builder cards. The breadcrumb and **Up one level** move between regions. Very simple groups may skip redundant intermediate cards.
 

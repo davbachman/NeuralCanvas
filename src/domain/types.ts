@@ -292,6 +292,7 @@ export interface ProjectStateSnapshot {
   visualizationGraph: GraphModel
   initialParameterValues: Record<string, TensorValue>
   selectedNodeIds: string[]
+  selectedGroupIds?: string[]
   selectedGroupId?: string
   phase: GraphPhase
   traceSteps: EvaluationTraceStep[]

@@ -102,6 +102,7 @@ function cloneProjectStateSnapshot(state: ProjectStateSnapshot): ProjectStateSna
     visualizationGraph: cloneGraph(state.visualizationGraph),
     initialParameterValues: cloneParameterValueMap(state.initialParameterValues),
     selectedNodeIds: [...state.selectedNodeIds],
+    ...(state.selectedGroupIds?.length ? { selectedGroupIds: [...state.selectedGroupIds] } : {}),
     selectedGroupId: state.selectedGroupId ?? undefined,
     phase: state.phase,
     traceSteps: cloneTraceSteps(state.traceSteps),
@@ -143,6 +144,7 @@ function isProjectStateSnapshot(value: unknown): value is ProjectStateSnapshot {
     isTensorMap(value.initialParameterValues) &&
     Array.isArray(value.selectedNodeIds) &&
     value.selectedNodeIds.every((id) => typeof id === 'string') &&
+    (value.selectedGroupIds === undefined || (Array.isArray(value.selectedGroupIds) && value.selectedGroupIds.every(id => typeof id === 'string'))) &&
     (value.selectedGroupId === undefined || value.selectedGroupId === null || typeof value.selectedGroupId === 'string') &&
     isGraphPhase(value.phase) &&
     Array.isArray(value.traceSteps) &&

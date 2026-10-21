@@ -1,13 +1,13 @@
 import { showsTraceMetrics, builderCardHeight, builderCardWidth } from './builderGeometry'
-import { captureGroupTransforms, compactVisualHierarchy, layoutContinuousScene, sceneGroupId } from './continuousScene'
-import { explodeVisualGroup, mergeNodesIntoVisualGroup } from './grouping'
+import { CONTAINMENT_SCALE, captureGroupTransforms, compactVisualHierarchy, layoutContinuousScene, sceneGroupId } from './continuousScene'
+import { explodeVisualGroup, mergeNodesIntoVisualGroup, visualSelectionItems } from './grouping'
 import { captureCanvasLayout } from './deletionLayout'
 import type { GraphModel, GraphViewState } from './types'
 
 /** Capture what the user sees before changing ownership. A merge only scales
  * and translates this arrangement; it never assigns new dependency columns. */
-export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], displayGraph = graph) {
-  const merged = mergeNodesIntoVisualGroup(graph, nodeIds)
+export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], displayGraph = graph, groupIds?: string[]) {
+  const merged = mergeNodesIntoVisualGroup(graph, nodeIds, groupIds)
   if (!merged.group) return merged
   const layouts: NonNullable<GraphViewState['preservedLayouts']> = {}
   let transforms: GraphViewState['preservedGroupTransforms'] = {}
@@ -40,7 +40,7 @@ export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], disp
   // to the model level that actually contains the selected blocks.
   const level = parent ?? Object.values(layouts).find(entries => nodeIds.some(id => entries[id]))
   if (!level) return merged
-  const selected = new Set(nodeIds)
+  const selected = new Set(group.nodeIds)
   const selectedKeys = Object.keys(level).filter(key => selected.has(key) ||
     displayGraph.groups?.some(candidate => key === sceneGroupId(candidate.id) && candidate.nodeIds.every(id => selected.has(id))))
   if (!selectedKeys.length) return merged
@@ -58,6 +58,55 @@ export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], disp
   delete transforms[group.id]
   return { ...merged, graph: { ...merged.graph, view: { ...merged.graph.view!, preservedLayouts: layouts, preservedLayoutBounds: bounds, preservedGroupTransforms: transforms,
     layoutOffsets: undefined, manualNodePlacements: undefined } } }
+}
+
+/** Union removes only the selected container wrappers. Nested modules and all
+ * computational nodes/edges survive, sharing the new container as their parent. */
+export function unionPreservingLayout(graph: GraphModel, nodeIds: string[], groupIds: string[], displayGraph = graph) {
+  const selection = visualSelectionItems(graph, nodeIds, groupIds)
+  if (!selection.groupIds.length) return mergePreservingLayout(graph, nodeIds, displayGraph, groupIds)
+  const merged = mergeNodesIntoVisualGroup(graph, nodeIds, groupIds)
+  if (!merged.group) return merged
+  const scene = layoutContinuousScene(compactVisualHierarchy(displayGraph))
+  const parent = scene.levels.find(level => level.parentId === merged.group!.parentId)
+  const levels = selection.groupIds.map(id => scene.levels.find(level => level.parentId === id))
+  if (!parent || levels.some(level => !level)) return { graph }
+  const ids = [...selection.nodeIds, ...levels.flatMap(level => level!.ids)]
+  const scale = parent.scale * CONTAINMENT_SCALE
+  const items = ids.map(id => {
+    const rect = id.startsWith('visual-group:') ? scene.groups.get(id.slice(13))! : scene.nodes.get(id)!
+    const ratio = scale / scene.scales.get(id)!
+    return { id, rect: { ...rect, width: rect.width * ratio, height: rect.height * ratio } }
+  })
+  const left = Math.min(...items.map(item => item.rect.x)), top = Math.min(...items.map(item => item.rect.y))
+  const width = Math.max(...items.map(item => item.rect.x + item.rect.width)) - left
+  const height = Math.max(...items.map(item => item.rect.y + item.rect.height)) - top
+  const frame = { x: left - 16 * parent.scale, y: top - 40 * parent.scale,
+    width: Math.max(238 * parent.scale, width + 32 * parent.scale), height: Math.max(136 * parent.scale, height + 56 * parent.scale) }
+  const saved = captureCanvasLayout(displayGraph)
+  const layouts = saved.preservedLayouts!, bounds = saved.preservedLayoutBounds!, transforms = saved.preservedGroupTransforms!
+  const entries = layouts[merged.group.parentId ?? ''] ??= {}
+  for (const id of selection.nodeIds) delete entries[id]
+  for (const id of selection.groupIds) {
+    delete entries[sceneGroupId(id)]
+    delete layouts[id]
+    delete bounds[id]
+    delete transforms[id]
+  }
+  entries[sceneGroupId(merged.group.id)] = { x: (frame.x - parent.x) / parent.scale, y: (frame.y - parent.y) / parent.scale,
+    width: frame.width / parent.scale, height: frame.height / parent.scale, scale: 1 }
+  layouts[merged.group.id] = Object.fromEntries(items.map(({ id, rect }) => [id, { x: (rect.x - left) / scale, y: (rect.y - top) / scale,
+    width: rect.width / scale, height: rect.height / scale, scale: 1 }]))
+  bounds[merged.group.id] = { x: 0, y: 0, width: width / scale, height: height / scale }
+  transforms[merged.group.id] = { x: 16, y: 40, scale: CONTAINMENT_SCALE }
+  const removed = new Set(selection.groupIds)
+  return { group: merged.group, graph: { ...merged.graph,
+    groups: merged.graph.groups!.filter(group => !removed.has(group.id)).map(group => removed.has(group.parentId ?? '') ? { ...group, parentId: merged.group!.id } : group),
+    view: { ...saved, layoutEdges: merged.graph.view?.layoutEdges, preservedLayouts: layouts, preservedLayoutBounds: bounds, preservedGroupTransforms: transforms,
+      expandedGroupIds: saved.expandedGroupIds.filter(id => !removed.has(id)),
+      focusedGroupId: removed.has(saved.focusedGroupId ?? '') ? merged.group.id : saved.focusedGroupId,
+    },
+  } }
 }
 
 /** Undo the container's display compression. Keep edits in its local layout,
