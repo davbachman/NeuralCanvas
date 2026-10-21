@@ -1,3 +1,4 @@
+import { NumberInput } from '../components/NumberInput'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowDown,
@@ -459,7 +460,7 @@ export function TransformerLesson({ kind }: { kind: TokenLesson }) {
             </label>
             <label>
               Seed{' '}
-              <input
+              <NumberInput
                 type="number"
                 min="0"
                 max="4294967295"
@@ -579,7 +580,7 @@ export function TransformerLesson({ kind }: { kind: TokenLesson }) {
               {state.scores.map((value, index) => (
                 <label key={index}>
                   Score {index}
-                  <input
+                  <NumberInput
                     aria-label={`Score ${index}`}
                     type="number"
                     step="0.5"
@@ -617,7 +618,7 @@ export function TransformerLesson({ kind }: { kind: TokenLesson }) {
                     {state[key].map((value, index) => (
                       <label key={index}>
                         {Math.floor(index / 2)},{index % 2}
-                        <input
+                        <NumberInput
                           aria-label={`${key.toUpperCase()} row ${Math.floor(index / 2)} coordinate ${index % 2}`}
                           type="number"
                           step="0.25"
@@ -1155,7 +1156,7 @@ export function TransformerLesson({ kind }: { kind: TokenLesson }) {
             </label>
             <label>
               Temperature
-              <input
+              <NumberInput
                 aria-label="Sampling temperature"
                 type="number"
                 min=".05"
@@ -1305,7 +1306,7 @@ export function TransformerLesson({ kind }: { kind: TokenLesson }) {
                 </label>
                 <label>
                   Flat coordinate
-                  <input
+                  <NumberInput
                     type="number"
                     min="0"
                     max={selectedParameter.data.length - 1}
@@ -1322,7 +1323,7 @@ export function TransformerLesson({ kind }: { kind: TokenLesson }) {
                 </label>
                 <label>
                   Value
-                  <input
+                  <NumberInput
                     aria-label="Learned parameter value"
                     type="number"
                     step=".05"

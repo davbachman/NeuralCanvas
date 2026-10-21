@@ -47,6 +47,9 @@ it('uses zero-based bounds for the numeric selector on large datasets', () => {
   expect(selector).toHaveValue(501)
   for (const value of ['-1', '502', '', '1.5']) {
     fireEvent.change(selector, { target: { value } })
+    expect(selector).toHaveValue(value === '' ? null : Number(value))
+    expect(screen.getByText('Original text · dataset row 501')).toBeInTheDocument()
+    fireEvent.blur(selector)
     expect(selector).toHaveValue(501)
   }
   fireEvent.click(screen.getByRole('button', { name: 'Data' }))

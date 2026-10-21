@@ -1,3 +1,4 @@
+import { NumberInput } from './components/NumberInput'
 import { initializeTensor, initializerForNode } from './domain/authoring'
 import { useModelGraph } from './hooks/useModelGraph'
 import { hasStoryExperiment } from './domain/textData'
@@ -1722,7 +1723,7 @@ function App({
             <label className="run-field run-checkbox"><input type="checkbox" checked={shuffleEachEpoch} onChange={event => setShuffleEachEpoch(event.target.checked)} disabled={isTraining} /> Reshuffle training examples each epoch</label>
             {!validBatchSize && <p className="run-status" role="alert">{batchSize > 1 && !supportsNumericBatches(trainingDataset) ? 'This tensor-shaped dataset currently trains one example at a time. A larger batch needs a graph built with a batch dimension.' : `Choose a batch size from 1 to ${trainingExampleCount}.`}</p>}
           </> : null}
-          {tensorTraining && <label className="run-field">Exact learning rate<input aria-label="Exact learning rate" type="number" min="0.000001" step="0.0001" disabled={isTraining} value={graph.learningRate} onChange={event=>updateLearningRate(Number(event.target.value))}/></label>}
+          {tensorTraining && <label className="run-field">Exact learning rate<NumberInput aria-label="Exact learning rate" type="number" min="0.000001" step="0.0001" disabled={isTraining} value={graph.learningRate} onChange={event=>updateLearningRate(Number(event.target.value))}/></label>}
           <LearningRateControl value={graph.learningRate} tensorTraining={tensorTraining} disabled={isTraining} onChange={updateLearningRate}/>
           <button type="button" className="run-full-step randomize-button" onClick={() => runCanvasAction(randomizeParameters)} disabled={isTraining}><Shuffle size={15} /> Randomize parameters</button>
           <div className="run-section-divider" />
@@ -1737,10 +1738,10 @@ function App({
                   ? 'Adam adapts updates using running gradient averages. Weight decay is not applied.'
                   : 'AdamW adapts updates using running gradient averages and applies weight decay.'}
                 {training.optimizer !== 'sgd' && ' Running gradient averages start fresh for each run.'}</p>
-              {training.optimizer==='adamw' && <label className="run-field">Weight decay<input aria-label="Weight decay" disabled={isTraining} type="number" min="0" step="0.001" value={training.weightDecay} onChange={event=>setTraining({weightDecay:Number(event.target.value)})}/></label>}
-              <label className="run-field">Gradient norm limit (0 = off)<input aria-label="Gradient norm limit" disabled={isTraining} type="number" min="0" step="0.1" value={training.clipNorm} onChange={event=>setTraining({clipNorm:Number(event.target.value)})}/></label>
-              <label className="run-field">Early stopping patience (0 = off)<input aria-label="Early stopping patience" disabled={isTraining} type="number" min="0" step="1" value={training.patience} onChange={event=>setTraining({patience:Number(event.target.value)})}/></label>
-              {training.patience > 0 && <label className="run-field">Minimum validation improvement<input aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>}
+              {training.optimizer==='adamw' && <label className="run-field">Weight decay<NumberInput aria-label="Weight decay" disabled={isTraining} type="number" min="0" step="0.001" value={training.weightDecay} onChange={event=>setTraining({weightDecay:Number(event.target.value)})}/></label>}
+              <label className="run-field">Gradient norm limit (0 = off)<NumberInput aria-label="Gradient norm limit" disabled={isTraining} type="number" min="0" step="0.1" value={training.clipNorm} onChange={event=>setTraining({clipNorm:Number(event.target.value)})}/></label>
+              <label className="run-field">Early stopping patience (0 = off)<NumberInput aria-label="Early stopping patience" disabled={isTraining} type="number" min="0" step="1" value={training.patience} onChange={event=>setTraining({patience:Number(event.target.value)})}/></label>
+              {training.patience > 0 && <label className="run-field">Minimum validation improvement<NumberInput aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>}
               <p className="run-intro">Tensor runs use padded batches and report at the selected interval.{training.patience > 0 && ' Early stopping checks the held-out validation split every epoch and restores its best checkpoint.'}</p>
             </>}
           <details className="training-walkthrough">

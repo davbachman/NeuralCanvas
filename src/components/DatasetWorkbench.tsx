@@ -1,3 +1,4 @@
+import { NumberInput } from './NumberInput'
 import { useState } from 'react'
 import { DATASET_MENU_OPTIONS, datasetExampleIndex, datasetExamples, datasetExamplesForNode, datasetForNode, datasetMode, datasetOutputLabelForSlot, datasetOutputValueForSlot } from '../domain/datasets'
 import { datasetInputPorts } from '../domain/datasetInputs'
@@ -72,7 +73,7 @@ export function DatasetWorkbench({ graph, node, onParams, onDataset, onRename, o
       if (mode === 'batch') update({datasetSplit:next})
       else update({datasetSplit:next,datasetIndex:examples.findIndex(example => next === 'all' || example.split === next)})
     }}><option value="all">All rows</option><option value="train">Training · {counts.train}</option><option value="test">Held out · {counts.test}</option></select></label>
-    {mode === 'sample' && examples.length > 500 && <label className="inspector-field">Current row<input type="number" aria-label="Dataset row" min={0} max={examples.length - 1} value={index} onChange={event => { const value = Number(event.target.value); if (Number.isInteger(value) && event.target.value !== '' && value >= 0 && value < examples.length) update({ datasetIndex: value }) }}/><small>{examples[index]?.split} · {examples.length} rows · numbered 0–{examples.length - 1}</small></label>}
+    {mode === 'sample' && examples.length > 500 && <label className="inspector-field">Current row<NumberInput type="number" aria-label="Dataset row" min={0} max={examples.length - 1} value={index} onChange={event => { const value = Number(event.target.value); if (Number.isInteger(value) && event.target.value !== '' && value >= 0 && value < examples.length) update({ datasetIndex: value }) }}/><small>{examples[index]?.split} · {examples.length} rows · numbered 0–{examples.length - 1}</small></label>}
     {mode === 'sample' && examples.length <= 500 && <label className="inspector-field">Current row<select aria-label="Dataset row" value={index} onChange={event => update({ datasetIndex: Number(event.target.value) })}>
       {examples.map((example, i) => (split === 'all' || example.split === split || i === index) && <option key={i} value={i}>Row {i}{example.label === `Row ${i}` ? '' : ` · ${example.label}`} · {example.split}</option>)}
     </select></label>}

@@ -1,3 +1,4 @@
+import { NumberInput } from './NumberInput'
 import { useMemo, useState } from 'react'
 import { ArrowRight, RotateCcw, Sparkles } from 'lucide-react'
 import { datasetForNode, datasetOutputValueForSlot } from '../domain/datasets'
@@ -90,7 +91,7 @@ export function DecoderControls({ graph, onGraphChange }: DecoderControlsProps) 
     {hasOutput && <>
       <div className="decoder-sampling-controls">
         <label>Choose next token<select aria-label="Generation mode" value={mode} onChange={event => setMode(event.target.value as 'greedy' | 'sample')}><option value="greedy">Most likely</option><option value="sample">Sample</option></select></label>
-        {mode === 'sample' && <div className="decoder-sampling-fields"><label>Temperature<input aria-label="Sampling temperature" type="number" min="0.1" max="3" step="0.1" value={temperature} onChange={event => { const next = Number(event.target.value); if (Number.isFinite(next) && next >= .1 && next <= 3) setTemperature(next) }} /></label><label>Top-k<select aria-label="Sampling top-k" value={topK} onChange={event => setTopK(Number(event.target.value))}>{vocabulary.map((_, index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}</select></label></div>}
+        {mode === 'sample' && <div className="decoder-sampling-fields"><label>Temperature<NumberInput aria-label="Sampling temperature" type="number" min="0.1" max="3" step="0.1" value={temperature} onChange={event => { const next = Number(event.target.value); if (Number.isFinite(next) && next >= .1 && next <= 3) setTemperature(next) }} /></label><label>Top-k<select aria-label="Sampling top-k" value={topK} onChange={event => setTopK(Number(event.target.value))}>{vocabulary.map((_, index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}</select></label></div>}
       </div>
       <div className="decoder-distribution-heading"><span>{mode === 'sample' ? 'Sampling probabilities' : 'Next-token probabilities'}</span><span>after {vocabulary[ids.at(-1)!]}</span></div>
       <div className="decoder-distribution" role="img" aria-label="Next-token probability distribution">{vocabulary.map((token, index) => <div className="decoder-probability-row" key={token} data-token={token}><span>{token}</span><div className="decoder-probability-track"><div style={{ width: `${(distribution[index] ?? 0) * 100}%` }} /></div><output>{((distribution[index] ?? 0) * 100).toFixed(1)}%</output></div>)}</div>

@@ -1,3 +1,4 @@
+import { NumberInput } from './NumberInput'
 import { useEffect, useRef, useState } from 'react'
 import { importText, isTextDatasetData } from '../domain/textData'
 import type { TextDatasetData } from '../domain/types'
@@ -36,9 +37,9 @@ export function TextImportDialog({ onImport, onCancel }: { onImport: (data: Text
     <label className="inspector-field">Task<select aria-label="Text task" value={task} onChange={event => {const next = event.target.value as typeof task; setTask(next); setTokenizer(next === 'language' ? 'character' : 'word'); setRepresentation(next === 'language' ? 'tokens' : 'counts'); setLength(next === 'language' ? 16 : 64)}}><option value="sentiment">Sentiment analysis</option><option value="classification">Multiclass text / question answering</option><option value="language">Next-token prediction</option></select></label>
     <label className="inspector-field">Tokenizer<select aria-label="Tokenizer" value={tokenizer} onChange={event => setTokenizer(event.target.value as typeof tokenizer)}><option value="word">Words and punctuation</option><option value="character">Characters</option></select></label>
     {task !== 'language' && <label className="inspector-field">Representation<select aria-label="Text representation" value={representation} onChange={event => setRepresentation(event.target.value as typeof representation)}><option value="counts">Word counts</option><option value="tokens">Token IDs</option>{task==='classification' && <option value="facts">Facts and question</option>}</select></label>}
-    <label className="inspector-field">Maximum vocabulary (includes unknown)<input aria-label="Vocabulary limit" type="number" min="2" max="8192" value={size} onChange={event => setSize(Number(event.target.value))}/></label>
-    <label className="inspector-field">{task === 'language' ? 'Context length' : 'Maximum text tokens'}<input aria-label="Text context length" type="number" min="1" max="256" value={length} onChange={event => setLength(Number(event.target.value))}/></label>
-    {task === 'language' && <label className="inspector-field">Window stride<input aria-label="Window stride" type="number" min="1" max={length} value={stride} onChange={event => setStride(Number(event.target.value))}/></label>}
+    <label className="inspector-field">Maximum vocabulary (includes unknown)<NumberInput aria-label="Vocabulary limit" type="number" min="2" max="8192" value={size} onChange={event => setSize(Number(event.target.value))}/></label>
+    <label className="inspector-field">{task === 'language' ? 'Context length' : 'Maximum text tokens'}<NumberInput aria-label="Text context length" type="number" min="1" max="256" value={length} onChange={event => setLength(Number(event.target.value))}/></label>
+    {task === 'language' && <label className="inspector-field">Window stride<NumberInput aria-label="Window stride" type="number" min="1" max={length} value={stride} onChange={event => setStride(Number(event.target.value))}/></label>}
     <label><input type="checkbox" checked={lowercase} onChange={event => setLowercase(event.target.checked)}/> Lowercase text</label>
     <p>Vocabulary is fitted on training documents only. Sentiment text is truncated to the selected length. Tensor training pads batches internally and masks padded positions.</p>
     <input type="file" accept=".csv,.txt,.json,text/plain,text/csv,application/json" aria-label="Choose text data file" onChange={event => {requestVersion.current++; setBusy(false); setFile(event.target.files?.[0]); setError('')}}/>

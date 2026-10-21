@@ -1,3 +1,4 @@
+import { NumberInput } from './NumberInput'
 import { ArithmeticExpressionInput } from './ArithmeticExpressionInput'
 import {StandardizationInspector} from './StandardizationInspector'
 import { useState } from 'react'
@@ -110,7 +111,7 @@ export function ModelInspector({
       {graph.view?.inspectedNeuron && (
         <label className="inspector-field">
           Token row
-          <input
+          <NumberInput
             aria-label="Inspected token row"
             type="number"
             min="1"
@@ -144,7 +145,7 @@ export function ModelInspector({
             </label>}
           {operationHelp[node.type] && <p className="coordinate-note">{operationHelp[node.type]}</p>}
           {node.type === 'arithmetic' && !node.id.startsWith('inspect:') && <ArithmeticEditor key={node.id} graph={graph} node={node} onParams={onParams}/>}
-          {node.type === 'one-hot' && <label className="inspector-field">Vocabulary size<input aria-label="One-hot vocabulary size" type="number" min="2" max="8192" value={node.params.numClasses ?? 2} onChange={event => onParams(node.id, {numClasses: Number(event.target.value)})}/></label>}
+          {node.type === 'one-hot' && <label className="inspector-field">Vocabulary size<NumberInput aria-label="One-hot vocabulary size" type="number" min="2" max="8192" value={node.params.numClasses ?? 2} onChange={event => onParams(node.id, {numClasses: Number(event.target.value)})}/></label>}
           {node.type === 'conv2d' && <ConvolutionInspector graph={graph} node={node} onValue={onValue}/>}
           {node.type === 'loss' && <label className="inspector-field">Loss<select aria-label="Loss function" value={lossKindForNode(node, graph)} onChange={event => onParams(node.id,{loss:event.target.value as NodeParams['loss']})}>{lossOptionsForNode(node, graph).map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}</select></label>}
           {isLossNode(node) && <div className="inspector-field">Formula<code className="inspector-formula" aria-label="Loss formula">{lossFormulaForNode(node, graph, lossKindForNode(node, graph) === 'cross-entropy' ? 'target' : undefined)}</code>
@@ -153,7 +154,7 @@ export function ModelInspector({
           {(node.type==='loss'||node.type==='cross-entropy') && <fieldset><legend>Parameter regularization</legend>
             <label className="inspector-field">Penalty<select aria-label="Regularization penalty" value={node.params.regularization??'none'} onChange={event=>onParams(node.id,{regularization:event.target.value as NodeParams['regularization']})}><option value="none">None</option><option value="l1">L1 · λ Σ |w|</option><option value="l2">L2 · λ/2 Σ w²</option></select></label>
             {node.params.regularization && node.params.regularization!=='none' && <>
-              <label className="inspector-field">Strength λ<input aria-label="Regularization strength" type="number" min="0" step="0.001" value={node.params.regularizationStrength??0} onChange={event=>onParams(node.id,{regularizationStrength:Number(event.target.value)})}/></label>
+              <label className="inspector-field">Strength λ<NumberInput aria-label="Regularization strength" type="number" min="0" step="0.001" value={node.params.regularizationStrength??0} onChange={event=>onParams(node.id,{regularizationStrength:Number(event.target.value)})}/></label>
               <p>The Loss block shows data loss plus this penalty. Dataset evaluation reports data loss. This is separate from AdamW weight decay; use decay 0 to isolate the penalty.</p>
               {graph.nodes.filter(n=>n.type==='weight'||n.type==='bias').map(n=>{const ids=node.params.regularizationParameterIds??graph.nodes.filter(p=>p.type==='weight').map(p=>p.id);return <label key={n.id} style={{display:'block'}}><input type="checkbox" checked={ids.includes(n.id)} onChange={event=>onParams(node.id,{regularizationParameterIds:event.target.checked?[...ids,n.id]:ids.filter(id=>id!==n.id)})}/>{n.label}</label>})}
             </>}
@@ -172,7 +173,7 @@ export function ModelInspector({
           {canonical && binding?.editable && (
             <label className="inspector-field">
               Edit coordinate
-              <input
+              <NumberInput
                 aria-label="Edit tensor coordinate"
                 type="number"
                 step="0.05"
@@ -201,7 +202,7 @@ export function ModelInspector({
               />
             )}
           {node.type === 'standardize' && !node.id.startsWith('inspect:') && <StandardizationInspector key={node.id} graph={graph} node={node} onParams={onParams}/>}
-          {node.type === 'dropout' && !node.id.startsWith('inspect:') && <label className="inspector-field">Dropout probability<input aria-label="Dropout probability" type="number" min="0" max="0.99" step="0.05" value={node.params.dropoutRate ?? 0.1} onChange={event => onParams(node.id,{dropoutRate:Number(event.target.value)})}/><span>Training drops activations and scales survivors. Evaluation passes them unchanged.</span></label>}
+          {node.type === 'dropout' && !node.id.startsWith('inspect:') && <label className="inspector-field">Dropout probability<NumberInput aria-label="Dropout probability" type="number" min="0" max="0.99" step="0.05" value={node.params.dropoutRate ?? 0.1} onChange={event => onParams(node.id,{dropoutRate:Number(event.target.value)})}/><span>Training drops activations and scales survivors. Evaluation passes them unchanged.</span></label>}
           {node.type === 'activation' &&
             !binding &&
             !node.id.startsWith('inspect:') && (
@@ -353,7 +354,7 @@ function TensorEditor({
       <p className="coordinate-note">Enter a shape, then initialize its values or enter all values below and apply them.</p>
       <div className="tensor-initializer"><label className="inspector-field">Initialize<select aria-label="Tensor initializer" value={initializer} onChange={event => onParams(node.id, { initializer: event.target.value as Initializer })}>{INITIALIZERS.map(kind => <option key={kind} value={kind}>{kind === 'xavier' ? 'Xavier · matrices' : kind === 'he' ? 'He · ReLU / filters' : kind}</option>)}</select></label><button type="button" onClick={initializeShape}>Initialize tensor</button></div>
       {(node.type === 'weight' || node.type === 'bias') && <p className="coordinate-note">Saved with this block. Train → Randomize parameters uses this method with fresh random draws.</p>}
-      <label className="inspector-field">Random seed<input aria-label="Initializer seed" type="number" value={seed} onChange={event => setSeed(Number(event.target.value))}/></label>
+      <label className="inspector-field">Random seed<NumberInput aria-label="Initializer seed" type="number" value={seed} onChange={event => setSeed(Number(event.target.value))}/></label>
       <label className="inspector-field">
         Values
         <textarea

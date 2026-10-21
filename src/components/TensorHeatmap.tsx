@@ -1,3 +1,4 @@
+import { NumberInput } from './NumberInput'
 import { useState } from 'react'
 import { formatNumber } from '../domain/engine'
 import type { TensorValue } from '../domain/types'
@@ -84,7 +85,7 @@ export function TensorHeatmap({
           [{Math.floor(selected / columns)}, {selected % columns}]
         </span>
         {onEdit ? (
-          <input
+          <NumberInput
             aria-label="Selected matrix coordinate"
             type="number"
             step="0.05"

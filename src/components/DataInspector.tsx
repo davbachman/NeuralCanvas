@@ -1,3 +1,4 @@
+import { NumberInput } from './NumberInput'
 import { useEffect, useState } from 'react'
 import { InferenceInspection, type InspectionValue } from '../domain/inferenceInspection'
 import { datasetExampleIndex, datasetExamplesForNode, datasetMode, datasetOutputCountForNode, datasetOutputLabelForSlot, datasetOutputValueForSlot, datasetTargetSlotForNode } from '../domain/datasets'
@@ -255,7 +256,7 @@ function InferenceSignalView({ inspection, id, slot }: { inspection: InferenceIn
     {!table && result.kind !== 'shared' && <>
       <label className="data-signal-select">Dataset row{inspection.indices.length <= 500
         ? <select aria-label="Inference dataset row" value={row} onChange={event => setRow(Number(event.target.value))}>{inspection.indices.map(index => <option key={index} value={index}>Row {index}</option>)}</select>
-        : <input aria-label="Inference dataset row" type="number" value={row} onChange={event => { if (event.target.value !== '' && inspection.indices.includes(Number(event.target.value))) setRow(Number(event.target.value)) }}/>}</label>
+        : <NumberInput aria-label="Inference dataset row" type="number" value={row} onChange={event => { if (event.target.value !== '' && inspection.indices.includes(Number(event.target.value))) setRow(Number(event.target.value)) }}/>}</label>
       <PageControls label="Examples" page={position} pages={inspection.indices.length} onPage={index => setRow(inspection.indices[index])} range={`${position + 1} of ${inspection.indices.length} · dataset row ${row}`}/>
     </>}
     <p className="data-current-note">{table ? 'Rows: original dataset row numbers. Columns: output values.' : value.shape.length ? value.shape.map((size, axis) => `Axis ${axis}: ${result.axes[axis] ?? 'tensor index'} (${size})`).join(' · ') : 'Scalar output.'}</p>
