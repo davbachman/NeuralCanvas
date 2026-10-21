@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { projectStateFilename } from '../domain/session'
 
-export function SaveAsDialog({ onSave, onCancel }: { onSave: (filename: string) => void; onCancel: () => void }) {
-  const [name, setName] = useState(`neural-canvas-state-${new Date().toISOString().slice(0, 10)}`)
+export function SaveAsDialog({ filename, onSave, onCancel }: { filename?: string; onSave: (filename: string) => void; onCancel: () => void }) {
+  const [name, setName] = useState(filename ?? `neural-canvas-state-${new Date().toISOString().slice(0, 10)}`)
   const [error, setError] = useState('')
   const valid = name.trim().replace(/\.json$/i, '').length > 0 && !/[\\/:*?"<>|]/.test(name)
   return <div className="csv-picker-backdrop">

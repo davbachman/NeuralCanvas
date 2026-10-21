@@ -211,6 +211,7 @@ function App({
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false)
   const [isAboutOpen, setIsAboutOpen] = useState(false)
   const [isSaveAsOpen, setIsSaveAsOpen] = useState(false)
+  const [projectFilename, setProjectFilename] = useState<string>()
   const [isPlaying, setIsPlaying] = useState(false)
   const runCanvasAction = useCallback((action: () => void) => {
     setExecutionError(undefined)
@@ -554,6 +555,7 @@ function App({
     (nextGraph: GraphModel) => {
       pushHistory()
       clearRecordedExecution()
+      setProjectFilename(undefined)
       setSelectedEdgeId(undefined)
       const evaluated = safeForward(nextGraph)
       setGraph(evaluated.graph)
@@ -1309,7 +1311,7 @@ function App({
     setIsPlaying(false)
   }
 
-  const saveProjectState = (filename?: string) => {
+  const saveProjectState = (filename = projectFilename) => {
     setImportError(undefined)
     setExportNotice(undefined)
     downloadProjectStateFile(
@@ -1334,6 +1336,7 @@ function App({
       }),
       filename,
     )
+    if (filename) setProjectFilename(filename)
   }
 
   const closeSaveAs = () => {
@@ -1429,12 +1432,13 @@ function App({
     }
 
     const nextState = result.file.state
-    restoreProjectState(nextState)
+    restoreProjectState(nextState, file.name)
   }
 
-  const restoreProjectState = (nextState: ProjectStateSnapshot) => {
+  const restoreProjectState = (nextState: ProjectStateSnapshot, filename?: string) => {
     pushHistory()
     clearRecordedExecution()
+    setProjectFilename(filename)
     setGraph(cloneGraph(nextState.graph))
     setVisualizationGraph(cloneGraph(nextState.visualizationGraph))
     setInitialParams(cloneParameterValueMap(nextState.initialParameterValues))
@@ -1640,7 +1644,7 @@ function App({
         </div>
       </header>
 
-      {isSaveAsOpen && <SaveAsDialog onCancel={closeSaveAs} onSave={filename => { saveProjectState(filename); closeSaveAs() }} />}
+      {isSaveAsOpen && <SaveAsDialog filename={projectFilename} onCancel={closeSaveAs} onSave={filename => { saveProjectState(filename); closeSaveAs() }} />}
 
       {isAboutOpen ? <div className="about-backdrop" onPointerDown={event => { if (event.target === event.currentTarget) closeAbout() }}>
         <section role="dialog" aria-modal="true" aria-labelledby="about-title" aria-describedby="about-description" className="about-dialog" onKeyDown={event => {
