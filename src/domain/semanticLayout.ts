@@ -29,7 +29,7 @@ export function semanticInputFraction(index: number, count: number, hasAddInput:
 
 /** Layout only the currently visible hierarchy. Expansion creates room without
  * moving or duplicating a single parameter in the underlying model. */
-export function layoutSemanticGraph(graph: GraphModel, nestedCards = false, rootGroup?: GraphGroup): SemanticLayout {
+export function layoutSemanticGraph(graph: GraphModel, nestedCards = false, rootGroup?: GraphGroup, groupSizes?: Map<string, { width: number; height: number }>): SemanticLayout {
   const result: SemanticLayout = { nodes: new Map(), groups: new Map() }
   const groups = graph.groups ?? []
   const edges = graph.view?.layoutEdges ?? graph.edges
@@ -44,7 +44,7 @@ export function layoutSemanticGraph(graph: GraphModel, nestedCards = false, root
     const items: Item[] = children.map((group) => {
       if (!expanded.has(group.id)) {
         const neuron = group.kind === 'neuron'
-        return { id: group.id, group, memberIds: group.nodeIds, width: neuron && !nestedCards ? 126 : 238, height: neuron && !nestedCards ? 152 : group.detail?.userCreated && group.kind === 'module' ? 136 : 172, x: 0, y: 0 }
+        return { id: group.id, group, memberIds: group.nodeIds, width: groupSizes?.get(group.id)?.width ?? (neuron && !nestedCards ? 126 : 238), height: groupSizes?.get(group.id)?.height ?? (neuron && !nestedCards ? 152 : group.detail?.userCreated && group.kind === 'module' ? 136 : 172), x: 0, y: 0 }
       }
       const nested = layoutLevel(group)
       const width = Math.max(240, ...nested.map((item) => item.x + item.width)) + 56

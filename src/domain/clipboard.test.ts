@@ -1,8 +1,9 @@
 import type { GraphModel } from './types'
 import { describe, expect, it } from 'vitest'
 import { clipboardPasteOffset, copyGraphSelection, pasteGraphClipboard } from './clipboard'
-import { compactVisualHierarchy, layoutContinuousScene, sceneGroupId } from './continuousScene'
-import { mergePreservingLayout } from './mergeLayout'
+import { compactVisualHierarchy, layoutContinuousScene, sceneContentBounds, sceneGroupId } from './continuousScene'
+import { mergePreservingLayout, ungroupPreservingLayout } from './mergeLayout'
+import { forwardPass } from './engine'
 import { createEmptyGraph, createNode, createStarterGraph } from './examples'
 import { mergeNodesIntoVisualGroup, visualGroupInterface } from './grouping'
 
@@ -97,26 +98,86 @@ it.each([false, true])('pastes a moved nested selection at its visible position,
   graph.view!.layoutOffsets = { [sceneGroupId('group-1')]: { x: 2200, y: -900 }, mul: { x: 3, y: 2 } }
   const original = structuredClone(graph), before = sceneFor(graph)
   const fragment = copyGraphSelection(graph, wholeGroup ? { nodeIds: [], groupId: merged.group!.id } : { nodeIds: ['mul', 'add'] })!
+  const parentId = wholeGroup ? 'group-1' : merged.group!.id
+  expect(fragment.parentGroupId).toBe(parentId)
   const offset = { x: 30, y: 25 }
   const pasted = pasteGraphClipboard(graph, fragment, offset)
   const after = sceneFor(pasted.graph)
   for (const [id, rect] of before.nodes) expectRect(after.nodes.get(id)!, rect)
-  for (const [id, rect] of before.groups) expectRect(after.groups.get(id)!, rect)
+  for (const [id, rect] of before.groups) {
+    const actual = after.groups.get(id)!
+    // A copied child can expand its ancestors, but cannot resize other blocks.
+    if (id === parentId || id === 'group-1') {
+      expect(actual.width).toBeGreaterThanOrEqual(rect.width)
+      expect(actual.height).toBeGreaterThanOrEqual(rect.height)
+    } else expectRect(actual, rect)
+  }
   for (const [index, source] of fragment.nodes.entries()) {
     const copy = pasted.graph.nodes[graph.nodes.length + index]
     const rect = before.nodes.get(source.id)!
     expectRect(after.nodes.get(copy.id)!, { ...rect, x: rect.x + offset.x, y: rect.y + offset.y })
     expect(after.scales.get(copy.id)).toBeCloseTo(before.scales.get(source.id)!, 8)
     expect(copy.params).toEqual(source.params)
+    expect(pasted.graph.groups!.find(group => group.id === parentId)!.nodeIds).toContain(copy.id)
+    expect(pasted.graph.groups!.find(group => group.id === 'group-1')!.nodeIds).toContain(copy.id)
+    expect(pasted.graph.view!.preservedLayouts![''][copy.id]).toBeUndefined()
+    if (!wholeGroup) expect(after.parents.get(copy.id)).toBe(parentId)
   }
   if (wholeGroup) {
     const rect = before.groups.get(merged.group!.id)!
     expectRect(after.groups.get(pasted.selection.groupId!)!, { ...rect, x: rect.x + offset.x, y: rect.y + offset.y })
+    expect(pasted.graph.groups!.find(group => group.id === pasted.selection.groupId)!.parentId).toBe(parentId)
   }
   expect(graph).toEqual(original)
   const reloaded = sceneFor(JSON.parse(JSON.stringify(pasted.graph)))
   expect(reloaded.nodes).toEqual(after.nodes)
   expect(reloaded.groups).toEqual(after.groups)
+})
+
+it.each([.25, 1, 20])('keeps repeated copies inside their containing block at zoom %s', zoom => {
+  let graph = mergePreservingLayout(createStarterGraph(), ['x', 'w', 'mul', 'b', 'add', 'pred']).graph
+  const merged = mergePreservingLayout(graph, ['x', 'w', 'mul'])
+  graph = merged.graph
+  const initial = structuredClone(graph), before = sceneFor(graph)
+  const fragment = copyGraphSelection(graph, { nodeIds: ['w'] })!
+  const parentId = merged.group!.id, bounds = sceneContentBounds(before, parentId)
+  const viewport = { ...bounds, zoom }
+  const loss = forwardPass(graph).loss
+  for (let count = 0; count < 6; count++) {
+    const offset = clipboardPasteOffset(graph, fragment, count, viewport)
+    const pasted = pasteGraphClipboard(graph, fragment, offset)
+    const id = pasted.selection.nodeIds[0], after = sceneFor(pasted.graph), rect = after.nodes.get(id)!
+    expect(after.parents.get(id)).toBe(parentId)
+    expect(rect.x).toBeGreaterThanOrEqual(bounds.x - 1e-9)
+    expect(rect.y).toBeGreaterThanOrEqual(bounds.y - 1e-9)
+    expect(rect.x + rect.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1e-9)
+    expect(rect.y + rect.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1e-9)
+    expect(rect.width).toBeCloseTo(before.nodes.get('w')!.width, 8)
+    expect(rect.height).toBeCloseTo(before.nodes.get('w')!.height, 8)
+    for (const [originalId, originalRect] of before.nodes) expectRect(after.nodes.get(originalId)!, originalRect)
+    expect(forwardPass(pasted.graph).loss).toBe(loss)
+    const copy = pasted.graph.nodes.find(node => node.id === id)!
+    expect(copy.params).toEqual(initial.nodes.find(node => node.id === 'w')!.params)
+    expect(copy.params).not.toBe(graph.nodes.find(node => node.id === 'w')!.params)
+    const moved = structuredClone(pasted.graph)
+    moved.view!.layoutOffsets = { [sceneGroupId(parentId)]: { x: 20, y: -10 } }
+    const movedScene = sceneFor(moved)
+    expectRect(movedScene.nodes.get(id)!, { ...rect, x: rect.x + 20, y: rect.y - 10 })
+    expect(sceneFor(JSON.parse(JSON.stringify(pasted.graph))).parents.get(id)).toBe(parentId)
+    const ungrouped = ungroupPreservingLayout(pasted.graph, parentId)
+    expect(sceneFor(ungrouped).parents.get(id)).toBe('group-1')
+    graph = pasted.graph
+  }
+  expect(graph.nodes.slice(0, initial.nodes.length)).toEqual(initial.nodes)
+})
+
+it('falls back to the model level when the copied block’s original container is gone', () => {
+  const merged = mergePreservingLayout(createStarterGraph(), ['x', 'w'])
+  const fragment = copyGraphSelection(merged.graph, { nodeIds: ['w'] })!
+  const graph = ungroupPreservingLayout(merged.graph, merged.group!.id)
+  const pasted = pasteGraphClipboard(graph, fragment, { x: 20, y: 20 })
+  expect(sceneFor(pasted.graph).parents.get(pasted.selection.nodeIds[0])).toBeUndefined()
+  expect(pasted.graph.groups).toHaveLength(0)
 })
 
 it('keeps a pasted module and existing flat blocks in place when entering a grouped canvas', () => {

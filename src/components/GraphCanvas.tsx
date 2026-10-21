@@ -74,7 +74,7 @@ import { GroupNode, type GroupNodeData } from './GroupNode'
 import { layoutSemanticGraph, semanticGroupDepth } from '../domain/semanticLayout'
 import { preserveLayoutForWiring } from '../domain/layoutState'
 import { captureCanvasLayout, preserveLayoutAfterDeletion } from '../domain/deletionLayout'
-import { cardReveal, compactVisualHierarchy, continuousSceneMaxZoom, layoutContinuousScene, routeContinuousScene, sceneContentBounds } from '../domain/continuousScene'
+import { cardReveal, compactVisualHierarchy, continuousSceneMaxZoom, layoutContinuousScene, routeContinuousScene, sceneAtPositions } from '../domain/continuousScene'
 import './modules.css'
 import './semanticCanvas.css'
 import './canvasAddMenu.css'
@@ -179,7 +179,7 @@ function GraphCanvasInner({
     nodes: renderedGraph.nodes.map(({ id, type, label, position, dimensions, params }) => ({ id, type, label, position, dimensions, params: { inputCount: params.inputCount, expression: params.expression, dataset: params.dataset, textData: params.textData ? { representation: params.textData.representation, task: params.textData.task } : undefined, customCsv: params.customCsv ? csvGeometrySample(params.customCsv) : undefined } })),
     edges: renderedGraph.edges.map(({ id, source, target, inputSlot, sourceSlot }) => ({ id, source, target, inputSlot, sourceSlot })),
     groups: renderedGraph.groups,
-    view: { expandedGroupIds: [], preservedLayouts: renderedGraph.view?.preservedLayouts, preservedLayoutBounds: renderedGraph.view?.preservedLayoutBounds, layoutOffsets: renderedGraph.view?.layoutOffsets, layoutEdges: renderedGraph.view?.layoutEdges, manualNodePlacements: renderedGraph.view?.manualNodePlacements },
+    view: { expandedGroupIds: [], preservedLayouts: renderedGraph.view?.preservedLayouts, preservedLayoutBounds: renderedGraph.view?.preservedLayoutBounds, preservedGroupTransforms: renderedGraph.view?.preservedGroupTransforms, layoutOffsets: renderedGraph.view?.layoutOffsets, layoutEdges: renderedGraph.view?.layoutEdges, manualNodePlacements: renderedGraph.view?.manualNodePlacements },
   }), [renderedGraph, traceMetrics])
   const geometryGraph = useMemo(() => JSON.parse(geometryKey) as GraphModel, [geometryKey])
   const scene = useMemo(() => continuous ? layoutContinuousScene(geometryGraph) : undefined, [geometryGraph, continuous])
@@ -251,7 +251,7 @@ function GraphCanvasInner({
     else onGraphChange({ ...graph, view })
   }, [graph, onGraphChange, onViewChange])
   const compactLayout = useCallback(() => {
-    const cleanGraph = { ...renderedGraph, view: { ...renderedGraph.view!, preservedLayouts: undefined, preservedLayoutBounds: undefined, layoutOffsets: undefined, layoutEdges: undefined, manualNodePlacements: undefined } }
+    const cleanGraph = { ...renderedGraph, view: { ...renderedGraph.view!, preservedLayouts: undefined, preservedLayoutBounds: undefined, preservedGroupTransforms: undefined, layoutOffsets: undefined, layoutEdges: undefined, manualNodePlacements: undefined } }
     const clean = continuous ? layoutContinuousScene(cleanGraph) : layoutSemanticGraph(cleanGraph)
     const rects = [...clean.nodes.values(), ...clean.groups.values()]
     if (!rects.length) return
@@ -563,7 +563,8 @@ function GraphCanvasInner({
   // The scene geometry depends on node positions, not on values advancing
   // through the model during a forward or backward step.
   const scenePositionKey = JSON.stringify(scene ? nodes.map(node => [node.id, node.position]) : [])
-  const sceneRoutes = useMemo(() => scene ? routeContinuousScene(geometryGraph, scene, new Map(JSON.parse(scenePositionKey))) : [], [geometryGraph, scene, scenePositionKey])
+  const liveScene = useMemo(() => scene ? sceneAtPositions(scene, new Map(JSON.parse(scenePositionKey))) : undefined, [scene, scenePositionKey])
+  const sceneRoutes = useMemo(() => liveScene ? routeContinuousScene(geometryGraph, liveScene) : [], [geometryGraph, liveScene])
   const routedEdges = useMemo(() => {
     if (scene) {
       const byId = new Map(edges.map(edge => [edge.id, edge]))
@@ -575,7 +576,7 @@ function GraphCanvasInner({
     }
     return edges
   }, [edges, scene, sceneRoutes])
-  const reveals = useMemo(() => new Map(scene ? [...scene.groups].map(([id, rect]) => [id, cardReveal(rect, cameraZoom, canvasSize.width, canvasSize.height)] as const) : []), [scene, cameraZoom, canvasSize.width, canvasSize.height])
+  const reveals = useMemo(() => new Map(liveScene ? [...liveScene.groups].map(([id, rect]) => [id, cardReveal(rect, cameraZoom, canvasSize.width, canvasSize.height)] as const) : []), [liveScene, cameraZoom, canvasSize.width, canvasSize.height])
   const accessible = useCallback((id?: string): boolean => {
     let current = id
     while (current) {
@@ -605,15 +606,7 @@ function GraphCanvasInner({
     const groupId = groupIdFromNodeId(node.id)
     const reveal = groupId ? reveals.get(groupId) ?? 0 : 1
     const available = accessible(scene.parents.get(node.id))
-    const rect = groupId ? scene.groups.get(groupId)! : scene.nodes.get(node.id)!
-    const parentId = scene.parents.get(node.id)
-    const parentBounds = parentId ? sceneContentBounds(scene, parentId) : undefined
-    const parentPosition = parentId ? nodes.find(candidate => candidate.id === groupNodeId(parentId))?.position : undefined
-    const parentRect = parentId ? scene.groups.get(parentId) : undefined
-    if (parentBounds && parentPosition && parentRect) {
-      parentBounds.x += parentPosition.x - parentRect.x
-      parentBounds.y += parentPosition.y - parentRect.y
-    }
+    const rect = groupId ? liveScene!.groups.get(groupId)! : liveScene!.nodes.get(node.id)!
     const groupData = groupId ? node.data as GroupNodeData : undefined
     const operation = groupId ? undefined : (node.data as BuilderNodeData).graphNode
     const inputs = groupData?.inputCount ?? Math.max(inputArityForNode(operation!), Number(node.data.displayInputCount ?? 0))
@@ -633,15 +626,16 @@ function GraphCanvasInner({
     })))
     const selectable = available && (!groupId || reveal < .95)
     return { ...node, selected: Boolean(node.selected && selectable), selectable, focusable: available,
-      extent: parentBounds ? [[parentBounds.x, parentBounds.y], [parentBounds.x + parentBounds.width, parentBounds.y + parentBounds.height]] as [[number, number], [number, number]] : undefined,
+      position: { x: rect.x, y: rect.y },
+      extent: undefined,
       width: rect.width, height: rect.height, measured: { width: rect.width, height: rect.height }, handles,
       dragHandle: groupId && reveal > .95 ? '.visual-group-title-row' : undefined,
       className: groupId ? 'continuous-module' : undefined,
       style: { ...node.style, pointerEvents: available && (!groupId || reveal < .95) ? 'all' as const : 'none' as const },
       ariaLabel: groupId ? (node.data as GroupNodeData).group.label : (node.data as BuilderNodeData).graphNode.label,
-      data: { ...node.data, reveal, accessible: available, cameraZoom, frameHeaderVisible: groupId ? Math.max(0, (reveal - .95) / .05) * (1 - Math.max(0, Math.min(1, Math.max(node.width! * cameraZoom / canvasSize.width, node.height! * cameraZoom / canvasSize.height) - 1.1))) : 0 },
+      data: { ...node.data, ...(groupData ? { group: { ...groupData.group, dimensions: { width: rect.width, height: rect.height } } } : {}), reveal, accessible: available, cameraZoom, frameHeaderVisible: groupId ? Math.max(0, (reveal - .95) / .05) * (1 - Math.max(0, Math.min(1, Math.max(node.width! * cameraZoom / canvasSize.width, node.height! * cameraZoom / canvasSize.height) - 1.1))) : 0 },
     }
-  }) : nodes, [scene, nodes, reveals, accessible, cameraZoom, canvasSize, traceMetrics])
+  }) : nodes, [scene, liveScene, nodes, reveals, accessible, cameraZoom, canvasSize, traceMetrics])
   const flatEdges = useMemo(() => routedEdges.filter(edge => visibleEdgeIds.has(edge.id)), [routedEdges, visibleEdgeIds])
   const presentedEdges = useMemo(() => scene ? routedEdges.map(edge => ({ ...edge, focusable: accessible(edge.data?.parentId as string | undefined),
     data: { ...edge.data!, cameraZoom, accessible: accessible(edge.data?.parentId as string | undefined) },

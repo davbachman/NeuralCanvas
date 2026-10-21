@@ -86,7 +86,7 @@ it('places a new transformer calculation at the layer-normalization scale withou
   expect(shifted.nodes.get(node.id)!.y).toBeCloseTo(after.nodes.get(node.id)!.y + 7)
 })
 
-it('scales a free-canvas block to the current close-up without moving the transformer', () => {
+it('keeps a free-canvas block at model-level scale regardless of the current close-up', () => {
   const graph = createModelPreset('block')
   const before = layoutContinuousScene(compactVisualHierarchy(graph))
   const position = { x: -600, y: -400 }
@@ -95,8 +95,8 @@ it('scales a free-canvas block to the current close-up without moving the transf
   const next = placeCanvasNode(graph, node, graph, undefined, scale)
   const after = layoutContinuousScene(compactVisualHierarchy(next))
   expectUnmoved(before, after)
-  expect(after.nodes.get(node.id)).toEqual({ ...position, width: 176 * scale, height: builderCardHeight(node) * scale })
-  expect(after.scales.get(node.id)).toBe(scale)
+  expect(after.nodes.get(node.id)).toEqual({ ...position, width: 176, height: builderCardHeight(node) })
+  expect(after.scales.get(node.id)).toBe(1)
   expect(after.parents.get(node.id)).toBeUndefined()
   expect(next.groups).toBe(graph.groups)
 })

@@ -207,6 +207,8 @@ function isGraphView(value: unknown): boolean {
     (value.semanticZoom === undefined || typeof value.semanticZoom === 'boolean') && Array.isArray(value.expandedGroupIds) && value.expandedGroupIds.every((id) => typeof id === 'string') &&
     (value.focusedGroupId === undefined || typeof value.focusedGroupId === 'string') &&
     (value.layoutOffsets === undefined || (isRecord(value.layoutOffsets) && Object.values(value.layoutOffsets).every(isPosition))) &&
+    (value.preservedGroupTransforms === undefined || (isRecord(value.preservedGroupTransforms) && Object.values(value.preservedGroupTransforms).every(transform =>
+      isRecord(transform) && isPosition(transform) && isFiniteNumber(transform.scale) && transform.scale > 0))) &&
     (value.preservedLayoutBounds === undefined || (isRecord(value.preservedLayoutBounds) && Object.values(value.preservedLayoutBounds).every(rect =>
       isRecord(rect) && isPosition(rect) && isFiniteNumber(rect.width) && rect.width > 0 && isFiniteNumber(rect.height) && rect.height > 0))) &&
     (value.preservedLayouts === undefined || (isRecord(value.preservedLayouts) && Object.values(value.preservedLayouts).every(level =>

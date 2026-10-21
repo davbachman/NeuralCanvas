@@ -1,5 +1,5 @@
 import { showsTraceMetrics, builderCardHeight, builderCardWidth } from './builderGeometry'
-import { compactVisualHierarchy, layoutContinuousScene, sceneGroupId } from './continuousScene'
+import { captureGroupTransforms, compactVisualHierarchy, layoutContinuousScene, sceneGroupId } from './continuousScene'
 import { explodeVisualGroup, mergeNodesIntoVisualGroup } from './grouping'
 import { captureCanvasLayout } from './deletionLayout'
 import type { GraphModel, GraphViewState } from './types'
@@ -10,8 +10,10 @@ export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], disp
   const merged = mergeNodesIntoVisualGroup(graph, nodeIds)
   if (!merged.group) return merged
   const layouts: NonNullable<GraphViewState['preservedLayouts']> = {}
+  let transforms: GraphViewState['preservedGroupTransforms'] = {}
   if (displayGraph.groups?.length || displayGraph.view?.preservedLayouts) {
     const scene = layoutContinuousScene(compactVisualHierarchy(displayGraph))
+    transforms = captureGroupTransforms(scene)
     for (const level of scene.levels) {
       const entries: typeof layouts[string] = {}
       for (const id of level.ids) {
@@ -47,13 +49,14 @@ export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], disp
   const left = Math.min(...rects.map(rect => rect.x)), top = Math.min(...rects.map(rect => rect.y))
   const width = Math.max(...rects.map(rect => rect.x + rect.width)) - left
   const height = Math.max(...rects.map(rect => rect.y + rect.height)) - top
-  const scale = Math.min(Math.max(...rects.map(rect => rect.scale)), width / 238, height / 136)
+  const scale = 1
   selectedKeys.forEach(key => { delete level[key] })
   level[sceneGroupId(group.id)] = { x: left + (width - 238 * scale) / 2, y: top + (height - 136 * scale) / 2,
     width: 238 * scale, height: 136 * scale, scale }
   layouts[group.id] = content
   bounds[group.id] = { x: left, y: top, width, height }
-  return { ...merged, graph: { ...merged.graph, view: { ...merged.graph.view!, preservedLayouts: layouts, preservedLayoutBounds: bounds,
+  delete transforms[group.id]
+  return { ...merged, graph: { ...merged.graph, view: { ...merged.graph.view!, preservedLayouts: layouts, preservedLayoutBounds: bounds, preservedGroupTransforms: transforms,
     layoutOffsets: undefined, manualNodePlacements: undefined } } }
 }
 
@@ -69,10 +72,11 @@ export function ungroupPreservingLayout(graph: GraphModel, groupId: string) {
   const saved = captureCanvasLayout(graph)
   const layouts = saved.preservedLayouts!
   const bounds = { ...saved.preservedLayoutBounds }
-  const frame = scene.groups.get(groupId)!
+  const transforms = { ...saved.preservedGroupTransforms }
+  const frameScale = scene.scales.get(sceneGroupId(groupId))!
   const offset = {
-    x: (frame.x + frame.width / 2 - parent.x) / parent.scale - (contents.bounds.x + contents.bounds.width / 2),
-    y: (frame.y + frame.height / 2 - parent.y) / parent.scale - (contents.bounds.y + contents.bounds.height / 2),
+    x: (contents.x + (contents.bounds.x + contents.bounds.width / 2) * contents.scale - parent.x) / parent.scale - (contents.bounds.x + contents.bounds.width / 2),
+    y: (contents.y + (contents.bounds.y + contents.bounds.height / 2) * contents.scale - 10 * frameScale - parent.y) / parent.scale - (contents.bounds.y + contents.bounds.height / 2),
   }
   const entries = layouts[group.parentId ?? ''] ?? {}
   delete entries[sceneGroupId(groupId)]
@@ -83,6 +87,7 @@ export function ungroupPreservingLayout(graph: GraphModel, groupId: string) {
   layouts[group.parentId ?? ''] = entries
   delete layouts[groupId]
   delete bounds[groupId]
+  delete transforms[groupId]
   const result = explodeVisualGroup({ ...graph, view: saved }, groupId)
-  return { ...result, view: { ...result.view!, preservedLayouts: layouts, preservedLayoutBounds: bounds } }
+  return { ...result, view: { ...result.view!, preservedLayouts: layouts, preservedLayoutBounds: bounds, preservedGroupTransforms: transforms } }
 }

@@ -1,7 +1,7 @@
 import { cloneGraph } from './engine'
 import { groupAncestors } from './grouping'
 import { builderCardHeight, builderCardWidth, showsTraceMetrics } from './builderGeometry'
-import { compactVisualHierarchy, layoutContinuousScene, sceneGroupId } from './continuousScene'
+import { compactVisualHierarchy, layoutContinuousScene, sceneContentBounds, sceneGroupId } from './continuousScene'
 import { captureCanvasLayout } from './deletionLayout'
 import type { SemanticRect } from './semanticLayout'
 import type { GraphEdge, GraphGroup, GraphModel, GraphNode, GraphViewState, NodeType, Position } from './types'
@@ -16,7 +16,8 @@ export interface GraphClipboardFragment {
   edges: GraphEdge[]
   group?: GraphGroup
   groups?: GraphGroup[]
-  layout?: Pick<GraphViewState, 'preservedLayouts' | 'preservedLayoutBounds'>
+  parentGroupId?: string
+  layout?: Pick<GraphViewState, 'preservedLayouts' | 'preservedLayoutBounds' | 'preservedGroupTransforms'>
 }
 
 export interface GraphClipboardPasteResult {
@@ -53,6 +54,8 @@ export function pasteGraphClipboard(
   offset: Position,
 ): GraphClipboardPasteResult {
   const source = cloneClipboardFragment(fragment)
+  const destinationParent = clipboardParent(graph, source)
+  const clipboardParentId = destinationParent?.group.id ?? ''
   const existingNodeIds = new Set(graph.nodes.map((node) => node.id))
   const usedNodeIds = new Set(existingNodeIds)
   const usedEdgeIds = new Set(graph.edges.map((edge) => edge.id))
@@ -94,6 +97,10 @@ export function pasteGraphClipboard(
   const groupIdMap = new Map(originalGroups.map((group, index) => [group.id, pastedGroups[index].id]))
   pastedGroups.forEach((group, index) => { group.parentId = groupIdMap.get(originalGroups[index].parentId ?? '') })
   const pastedGroup = pastedGroups[0]
+  if (pastedGroup) pastedGroup.parentId = destinationParent?.group.id
+  const ancestorIds = new Set(destinationParent ? groupAncestors(graph, destinationParent.group.id).map(group => group.id) : [])
+  const existingGroups = graph.groups?.map(group => ancestorIds.has(group.id)
+    ? { ...group, nodeIds: [...group.nodeIds, ...pastedNodes.map(node => node.id)] } : group)
   let view = graph.view
   if (fragment.layout || graph.groups?.length || graph.view?.preservedLayouts) {
     const saved = graph.groups?.length || graph.view?.preservedLayouts ? captureCanvasLayout(graph) : {
@@ -102,22 +109,40 @@ export function pasteGraphClipboard(
     }
     const layouts: NonNullable<GraphViewState['preservedLayouts']> = { ...saved.preservedLayouts, '': { ...saved.preservedLayouts?.[''] } }
     const bounds = { ...saved.preservedLayoutBounds }
+    const transforms = { ...saved.preservedGroupTransforms }
     const remap = (id: string) => id.startsWith('visual-group:')
       ? groupIdMap.has(id.slice(13)) ? sceneGroupId(groupIdMap.get(id.slice(13))!) : undefined
       : nodeIdMap.get(id)
     const copiedLayouts = source.layout?.preservedLayouts ?? { '': Object.fromEntries(source.nodes.map(node => [node.id, nodeRect(graph, node)])) }
     for (const [parent, entries] of Object.entries(copiedLayouts)) {
-      const destination = parent ? groupIdMap.get(parent) : ''
+      const destination = parent ? groupIdMap.get(parent) : clipboardParentId
       if (destination === undefined) continue
       const translated = Object.fromEntries(Object.entries(entries).flatMap(([id, rect]) => {
         const key = remap(id)
-        return key ? [[key, { ...rect, ...(parent ? {} : translatePosition(rect, offset)) }]] : []
+        const placed = { ...rect, ...(parent ? {} : translatePosition(rect, offset)) }
+        if (!parent) {
+          const scale = destinationParent?.level.scale ?? 1
+          placed.width *= scale / placed.scale
+          placed.height *= scale / placed.scale
+          placed.scale = scale
+        }
+        if (!parent && destinationParent) {
+          const level = destinationParent.level
+          placed.x = (placed.x - level.x) / level.scale
+          placed.y = (placed.y - level.y) / level.scale
+          placed.width /= level.scale
+          placed.height /= level.scale
+          placed.scale /= level.scale
+        }
+        return key ? [[key, placed]] : []
       }))
       layouts[destination] = { ...layouts[destination], ...translated }
       const bound = source.layout?.preservedLayoutBounds?.[parent]
       if (parent && bound) bounds[destination] = { ...bound }
+      const transform = source.layout?.preservedGroupTransforms?.[parent]
+      if (parent && transform) transforms[destination] = { ...transform }
     }
-    view = { ...saved, preservedLayouts: layouts, preservedLayoutBounds: bounds }
+    view = { ...saved, preservedLayouts: layouts, preservedLayoutBounds: bounds, preservedGroupTransforms: transforms }
   }
 
   return {
@@ -125,7 +150,7 @@ export function pasteGraphClipboard(
       ...graph,
       nodes: [...graph.nodes, ...pastedNodes],
       edges: [...graph.edges, ...pastedEdges],
-      groups: pastedGroup ? [...(graph.groups ?? []), ...pastedGroups] : graph.groups,
+      groups: pastedGroup ? [...(existingGroups ?? []), ...pastedGroups] : existingGroups,
       view,
     },
     selection: pastedGroup
@@ -164,7 +189,11 @@ function captureClipboardLayout(graph: GraphModel, fragment: GraphClipboardFragm
   const saved = captureCanvasLayout(graph)
   const layouts: NonNullable<GraphViewState['preservedLayouts']> = { '': {} }
   const bounds: NonNullable<GraphViewState['preservedLayoutBounds']> = {}
+  const transforms: NonNullable<GraphViewState['preservedGroupTransforms']> = {}
   const ids = fragment.group ? [sceneGroupId(fragment.group.id)] : fragment.nodes.map(node => node.id)
+  const parentGroupId = fragment.group ? scene.parents.get(sceneGroupId(fragment.group.id))
+    : (graph.groups ?? []).filter(group => fragment.nodes.every(node => group.nodeIds.includes(node.id)) && scene.levels.some(level => level.parentId === group.id))
+      .sort((a, b) => groupAncestors(graph, b.id).length - groupAncestors(graph, a.id).length)[0]?.id
   for (const id of ids) {
     const rect = id.startsWith('visual-group:') ? scene.groups.get(id.slice(13)) : scene.nodes.get(id)
     if (rect) layouts[''][id] = { ...rect, scale: scene.scales.get(id) ?? 1 }
@@ -172,24 +201,48 @@ function captureClipboardLayout(graph: GraphModel, fragment: GraphClipboardFragm
   for (const group of fragment.group ? [fragment.group, ...(fragment.groups ?? [])] : []) {
     if (saved.preservedLayouts?.[group.id]) layouts[group.id] = saved.preservedLayouts[group.id]
     if (saved.preservedLayoutBounds?.[group.id]) bounds[group.id] = saved.preservedLayoutBounds[group.id]
+    if (saved.preservedGroupTransforms?.[group.id]) transforms[group.id] = saved.preservedGroupTransforms[group.id]
   }
-  return cloneClipboardFragment({ ...fragment, layout: { preservedLayouts: layouts, preservedLayoutBounds: bounds } })
+  return cloneClipboardFragment({ ...fragment, parentGroupId, layout: { preservedLayouts: layouts, preservedLayoutBounds: bounds, preservedGroupTransforms: transforms } })
+}
+
+/** A copy remains a sibling of its source while that container still exists.
+ * Check membership too, since group IDs can be reused after deleting a module. */
+function clipboardParent(graph: GraphModel, fragment: GraphClipboardFragment) {
+  const group = graph.groups?.find(group => group.id === fragment.parentGroupId && fragment.nodes.every(node => group.nodeIds.includes(node.id)))
+  if (!group) return undefined
+  const scene = layoutContinuousScene(compactVisualHierarchy(graph))
+  const level = scene.levels.find(level => level.parentId === group.id)
+  return level ? { group, scene, level } : undefined
 }
 
 /** Use a small screen-space cascade, and bring off-screen copies into view.
  * Clamp the selection as a whole so relative positions are never changed. */
 export function clipboardPasteOffset(graph: GraphModel, fragment: GraphClipboardFragment, count = 0, viewport?: SemanticRect & { zoom: number }): Position {
+  const parent = clipboardParent(graph, fragment), scale = parent?.level.scale ?? 1
   const rects = Object.values(fragment.layout?.preservedLayouts?.[''] ?? Object.fromEntries(fragment.nodes.map(node => [node.id, nodeRect(graph, node)])))
+    .map(rect => ({ ...rect, width: rect.width * scale / rect.scale, height: rect.height * scale / rect.scale }))
   const step = 36 * (count % 5 + 1) / (viewport?.zoom ?? 1)
-  if (!viewport || !rects.length) return { x: step, y: step }
+  if (!rects.length) return { x: step, y: step }
   const x = Math.min(...rects.map(rect => rect.x)), y = Math.min(...rects.map(rect => rect.y))
   const width = Math.max(...rects.map(rect => rect.x + rect.width)) - x
   const height = Math.max(...rects.map(rect => rect.y + rect.height)) - y
-  const padding = 16 / viewport.zoom
-  const visible = x + width > viewport.x && x < viewport.x + viewport.width && y + height > viewport.y && y < viewport.y + viewport.height
-  const place = (start: number, size: number, lower: number, extent: number) => Math.max(lower + padding,
-    Math.min(visible ? start + step : lower + (extent - size) / 2, lower + extent - size - padding))
-  return { x: place(x, width, viewport.x, viewport.width) - x, y: place(y, height, viewport.y, viewport.height) - y }
+  let offset = { x: step, y: step }
+  if (viewport) {
+    const padding = 16 / viewport.zoom
+    const visible = x + width > viewport.x && x < viewport.x + viewport.width && y + height > viewport.y && y < viewport.y + viewport.height
+    const place = (start: number, size: number, lower: number, extent: number) => Math.max(lower + padding,
+      Math.min(visible ? start + step : lower + (extent - size) / 2, lower + extent - size - padding))
+    offset = { x: place(x, width, viewport.x, viewport.width) - x, y: place(y, height, viewport.y, viewport.height) - y }
+  }
+  if (parent) {
+    const bounds = sceneContentBounds(parent.scene, parent.group.id)
+    offset = {
+      x: Math.max(bounds.x, Math.min(x + offset.x, bounds.x + bounds.width - width)) - x,
+      y: Math.max(bounds.y, Math.min(y + offset.y, bounds.y + bounds.height - height)) - y,
+    }
+  }
+  return offset
 }
 
 function internalEdgesForNodeIds(graph: GraphModel, nodeIds: Set<string>): GraphEdge[] {
@@ -213,6 +266,7 @@ function cloneClipboardFragment(fragment: GraphClipboardFragment): GraphClipboar
     edges: clonedGraph.edges,
     group: clonedGraph.groups?.[0],
     groups: clonedGraph.groups?.slice(1),
+    parentGroupId: fragment.parentGroupId,
     layout: fragment.layout ? structuredClone(fragment.layout) : undefined,
   }
 }

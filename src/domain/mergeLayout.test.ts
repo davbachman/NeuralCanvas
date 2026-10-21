@@ -29,7 +29,7 @@ describe('merge layout preservation', () => {
     for (const id of ids) sameShape(relative(scene.nodes.get(id)!,scene.nodes.get('w')!),relative(rects.get(id)!,rects.get('w')!))
     for (const n of graph.nodes.filter(n => !ids.includes(n.id))) expect(scene.nodes.get(n.id)).toMatchObject(rects.get(n.id)!)
     const selected = ids.map(id => rects.get(id)!)
-    const frame = scene.groups.get(merged.group!.id)!
+    const frame = merged.graph.view!.preservedLayouts![''][sceneGroupId(merged.group!.id)]
     expect(frame.x+frame.width/2).toBeCloseTo((Math.min(...selected.map(r=>r.x))+Math.max(...selected.map(r=>r.x+r.width)))/2)
     expect(frame.y+frame.height/2).toBeCloseTo((Math.min(...selected.map(r=>r.y))+Math.max(...selected.map(r=>r.y+r.height)))/2)
     expect(forwardPass(merged.graph).graph.nodes.find(n=>n.id==='loss')?.value).toEqual(forwardPass(graph).graph.nodes.find(n=>n.id==='loss')?.value)

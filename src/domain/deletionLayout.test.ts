@@ -38,7 +38,7 @@ describe('deletion layout preservation', () => {
     expect(graph).toEqual(original)
   })
 
-  it('keeps the last member in place when deleting a node dissolves its group', () => {
+  it('keeps the last member position and restores model-level scale when its group dissolves', () => {
     const first = createNode('input', 1), second = createNode('activation', 1)
     const graph: GraphModel = {
       nodes: [first, second], edges: [{ id: 'wire', source: first.id, target: second.id, inputSlot: 0 }], learningRate: .1,
@@ -47,6 +47,10 @@ describe('deletion layout preservation', () => {
     const before = geometry(graph)
     const after = remove(graph, first.id)
     expect(after.groups).toEqual([])
-    unchanged(before, geometry(after))
+    const actual = geometry(after).nodes.get(second.id)!
+    expect(actual.x).toBeCloseTo(before.nodes.get(second.id)!.x, 8)
+    expect(actual.y).toBeCloseTo(before.nodes.get(second.id)!.y, 8)
+    expect(actual.width).toBe(builderCardWidth(second))
+    expect(actual.height).toBe(builderCardHeight(second))
   })
 })

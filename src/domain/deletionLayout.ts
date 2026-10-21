@@ -1,4 +1,4 @@
-import { compactVisualHierarchy, layoutContinuousScene } from './continuousScene'
+import { captureGroupTransforms, compactVisualHierarchy, layoutContinuousScene } from './continuousScene'
 import type { GraphModel, GraphViewState } from './types'
 
 /** Save the current drawing so later edits cannot trigger an automatic reflow. */
@@ -24,6 +24,7 @@ export function preserveLayoutAfterDeletion(before: GraphModel, after: GraphMode
   const layouts: NonNullable<GraphViewState['preservedLayouts']> = {}
   const bounds: NonNullable<GraphViewState['preservedLayoutBounds']> = {}
   const remainingNodes = new Set(after.nodes.map(node => node.id))
+  const transforms = Object.fromEntries(Object.entries(captureGroupTransforms(scene)).filter(([id]) => survivingGroups.has(id)))
   for (const level of scene.levels) {
     const parentId = survivingParent(level.parentId)
     const destination = scene.levels.find(candidate => candidate.parentId === parentId)!
@@ -51,7 +52,7 @@ export function preserveLayoutAfterDeletion(before: GraphModel, after: GraphMode
     }),
     groups: after.groups?.map(group => ({ ...group, parentId: survivingParent(group.parentId) })),
     view: { ...after.view, expandedGroupIds: (after.view?.expandedGroupIds ?? []).filter(id => survivingGroups.has(id)),
-      preservedLayouts: layouts, preservedLayoutBounds: bounds, layoutOffsets: undefined, manualNodePlacements: undefined,
+      preservedLayouts: layouts, preservedLayoutBounds: bounds, preservedGroupTransforms: transforms, layoutOffsets: undefined, manualNodePlacements: undefined,
     },
   }
 }

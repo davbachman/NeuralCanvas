@@ -2,10 +2,11 @@ import { inputArityForNode, outputArityForNode } from './engine'
 import { showsTraceMetrics, builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from './builderGeometry'
 import { visualGroupInterface } from './grouping'
 import { layoutSemanticGraph, type SemanticLayout, type SemanticRect } from './semanticLayout'
-import type { GraphGroup, GraphModel, Position } from './types'
+import type { GraphGroup, GraphModel, GraphViewState, Position } from './types'
 import type { WireEndpoint } from './wireRouting'
 
 export const sceneGroupId = (id: string) => `visual-group:${id}`
+export const CONTAINMENT_SCALE = .25
 export interface SceneLevel { parentId?: string; ids: string[]; scale: number; x: number; y: number; bounds: SemanticRect }
 export interface ContinuousScene extends SemanticLayout {
   scales: Map<string, number>
@@ -87,6 +88,20 @@ export function layoutContinuousScene(graph: GraphModel): ContinuousScene {
     }
   }
   const manualPlacements = graph.view?.manualNodePlacements ?? {}
+  const groupSizes = new Map<string, { width: number; height: number }>()
+  const measure = (group: GraphGroup, seen = new Set<string>()) => {
+    if (groupSizes.has(group.id) || seen.has(group.id)) return
+    const children = groups.filter(child => child.parentId === group.id)
+    for (const child of children) measure(child, new Set([...seen, group.id]))
+    const local = layoutSemanticGraph({ ...graph, nodes: graph.nodes.filter(node => group.nodeIds.includes(node.id)),
+      groups: children, view: { expandedGroupIds: [], layoutEdges: graph.view?.layoutEdges } }, true, group, groupSizes)
+    const rects = [...local.nodes.values(), ...local.groups.values()]
+    const width = rects.length ? Math.max(...rects.map(rect => rect.x + rect.width)) - Math.min(...rects.map(rect => rect.x)) : 0
+    const height = rects.length ? Math.max(...rects.map(rect => rect.y + rect.height)) - Math.min(...rects.map(rect => rect.y)) : 0
+    groupSizes.set(group.id, { width: Math.max(238, width * CONTAINMENT_SCALE + 40),
+      height: Math.max(group.detail?.userCreated && group.kind === 'module' ? 136 : 172, height * CONTAINMENT_SCALE + 60) })
+  }
+  for (const group of groups) measure(group)
   const activeManualPlacement = (id: string) => {
     if (graph.view?.preservedLayouts?.[ownerByNode.get(id)?.id ?? '']?.[id]) return undefined
     const placement = manualPlacements[id]
@@ -107,16 +122,19 @@ export function layoutContinuousScene(graph: GraphModel): ContinuousScene {
       groups: children.map(group => ({ ...group, parentId: parent?.id })),
       view: { expandedGroupIds: [], layoutEdges: graph.view?.layoutEdges },
     }
-    const local = layoutSemanticGraph(localGraph, true, parent)
+    const local = layoutSemanticGraph(localGraph, true, parent, groupSizes)
     const preserved = graph.view?.preservedLayouts?.[parent?.id ?? '']
     if (preserved) {
       for (const [id, rect] of local.nodes) {
         const saved = preserved[id]
-        // Preserve placement and scale, but let the card grow when its ports
-        // change. Wire endpoints and the rendered card must use the same size.
-        if (saved) local.nodes.set(id, { ...saved, width: rect.width * saved.scale, height: rect.height * saved.scale })
+        // Preserve placement; containment determines scale. Port changes can
+        // grow the card, and wire endpoints must use its current dimensions.
+        if (saved) local.nodes.set(id, { ...saved, width: rect.width, height: rect.height })
       }
-      for (const [id, rect] of local.groups) local.groups.set(id, preserved[sceneGroupId(id)] ?? rect)
+      for (const [id, rect] of local.groups) {
+        const saved = preserved[sceneGroupId(id)]
+        local.groups.set(id, saved ? { ...saved, width: saved.width / saved.scale, height: saved.height / saved.scale } : rect)
+      }
     }
     const rects = [...local.nodes.values(), ...local.groups.values()]
     if (!rects.length && !manualNodes.length) return
@@ -128,10 +146,16 @@ export function layoutContinuousScene(graph: GraphModel): ContinuousScene {
     let scale = 1, x = 0, y = 0
     if (parent) {
       const frame = scene.groups.get(parent.id)!, outerScale = scene.scales.get(sceneGroupId(parent.id))!
-      const availableWidth = frame.width - 40 * outerScale, availableHeight = frame.height - 60 * outerScale
-      scale = Math.min(availableWidth / (width + 64), availableHeight / (height + 64))
-      x = frame.x + (frame.width - width * scale) / 2 - left * scale
-      y = frame.y + 40 * outerScale + (availableHeight - height * scale) / 2 - top * scale
+      const transform = graph.view?.preservedGroupTransforms?.[parent.id]
+      scale = outerScale * CONTAINMENT_SCALE
+      if (transform) {
+        x = frame.x + transform.x * outerScale
+        y = frame.y + transform.y * outerScale
+      } else {
+        const availableHeight = frame.height - 60 * outerScale
+        x = frame.x + (frame.width - width * scale) / 2 - left * scale
+        y = frame.y + 40 * outerScale + (availableHeight - height * scale) / 2 - top * scale
+      }
     }
     const ids: string[] = []
     function place(id: string, rect: SemanticRect, group: boolean) {
@@ -140,7 +164,7 @@ export function layoutContinuousScene(graph: GraphModel): ContinuousScene {
       const placed = { x: x + rect.x * scale + (offset?.x ?? 0), y: y + rect.y * scale + (offset?.y ?? 0), width: rect.width * scale, height: rect.height * scale }
       if (group) scene.groups.set(id, placed)
       else scene.nodes.set(id, placed)
-      scene.scales.set(key, scale * (preserved?.[key]?.scale ?? 1))
+      scene.scales.set(key, scale)
       scene.parents.set(key, parent?.id)
       ids.push(key)
     }
@@ -150,7 +174,7 @@ export function layoutContinuousScene(graph: GraphModel): ContinuousScene {
       const placement = activeManualPlacement(node.id)!
       const frame = placement.parentId ? scene.groups.get(placement.parentId) : undefined
       const offset = graph.view?.layoutOffsets?.[node.id]
-      const nodeScale = placement.scale ?? scale
+      const nodeScale = scale
       scene.nodes.set(node.id, {
         x: (frame?.x ?? 0) + placement.offset.x + (offset?.x ?? 0),
         y: (frame?.y ?? 0) + placement.offset.y + (offset?.y ?? 0),
@@ -165,11 +189,47 @@ export function layoutContinuousScene(graph: GraphModel): ContinuousScene {
     for (const child of children) level(child, new Set([...ancestors, ...(parent ? [parent.id] : [])]))
   }
   level()
+  growSceneContainers(scene)
   return scene
 }
 
-/** Reserve room for incoming/outgoing wires and the frame heading. React Flow
- * uses these absolute bounds to keep a dragged calculation inside its block. */
+/** Expand outwards from the contents, deepest frames first. Children keep
+ * their positions and scales; only the containment windows change. */
+function growSceneContainers(scene: ContinuousScene) {
+  for (const level of [...scene.levels].reverse()) {
+    if (!level.parentId) continue
+    const frame = scene.groups.get(level.parentId)!, scale = scene.scales.get(sceneGroupId(level.parentId))!
+    let left = frame.x, top = frame.y, right = frame.x + frame.width, bottom = frame.y + frame.height
+    for (const id of level.ids) {
+      const rect = id.startsWith('visual-group:') ? scene.groups.get(id.slice(13))! : scene.nodes.get(id)!
+      left = Math.min(left, rect.x - 16 * scale)
+      top = Math.min(top, rect.y - 40 * scale)
+      right = Math.max(right, rect.x + rect.width + 16 * scale)
+      bottom = Math.max(bottom, rect.y + rect.height + 16 * scale)
+    }
+    scene.groups.set(level.parentId, { x: left, y: top, width: right - left, height: bottom - top })
+  }
+}
+
+/** Live drag geometry uses the same containment rules as saved layouts. */
+export function sceneAtPositions(scene: ContinuousScene, positions: Map<string, Position>): ContinuousScene {
+  const current = { ...scene,
+    nodes: new Map([...scene.nodes].map(([id, rect]) => [id, { ...rect, ...positions.get(id) }])),
+    groups: new Map([...scene.groups].map(([id, rect]) => [id, { ...rect, ...positions.get(sceneGroupId(id)) }])),
+  }
+  growSceneContainers(current)
+  return current
+}
+
+export function captureGroupTransforms(scene: ContinuousScene): NonNullable<GraphViewState['preservedGroupTransforms']> {
+  return Object.fromEntries(scene.levels.flatMap(level => {
+    if (!level.parentId) return []
+    const frame = scene.groups.get(level.parentId)!, scale = scene.scales.get(sceneGroupId(level.parentId))!
+    return [[level.parentId, { x: (level.x - frame.x) / scale, y: (level.y - frame.y) / scale, scale: level.scale / scale }]]
+  }))
+}
+
+/** Reserve room for incoming/outgoing wires and the frame heading. */
 export function sceneContentBounds(scene: ContinuousScene, groupId: string): SemanticRect {
   const frame = scene.groups.get(groupId)!, scale = scene.scales.get(sceneGroupId(groupId))!
   return { x: frame.x + 16 * scale, y: frame.y + 40 * scale, width: frame.width - 32 * scale, height: frame.height - 56 * scale }
