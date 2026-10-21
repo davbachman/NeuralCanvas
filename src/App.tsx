@@ -749,7 +749,7 @@ function App({
   const tensorTraining = training.engine === 'tensor' && !!trainingDataset
   const setTraining = (changes:Partial<TrainingSettings>) => {
     cancelActiveRun()
-    setGraph(existing=>({...existing,training:{...(existing.training??DEFAULT_TRAINING),...changes}}))
+    setGraph(existing=>({...existing,training:{...(existing.training??DEFAULT_TRAINING),...changes,...(changes.engine === 'trace' ? { optimizer: 'sgd' as const } : {})}}))
   }
   const defaultBatchSize = trainingDataset && datasetMode(trainingDataset) === 'batch' ? trainingExampleCount : 1
   const batchSize = batchSizeInput === '' ? defaultBatchSize : Number(batchSizeInput)
@@ -1726,8 +1726,7 @@ function App({
           <LearningRateControl value={graph.learningRate} tensorTraining={tensorTraining} disabled={isTraining} onChange={updateLearningRate}/>
           <button type="button" className="run-full-step randomize-button" onClick={() => runCanvasAction(randomizeParameters)} disabled={isTraining}><Shuffle size={15} /> Randomize parameters</button>
           <div className="run-section-divider" />
-          {trainingDataset && <p className="eyebrow">Training settings</p>}
-          {trainingDataset && <>
+          <p className="eyebrow">Training settings</p>
             <label className="run-field">Training execution<select aria-label="Training execution" disabled={isTraining} value={training.engine} onChange={event=>setTraining({engine:event.target.value as TrainingSettings['engine']})}><option value="trace">Trace engine · SGD</option><option value="tensor">Tensor engine · minibatches</option></select></label>
             {tensorTraining && <>
               <label className="run-field">Backend<select aria-label="Training backend" disabled={isTraining} value={training.backend} onChange={event=>setTraining({backend:event.target.value as TrainingSettings['backend']})}><option value="auto">Auto · WebGL, then CPU</option><option value="webgl">WebGL</option><option value="webgpu">WebGPU (experimental)</option><option value="cpu">Tensor CPU</option></select></label>
@@ -1738,7 +1737,6 @@ function App({
               <label className="run-field">Minimum validation improvement<input aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>
               <p className="run-intro">Tensor runs use padded batches and report at the selected interval. Early stopping checks validation every epoch. Early stopping uses the held-out split as validation and restores its best checkpoint. Adam moments start fresh for each run.</p>
             </>}
-          </>}
           <details className="training-walkthrough">
             <summary>Step through a lesson</summary>
             <p className="run-intro">Inspect forward computation, gradients, and a single SGD update on the canvas example.</p>
@@ -1795,7 +1793,7 @@ function App({
           setPaletteOpen(false)
         }}
         showMath={SHOW_MATH_LAYER}
-        showGradient={SHOW_GRADIENT_LAYER}
+        showGradient={training.engine === 'trace'}
         phase={phase}
         pendingNodeType={pendingNodeType}
         onGraphChange={applyGraphChange}

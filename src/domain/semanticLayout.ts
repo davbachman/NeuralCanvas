@@ -1,6 +1,6 @@
 import type { GraphGroup, GraphModel, GraphNode } from './types'
 import { inputArityForNode, isFlexibleInputNodeType, MAX_FLEX_INPUT_COUNT } from './engine'
-import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from './builderGeometry'
+import { showsTraceMetrics, builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from './builderGeometry'
 
 export interface SemanticRect { x: number; y: number; width: number; height: number }
 export interface SemanticLayout {
@@ -52,7 +52,7 @@ export function layoutSemanticGraph(graph: GraphModel, nestedCards = false, root
       return { id: group.id, group, memberIds: group.nodeIds, nested, width, height, x: 0, y: 0 }
     })
     items.push(...ownNodes.map((node) => {
-      return { id: node.id, node, memberIds: [node.id], width: builderCardWidth(node), height: builderCardHeight(node), x: 0, y: 0 }
+      return { id: node.id, node, memberIds: [node.id], width: builderCardWidth(node), height: builderCardHeight(node, showsTraceMetrics(graph)), x: 0, y: 0 }
     }))
     const owner = new Map(items.flatMap((item) => item.memberIds.map((id) => [id, item.id] as const)))
     const incoming = new Map(items.map((item) => [item.id, new Set<string>()]))

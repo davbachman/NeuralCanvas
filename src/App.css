@@ -600,6 +600,11 @@
   font: 11px var(--font-mono);
 }
 
+.node-trace-metrics { position: absolute; left: 10px; right: 10px; display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--border); color: var(--muted-strong); font-size: 10px; }
+.node-trace-metrics > div { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.node-trace-metrics span { flex: none; }
+.node-trace-metrics code { min-width: 0; margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font: 11px var(--font-mono); }
+
 .node-tensor-shape {
   color: var(--muted);
   font-size: 10px;

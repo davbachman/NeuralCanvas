@@ -16,6 +16,7 @@ export interface GroupNodeData extends Record<string, unknown> {
   outputCount: number
   outputMetrics: GroupOutputMetric[]
   showGradient: boolean
+  showTraceMetrics?: boolean
   active: boolean
   validationError?: boolean
   expanded: boolean
@@ -96,9 +97,9 @@ export function GroupNode(props: NodeProps): ReactElement {
       </div>
       {data.semantic && (!data.expanded || kind === 'layer' && data.onInspectNeuron && data.unitCount) ? <GroupPreview data={data} /> : null}
       {!data.expanded && data.codeLine ? <code className="group-code-line" title={data.codeLine}>{data.codeLine}</code> : null}
-      <div className="node-metrics" hidden={data.expanded}>
+      {!data.expanded && data.showTraceMetrics !== false && <div className="node-metrics">
         <GroupMetrics outputs={data.outputMetrics} showGradient={data.showGradient} />
-      </div>
+      </div>}
       {Array.from({ length: data.expanded ? 0 : data.outputCount }).map((_, index) => (
         <Handle
           key={`out-${index}`}

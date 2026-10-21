@@ -1,4 +1,4 @@
-import { builderCardHeight, builderCardWidth } from './builderGeometry'
+import { showsTraceMetrics, builderCardHeight, builderCardWidth } from './builderGeometry'
 import { compactVisualHierarchy, layoutContinuousScene, sceneGroupId } from './continuousScene'
 import { explodeVisualGroup, mergeNodesIntoVisualGroup } from './grouping'
 import type { GraphModel, GraphViewState } from './types'
@@ -22,7 +22,7 @@ export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], disp
     }
   } else {
     layouts[''] = Object.fromEntries(displayGraph.nodes.map(node => [node.id, {
-      ...node.position, width: builderCardWidth(node), height: builderCardHeight(node), scale: 1,
+      ...node.position, width: builderCardWidth(node), height: builderCardHeight(node, showsTraceMetrics(displayGraph)), scale: 1,
     }]))
   }
   const bounds = Object.fromEntries(Object.entries(layouts).flatMap(([key, entries]) => {

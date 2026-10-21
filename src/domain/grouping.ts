@@ -1,5 +1,5 @@
 import { denseGroupDetail } from './authoring'
-import { builderCardHeight, builderCardWidth } from './builderGeometry'
+import { showsTraceMetrics, builderCardHeight, builderCardWidth } from './builderGeometry'
 import { connectGraphNodes, type GraphConnection } from './graphEditing'
 import { layoutConnections } from './layoutState'
 import {
@@ -58,7 +58,7 @@ export function mergeNodesIntoVisualGroup(graph: GraphModel, nodeIds: string[]):
     kind: 'module',
     ...(parent ? { parentId: parent.id } : {}),
     nodeIds: ids,
-    position: collapsedPositionForNodes(nodes),
+    position: collapsedPositionForNodes(nodes, showsTraceMetrics(graph)),
     dimensions: { width: NODE_WIDTH, height: MIN_NODE_HEIGHT },
   }
   group.detail = { ...denseGroupDetail(graph, group), userCreated: true }
@@ -124,7 +124,7 @@ export function collapsedGroupForNode(graph: GraphModel, nodeId: string): GraphG
 }
 
 export function expandedGroupRect(graph: GraphModel, group: GraphGroup): NodeRect {
-  const members = graph.nodes.filter((node) => group.nodeIds.includes(node.id)).map(nodeRect)
+  const members = graph.nodes.filter((node) => group.nodeIds.includes(node.id)).map(node => nodeRect(node, showsTraceMetrics(graph)))
   const minX = Math.min(...members.map((rect) => rect.x)) - 28
   const minY = Math.min(...members.map((rect) => rect.y)) - 64
   return { x: minX, y: minY, width: Math.max(...members.map((rect) => rect.x + rect.width)) - minX + 28,
@@ -369,8 +369,8 @@ function exposedOutputHandles(graph: GraphModel, group: GraphGroup): ExposedOutp
   })
 }
 
-function collapsedPositionForNodes(nodes: GraphNode[]): Position {
-  const rects = nodes.map(nodeRect)
+function collapsedPositionForNodes(nodes: GraphNode[], traceMetrics = false): Position {
+  const rects = nodes.map(node => nodeRect(node, traceMetrics))
   const minX = Math.min(...rects.map((rect) => rect.x))
   const minY = Math.min(...rects.map((rect) => rect.y))
   const maxX = Math.max(...rects.map((rect) => rect.x + rect.width))
@@ -382,12 +382,12 @@ function collapsedPositionForNodes(nodes: GraphNode[]): Position {
   }
 }
 
-function nodeRect(node: GraphNode): NodeRect {
+function nodeRect(node: GraphNode, traceMetrics = false): NodeRect {
   return {
     x: node.position.x,
     y: node.position.y,
     width: builderCardWidth(node),
-    height: builderCardHeight(node),
+    height: builderCardHeight(node, traceMetrics),
   }
 }
 

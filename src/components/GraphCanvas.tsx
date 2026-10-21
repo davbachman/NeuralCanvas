@@ -49,7 +49,7 @@ import {
   visualGroupInterface,
   moveVisualGroup,
 } from '../domain/grouping'
-import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
+import { showsTraceMetrics, builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
 import { blockSuggestions } from '../domain/blockPalette'
 import { appendArithmeticInput } from '../domain/arithmetic'
 import { codeForGroup } from '../domain/codeOutline'
@@ -169,16 +169,18 @@ function GraphCanvasInner({
   onInspectEdge,
 }: GraphCanvasProps): ReactElement {
   const { screenToFlowPosition, fitView, setViewport, getViewport } = useReactFlow()
+  const traceMetrics = showsTraceMetrics(graph)
   const sourceGraph = useModelGraph(displayGraph ?? graph)
   const continuous = Boolean(sourceGraph.groups?.length || sourceGraph.view?.preservedLayouts)
   const semantic = continuous
   const renderedGraph = useMemo(() => continuous ? compactVisualHierarchy(sourceGraph) : sourceGraph, [sourceGraph, continuous])
   const geometryKey = useMemo(() => JSON.stringify({
+    training: { engine: traceMetrics ? 'trace' : 'tensor' },
     nodes: renderedGraph.nodes.map(({ id, type, label, position, dimensions, params }) => ({ id, type, label, position, dimensions, params: { inputCount: params.inputCount, expression: params.expression, dataset: params.dataset, textData: params.textData ? { representation: params.textData.representation, task: params.textData.task } : undefined, customCsv: params.customCsv ? csvGeometrySample(params.customCsv) : undefined } })),
     edges: renderedGraph.edges.map(({ id, source, target, inputSlot, sourceSlot }) => ({ id, source, target, inputSlot, sourceSlot })),
     groups: renderedGraph.groups,
     view: { expandedGroupIds: [], preservedLayouts: renderedGraph.view?.preservedLayouts, preservedLayoutBounds: renderedGraph.view?.preservedLayoutBounds, layoutOffsets: renderedGraph.view?.layoutOffsets, layoutEdges: renderedGraph.view?.layoutEdges, manualNodePlacements: renderedGraph.view?.manualNodePlacements },
-  }), [renderedGraph])
+  }), [renderedGraph, traceMetrics])
   const geometryGraph = useMemo(() => JSON.parse(geometryKey) as GraphModel, [geometryKey])
   const scene = useMemo(() => continuous ? layoutContinuousScene(geometryGraph) : undefined, [geometryGraph, continuous])
   const layout = useMemo(() => scene ?? (semantic ? layoutSemanticGraph(renderedGraph) : undefined), [renderedGraph, semantic, scene])
@@ -229,11 +231,11 @@ function GraphCanvasInner({
     const rect = scene?.nodes.get(focusRequest.id) ?? layout?.nodes.get(focusRequest.id) ?? (node ? {
       ...node.position,
       width: builderCardWidth(node),
-      height: builderCardHeight(node),
+      height: builderCardHeight(node, traceMetrics),
     } : undefined)
     if (!rect) return
     void setViewport(getViewportForBounds(rect, canvasSize.width, canvasSize.height, .01, maxZoom, .32), { duration: 650, ease: focusEase })
-  }, [focusRequest, scene, layout, renderedGraph.nodes, zoomToGroup, fitView, setViewport, canvasSize, maxZoom])
+  }, [focusRequest, scene, layout, renderedGraph.nodes, zoomToGroup, fitView, setViewport, canvasSize, maxZoom, traceMetrics])
   useEffect(() => { if (addMenu) addSearch.current?.focus() }, [addMenu])
   useEffect(() => {
     if (!shell.current || typeof ResizeObserver === 'undefined') return
@@ -429,6 +431,7 @@ function GraphCanvasInner({
               return { forward: edge?.value ?? source?.value, gradient: edge?.grad ?? source?.grad }
             }),
             showGradient,
+            showTraceMetrics: traceMetrics,
             active: group.nodeIds.includes(activeStep?.nodeId ?? ''),
             validationError: group.nodeIds.some(id => problemNodeIds.has(id)),
             onToggle: toggleAction,
@@ -444,7 +447,7 @@ function GraphCanvasInner({
           position: layout?.nodes.get(node.id) ?? node.position,
           draggable: true,
           width: layout?.nodes.get(node.id)?.width ?? builderCardWidth(node),
-          height: layout?.nodes.get(node.id)?.height ?? builderCardHeight(node),
+          height: layout?.nodes.get(node.id)?.height ?? builderCardHeight(node, traceMetrics),
           selected: selectedNodeIdSet.has(node.id),
           data: {
             graphNode: node,
@@ -456,6 +459,7 @@ function GraphCanvasInner({
             compactStage: false,
             showMath,
             showGradient,
+            showTraceMetrics: traceMetrics,
             formula: '',
             fullFormula: '',
             arithmeticInputLabels: node.type === 'arithmetic' ? arithmeticInputLabels(node, renderedGraph) : undefined,
@@ -477,6 +481,7 @@ function GraphCanvasInner({
       return [...groupNodes, ...builderNodes]
     },
     [
+      traceMetrics,
       activeStep?.nodeId,
       activationAction,
       expressionAction,
@@ -623,7 +628,7 @@ function GraphCanvasInner({
       x: vertical ? rect.width * (index + 1) / ((source ? outputs : inputs) + 1) : source ? rect.width : 0,
       y: vertical ? source ? rect.height : 0 : groupData
         ? rect.height * (index + 1) / ((source ? outputs : inputs) + 1)
-        : rect.height * (source ? builderOutputPortY(operation!, index) : builderInputPortY(operation!, index)) / builderCardHeight(operation!),
+        : rect.height * (source ? builderOutputPortY(operation!, index) : builderInputPortY(operation!, index)) / builderCardHeight(operation!, traceMetrics),
       width: 0, height: 0,
     })))
     const selectable = available && (!groupId || reveal < .95)
@@ -636,7 +641,7 @@ function GraphCanvasInner({
       ariaLabel: groupId ? (node.data as GroupNodeData).group.label : (node.data as BuilderNodeData).graphNode.label,
       data: { ...node.data, reveal, accessible: available, cameraZoom, frameHeaderVisible: groupId ? Math.max(0, (reveal - .95) / .05) * (1 - Math.max(0, Math.min(1, Math.max(node.width! * cameraZoom / canvasSize.width, node.height! * cameraZoom / canvasSize.height) - 1.1))) : 0 },
     }
-  }) : nodes, [scene, nodes, reveals, accessible, cameraZoom, canvasSize])
+  }) : nodes, [scene, nodes, reveals, accessible, cameraZoom, canvasSize, traceMetrics])
   const flatEdges = useMemo(() => routedEdges.filter(edge => visibleEdgeIds.has(edge.id)), [routedEdges, visibleEdgeIds])
   const presentedEdges = useMemo(() => scene ? routedEdges.map(edge => ({ ...edge, focusable: accessible(edge.data?.parentId as string | undefined),
     data: { ...edge.data!, cameraZoom, accessible: accessible(edge.data?.parentId as string | undefined) },

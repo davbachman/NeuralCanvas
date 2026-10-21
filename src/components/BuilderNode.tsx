@@ -7,13 +7,14 @@ import { LOSS_OPTIONS, TENSOR_TRANSFORM_OPTIONS, lossKindForNode, inputArityForN
 import { DATASET_MENU_OPTIONS, datasetTargetSlotForNode } from '../domain/datasets'
 import { inputConnectionLabels, outputConnectionLabel } from '../domain/connectionLabels'
 import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
-import { formatShape } from '../domain/tensor'
+import { formatCompactTensor, formatShape } from '../domain/tensor'
 import type { DatasetKind, GraphNode, LossKind, TensorTransformKind, TensorValue } from '../domain/types'
 
 export interface BuilderNodeData extends Record<string, unknown> {
   graphNode: GraphNode
   showMath: boolean
   showGradient: boolean
+  showTraceMetrics?: boolean
   formula: string
   fullFormula: string
   arithmeticInputLabels?: string[]
@@ -34,7 +35,7 @@ export interface BuilderNodeData extends Record<string, unknown> {
   onDatasetChange: (nodeId: string, value: DatasetKind) => void
 }
 
-/** Compact cards show identity, operation choice, and wiring. Tensor inspection lives in the sidebar. */
+/** Trace cards add bounded value previews; complete tensors live in the sidebar. */
 export function BuilderNode(props: NodeProps): ReactElement {
   const data = props.data as BuilderNodeData
   const node = data.graphNode
@@ -44,7 +45,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
   const inputLabels = inputConnectionLabels(node, lossKind)
   const canAddInput = !data.coordinate && (isFlexibleInputNodeType(node.type) || node.type === 'arithmetic') && inputCount < MAX_FLEX_INPUT_COUNT
   const accessible = data.accessible !== false
-  const width = builderCardWidth(node), height = builderCardHeight(node)
+  const width = builderCardWidth(node), height = builderCardHeight(node, data.showTraceMetrics)
   const parameterShape = node.type === 'weight' || node.type === 'bias'
     ? (typeof node.params.value === 'object' ? node.params.value.shape : []) : undefined
   const shapeDescription = parameterShape ? `${formatShape(parameterShape)}${parameterShape.length === 0 ? ' (scalar)' : ''}` : undefined
@@ -90,5 +91,11 @@ export function BuilderNode(props: NodeProps): ReactElement {
     <div className="node-output-labels" aria-hidden="true" style={node.type === 'dataset' ? { width: width - 28 } : undefined}>
       {Array.from({ length: outputCount }, (_, index) => <span key={index} style={{ top: builderOutputPortY(node, index) }} title={outputConnectionLabel(node, index, data.outputVariable)}>{outputConnectionLabel(node, index, data.outputVariable)}</span>)}
     </div>
+    {data.showTraceMetrics && <div className="node-trace-metrics" style={{ top: builderCardHeight(node) }}>
+      {([['Output', node.value], ['Gradient', node.grad]] as const).map(([label, value]) => {
+        const preview = `${value?.shape.length ? `${formatShape(value.shape)} ` : ''}${formatCompactTensor(value)}`
+        return <div key={label}><span>{label}</span><code title={preview} aria-label={`${label} preview`}>{preview}</code></div>
+      })}
+    </div>}
   </div>
 }

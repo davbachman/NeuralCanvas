@@ -1,5 +1,5 @@
 import { inputArityForNode, outputArityForNode } from './engine'
-import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from './builderGeometry'
+import { showsTraceMetrics, builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from './builderGeometry'
 import { visualGroupInterface } from './grouping'
 import { layoutSemanticGraph, type SemanticLayout, type SemanticRect } from './semanticLayout'
 import type { GraphGroup, GraphModel, Position } from './types'
@@ -155,7 +155,7 @@ export function layoutContinuousScene(graph: GraphModel): ContinuousScene {
         x: (frame?.x ?? 0) + placement.offset.x + (offset?.x ?? 0),
         y: (frame?.y ?? 0) + placement.offset.y + (offset?.y ?? 0),
         width: builderCardWidth(node) * nodeScale,
-        height: builderCardHeight(node) * nodeScale,
+        height: builderCardHeight(node, showsTraceMetrics(graph)) * nodeScale,
       })
       scene.scales.set(node.id, nodeScale)
       scene.parents.set(node.id, parent?.id)
@@ -201,7 +201,7 @@ export function routeContinuousScene(graph: GraphModel, scene: ContinuousScene, 
     const count = ports?.length ?? (output ? outputArityForNode(nodes.get(id)!) : Math.max(inputArityForNode(nodes.get(id)!), ...graph.edges.filter(item => item.target === id).map(item => (item.inputSlot ?? 0) + 1)))
     const node = nodes.get(id)
     const fraction = node
-      ? (output ? builderOutputPortY(node, Math.max(0, index)) : builderInputPortY(node, Math.max(0, index))) / builderCardHeight(node)
+      ? (output ? builderOutputPortY(node, Math.max(0, index)) : builderInputPortY(node, Math.max(0, index))) / builderCardHeight(node, showsTraceMetrics(graph))
       : (Math.max(0, index) + 1) / (Math.max(1, count) + 1)
     return { x: rect.x + (output ? rect.width : 0), y: rect.y + rect.height * fraction, side: output ? 'right' : 'left' }
   }

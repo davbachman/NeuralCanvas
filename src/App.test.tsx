@@ -12,6 +12,7 @@ import { DATASET_MENU_OPTIONS } from './domain/datasets'
 import { createNode, createStarterGraph } from './domain/examples'
 import { createModelPreset } from './domain/modelPresets'
 import { createProjectStateFile } from './domain/session'
+import { DEFAULT_TRAINING } from './domain/trainingSettings'
 import { scratchModel } from './test/scratchModels'
 import { scalarValue, tensorValue } from './domain/tensor'
 import './index.css'
@@ -1410,9 +1411,10 @@ describe('Neural Canvas app', () => {
     expect(container.querySelector('.react-flow__edge[data-id="mul-add"]')).not.toBeInTheDocument()
   })
 
-  it('shows output and gradient metrics for merged visual group boundary outputs', () => {
+  it.each(['trace', 'tensor'] as const)('shows merged group boundary metrics only in Trace mode (%s)', engine => {
     const graph: GraphModel = {
       learningRate: 0.1,
+      training: { ...DEFAULT_TRAINING, engine },
       groups: [
         {
           id: 'group-1',
@@ -1462,8 +1464,8 @@ describe('Neural Canvas app', () => {
       />,
     )
 
-    expect(screen.getAllByText('out 0.700').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('grad -0.200').length).toBeGreaterThan(0)
+    expect(screen.queryAllByText('out 0.700').length > 0).toBe(engine === 'trace')
+    expect(screen.queryAllByText('grad -0.200').length > 0).toBe(engine === 'trace')
   })
 
   it('does not repeat a node type when the node title already says it', async () => {

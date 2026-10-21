@@ -1,5 +1,5 @@
 import { compactVisualHierarchy, layoutContinuousScene, sceneContentBounds } from './continuousScene'
-import { builderCardHeight, builderCardWidth } from './builderGeometry'
+import { showsTraceMetrics, builderCardHeight, builderCardWidth } from './builderGeometry'
 import type { GraphModel, GraphNode } from './types'
 
 /** Place a new calculation in the clicked visual level. Existing blocks keep
@@ -17,7 +17,7 @@ export function placeCanvasNode(graph: GraphModel, node: GraphNode, displayGraph
     const scale = scene.levels.find(level => level.parentId === parentGroupId)?.scale ?? 1
     const position = {
       x: Math.max(bounds.x, Math.min(node.position.x, bounds.x + bounds.width - builderCardWidth(node) * scale)),
-      y: Math.max(bounds.y, Math.min(node.position.y, bounds.y + bounds.height - builderCardHeight(node) * scale)),
+      y: Math.max(bounds.y, Math.min(node.position.y, bounds.y + bounds.height - builderCardHeight(node, showsTraceMetrics(graph)) * scale)),
     }
     const ancestors = new Set<string>()
     let current = graph.groups.find(group => group.id === parentGroupId)

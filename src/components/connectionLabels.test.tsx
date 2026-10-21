@@ -9,10 +9,25 @@ import { builderCardHeight, builderInputPortY, builderOutputPortY } from '../dom
 import type { GraphNode, NodeType } from '../domain/types'
 
 afterEach(cleanup)
-function card(node: GraphNode) {
-  const data = { graphNode: node, outputVariable: computedOutputLabels({ nodes: [node], edges: [], learningRate: .1 }).get(node.id), showMath: true, showGradient: true, formula: 'formula', fullFormula: 'formula', active: false, hasIncomingValue: false } as BuilderNodeData
+function card(node: GraphNode, showTraceMetrics = false) {
+  const data = { graphNode: node, showTraceMetrics, outputVariable: computedOutputLabels({ nodes: [node], edges: [], learningRate: .1 }).get(node.id), showMath: true, showGradient: true, formula: 'formula', fullFormula: 'formula', active: false, hasIncomingValue: false } as BuilderNodeData
   return render(<ReactFlowProvider><BuilderNode {...{ id: node.id, data, selected: false } as unknown as NodeProps}/></ReactFlowProvider>)
 }
+it('shows bounded Trace previews below all ports without reading whole tensors', () => {
+  const node = createNode('arithmetic', 1)
+  const values = [1, 2, 3, 4]
+  Object.defineProperty(values, 1, { get: () => { throw new Error('Read beyond the compact preview') } })
+  node.value = { shape: [2, 2], data: values }
+  node.grad = { shape: [2, 2], data: [0.5, 0.5, 0.5, 0.5] }
+  const { container, getByLabelText } = card(node, true)
+  expect(getByLabelText('Output preview')).toHaveTextContent('[2, 2] [1.000,...]')
+  expect(getByLabelText('Gradient preview')).toHaveTextContent('[2, 2] [0.500,...]')
+  expect(container.querySelector<HTMLElement>('.builder-node')!.style.height).toBe(`${builderCardHeight(node, true)}px`)
+  expect(container.querySelector<HTMLElement>('.node-trace-metrics')!.style.top).toBe(`${builderCardHeight(node)}px`)
+  for (const port of container.querySelectorAll<HTMLElement>('.node-handle, .node-add-input-button')) {
+    expect(parseFloat(port.style.top)).toBeLessThan(builderCardHeight(node))
+  }
+})
 it.each(Object.keys(inputArityByType) as NodeType[])('keeps %s sockets accessible, shows input roles and output variables', type => {
   const node = createNode(type, 1), view = card(node)
   const inputs = view.container.querySelectorAll('.react-flow__handle.target')

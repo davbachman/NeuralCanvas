@@ -344,3 +344,22 @@ describe('one continuous nested scene', () => {
     expect((weight.y - input.y) / scale).toBeGreaterThan(input.height / scale / 2)
   })
 })
+
+it('keeps nested Trace cards and their wire endpoints aligned across engine changes', () => {
+  const a = createNode('input', 1), b = createNode('activation', 1)
+  const original: GraphModel = { learningRate: .1, nodes: [a, b], edges: [{ id: 'ab', source: a.id, target: b.id, inputSlot: 0 }] }
+  const grouped = mergePreservingLayout(original, [a.id, b.id]).graph
+  for (const engine of ['tensor', 'trace', 'tensor'] as const) {
+    const graph: GraphModel = { ...grouped, training: { engine, backend: 'auto', optimizer: 'sgd', weightDecay: 0, clipNorm: 0, patience: 0, minDelta: 0 } }
+    const scene = layoutContinuousScene(graph)
+    const wire = routeContinuousScene(graph, scene).find(wire => wire.edgeId === 'ab' && wire.parentId === graph.groups![0].id)!
+    for (const node of graph.nodes) {
+      const rect = scene.nodes.get(node.id)!, scale = scene.scales.get(node.id)!
+      expect(rect.height).toBeCloseTo(builderCardHeight(node, engine === 'trace') * scale)
+      const frame = scene.groups.get(graph.groups![0].id)!
+      expect(rect.y + rect.height).toBeLessThan(frame.y + frame.height)
+    }
+    expect(wire.route[0].y).toBeCloseTo(scene.nodes.get(a.id)!.y + builderOutputPortY(a, 0) * scene.scales.get(a.id)!)
+    expect(wire.route.at(-1)!.y).toBeCloseTo(scene.nodes.get(b.id)!.y + builderInputPortY(b, 0) * scene.scales.get(b.id)!)
+  }
+})
