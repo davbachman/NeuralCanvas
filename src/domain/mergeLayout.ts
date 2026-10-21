@@ -1,6 +1,7 @@
 import { showsTraceMetrics, builderCardHeight, builderCardWidth } from './builderGeometry'
 import { compactVisualHierarchy, layoutContinuousScene, sceneGroupId } from './continuousScene'
 import { explodeVisualGroup, mergeNodesIntoVisualGroup } from './grouping'
+import { captureCanvasLayout } from './deletionLayout'
 import type { GraphModel, GraphViewState } from './types'
 
 /** Capture what the user sees before changing ownership. A merge only scales
@@ -9,7 +10,7 @@ export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], disp
   const merged = mergeNodesIntoVisualGroup(graph, nodeIds)
   if (!merged.group) return merged
   const layouts: NonNullable<GraphViewState['preservedLayouts']> = {}
-  if (displayGraph.groups?.length) {
+  if (displayGraph.groups?.length || displayGraph.view?.preservedLayouts) {
     const scene = layoutContinuousScene(compactVisualHierarchy(displayGraph))
     for (const level of scene.levels) {
       const entries: typeof layouts[string] = {}
@@ -51,28 +52,37 @@ export function mergePreservingLayout(graph: GraphModel, nodeIds: string[], disp
   level[sceneGroupId(group.id)] = { x: left + (width - 238 * scale) / 2, y: top + (height - 136 * scale) / 2,
     width: 238 * scale, height: 136 * scale, scale }
   layouts[group.id] = content
+  bounds[group.id] = { x: left, y: top, width, height }
   return { ...merged, graph: { ...merged.graph, view: { ...merged.graph.view!, preservedLayouts: layouts, preservedLayoutBounds: bounds,
     layoutOffsets: undefined, manualNodePlacements: undefined } } }
 }
 
-/** Keep the visible contents in place when removing a preserved container. */
+/** Undo the container's display compression. Keep edits in its local layout,
+ * and expand around its current center so moving the group is preserved. */
 export function ungroupPreservingLayout(graph: GraphModel, groupId: string) {
   const group = graph.groups?.find(candidate => candidate.id === groupId)
   if (!group || !graph.view?.preservedLayouts?.[groupId]) return explodeVisualGroup(graph, groupId)
-  const scene = layoutContinuousScene(graph)
+  const scene = layoutContinuousScene(compactVisualHierarchy(graph))
   const parent = scene.levels.find(level => level.parentId === group.parentId)
   const contents = scene.levels.find(level => level.parentId === groupId)
   if (!parent || !contents) return explodeVisualGroup(graph, groupId)
-  const layouts = structuredClone(graph.view.preservedLayouts)
+  const saved = captureCanvasLayout(graph)
+  const layouts = saved.preservedLayouts!
+  const bounds = { ...saved.preservedLayoutBounds }
+  const frame = scene.groups.get(groupId)!
+  const offset = {
+    x: (frame.x + frame.width / 2 - parent.x) / parent.scale - (contents.bounds.x + contents.bounds.width / 2),
+    y: (frame.y + frame.height / 2 - parent.y) / parent.scale - (contents.bounds.y + contents.bounds.height / 2),
+  }
   const entries = layouts[group.parentId ?? ''] ?? {}
   delete entries[sceneGroupId(groupId)]
   for (const id of contents.ids) {
-    const rect = id.startsWith('visual-group:') ? scene.groups.get(id.slice(13))! : scene.nodes.get(id)!
-    entries[id] = { x: (rect.x - parent.x) / parent.scale, y: (rect.y - parent.y) / parent.scale,
-      width: rect.width / parent.scale, height: rect.height / parent.scale, scale: scene.scales.get(id)! / parent.scale }
+    const rect = layouts[groupId][id]
+    entries[id] = { ...rect, x: rect.x + offset.x, y: rect.y + offset.y }
   }
   layouts[group.parentId ?? ''] = entries
   delete layouts[groupId]
-  const result = explodeVisualGroup(graph, groupId)
-  return { ...result, view: { ...result.view!, preservedLayouts: layouts } }
+  delete bounds[groupId]
+  const result = explodeVisualGroup({ ...graph, view: saved }, groupId)
+  return { ...result, view: { ...result.view!, preservedLayouts: layouts, preservedLayoutBounds: bounds } }
 }

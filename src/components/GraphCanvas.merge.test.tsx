@@ -7,6 +7,8 @@ import { createStarterGraph } from '../domain/examples'
 import { parseCustomCsv } from '../domain/customCsv'
 import { forwardPass } from '../domain/engine'
 import { mergePreservingLayout as mergeNodesIntoVisualGroup, ungroupPreservingLayout as explodeVisualGroup } from '../domain/mergeLayout'
+import { layoutContinuousScene } from '../domain/continuousScene'
+import { builderCardWidth, builderCardHeight } from '../domain/builderGeometry'
 
 it.each([false, true])('merges and ungroups CSV models with explicit splits (dataset selected: %s)', async (includeDataset) => {
   const user = userEvent.setup()
@@ -37,6 +39,17 @@ it.each([false, true])('merges and ungroups CSV models with explicit splits (dat
   await user.click(screen.getByRole('button', { name: /Ungroup module/i }))
   expect(container.querySelector('[data-id="visual-group:group-1"]')).not.toBeInTheDocument()
   expect(container.querySelector('[data-id="mul"]')).toBeInTheDocument()
+  for (let cycle = 0; cycle < 3; cycle++) {
+    await user.click(screen.getByRole('button', { name: /Merge selection/i }))
+    await user.click(screen.getByRole('button', { name: /Ungroup module/i }))
+    const scene = layoutContinuousScene(current)
+    for (const id of ids) {
+      const node = initial.nodes.find(node => node.id === id)!
+      expect(scene.nodes.get(id)!.width).toBeCloseTo(builderCardWidth(node), 8)
+      expect(scene.nodes.get(id)!.height).toBeCloseTo(builderCardHeight(node), 8)
+    }
+    expect(forwardPass(current).loss).toEqual(forwardPass(initial).loss)
+  }
   expect(JSON.stringify(initial)).toBe(original)
 })
 
