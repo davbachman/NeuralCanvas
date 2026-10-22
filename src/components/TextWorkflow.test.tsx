@@ -5,6 +5,7 @@ import { TextGenerationControls } from './TextGenerationControls'
 import { TextDatasetPanel } from './TextDatasetPanel'
 import { prepareTextDocuments } from '../domain/textData'
 import { buildTextModel } from '../test/textModels'
+import { storyQuestionData } from '../test/storyQuestionModel'
 
 const csv = 'text,label,split\n"good, fun",positive,train\nvery bad,negative,train\ngood,positive,test\n'
 function selectFile(text: string, name: string) {
@@ -36,6 +37,23 @@ describe('text workflow controls', () => {
     render(<TextImportDialog onImport={onImport} onCancel={vi.fn()}/>)
     selectFile(JSON.stringify(data), 'prepared.json')
     await waitFor(() => expect(onImport).toHaveBeenCalledWith(data))
+  })
+  it('automatically imports prepared story-question JSON with separate lengths and a frozen vocabulary', async () => {
+    const onImport = vi.fn(), data = storyQuestionData(32, 8)
+    render(<TextImportDialog onImport={onImport} onCancel={vi.fn()}/>)
+    // The form retains sentiment/counts defaults; the file alone selects the format.
+    selectFile(JSON.stringify(data), 'story-question.JSON')
+    await waitFor(() => expect(onImport).toHaveBeenCalledWith(data))
+    expect(screen.getByLabelText('Text task')).toHaveValue('sentiment')
+    expect(screen.getByLabelText('Text representation')).toHaveValue('counts')
+  })
+  it('rejects overlong prepared questions rather than truncating or changing import settings', async () => {
+    const onImport = vi.fn(), data = storyQuestionData(32, 8)
+    data.documents[2] = {...data.documents[2], question: 'where '.repeat(9)}
+    render(<TextImportDialog onImport={onImport} onCancel={vi.fn()}/>)
+    selectFile(JSON.stringify(data), 'invalid-story-question.json')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Invalid prepared text dataset')
+    expect(onImport).not.toHaveBeenCalled()
   })
   it('shows an actionable invalid-file error', async () => {
     const onImport = vi.fn()

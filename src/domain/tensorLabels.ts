@@ -11,6 +11,11 @@ export function tensorAxisLabels(graph: GraphModel, id: string, slot = 0, visite
   const labels = (index: number) => edges[index] ? tensorAxisLabels(graph, edges[index].source, edges[index].sourceSlot ?? 0, seen) : []
   if (node.type === 'dataset' && node.params.textData) {
     const data = node.params.textData
+    if (data.representation === 'story-question' && slot < 4) {
+      const tokenSlot = slot % 2
+      const tokens = datasetOutputValueForSlot(node, tokenSlot).data.map((token, position) => position + ': ' + JSON.stringify(data.vocabulary[token]))
+      return slot < 2 ? [tokens] : [tokens, undefined]
+    }
     if (slot === 0 && data.representation === 'counts') return [undefined, data.vocabulary]
     if (slot < 2 && data.representation === 'tokens') return [datasetOutputValueForSlot(node, 0).data.map((token, position) => position + ': ' + JSON.stringify(data.vocabulary[token]))]
     return []
@@ -21,7 +26,11 @@ export function tensorAxisLabels(graph: GraphModel, id: string, slot = 0, visite
       if (consumer?.type === 'embedding' && (use.inputSlot ?? 0) === 0) {
         const ids = graph.edges.find(edge => edge.target === consumer.id && edge.inputSlot === 1)
         const source = graph.nodes.find(node => node.id === ids?.source)
-        if (source?.params.textData) return [(ids?.sourceSlot ?? 0) === 0 ? source.params.textData.vocabulary : Array.from({length: source.params.textData.maxLength}, (_, i) => 'position ' + i)]
+        if (source?.params.textData) {
+          const data = source.params.textData, slot = ids?.sourceSlot ?? 0
+          const tokenInput = slot === 0 || slot === 1 && ['facts', 'story-question'].includes(data.representation)
+          return [tokenInput ? data.vocabulary : Array.from({length: data.maxLength}, (_, i) => 'position ' + i)]
+        }
       }
       if (consumer?.type === 'matmul' && use.inputSlot === 1) {
         const input = graph.edges.find(edge => edge.target === consumer.id && (edge.inputSlot ?? 0) === 0)

@@ -88,18 +88,18 @@ it('keeps all variable inputs and the add button inside the reserved connection 
   expect(builderInputPortY(node, 12)).toBeLessThan(builderCardHeight(node))
 })
 
-it.each(['tokens', 'counts', 'facts'] as const)('shows only labeled ports beneath the title for %s datasets', async representation => {
+it.each(['tokens', 'counts', 'facts', 'story-question'] as const)('shows only labeled ports beneath the title for %s datasets', async representation => {
   const { prepareTextDocuments } = await import('../domain/textData')
   const { builderCardWidth } = await import('../domain/builderGeometry')
   const textData = prepareTextDocuments([
     { text: 'Mary went home', facts: ['Mary home'], question: 'where Mary', label: 'positive', split: 'train' },
     { text: 'John went away', facts: ['John away'], question: 'where John', label: 'negative', split: 'train' },
     { text: 'Mary went away', facts: ['Mary away'], question: 'where Mary', label: 'positive', split: 'test' },
-  ], 'stories.csv', { task: representation === 'facts' ? 'classification' : 'sentiment', representation, maxFacts: 2, factWords: 3 })
+  ], 'stories.csv', { task: ['facts', 'story-question'].includes(representation) ? 'classification' : 'sentiment', representation, maxFacts: 2, factWords: 3, questionLength: 8 })
   const node = { ...createNode('dataset', 1), params: { dataset: 'custom-text' as const, textData } }
   const { container } = card(node)
   const labels = [...container.querySelectorAll<HTMLElement>('.node-output-labels span')]
-  expect(labels.map(label => label.textContent)).toEqual(representation === 'facts'
+  expect(labels.map(label => label.textContent)).toEqual(representation === 'story-question' ? ['story token IDs', 'question token IDs', 'story word mask', 'question word mask', 'answer'] : representation === 'facts'
     ? ['fact token IDs', 'question token IDs', 'fact position IDs', 'fact mask', 'fact word mask', 'question word mask', 'answer']
     : [representation === 'counts' ? 'word counts' : 'token IDs', 'position IDs', 'sentiment'])
   expect(container.querySelector('.builder-node')).toHaveClass('is-compact')

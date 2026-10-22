@@ -25,7 +25,7 @@ export function TextImportDialog({ onImport, onCancel }: { onImport: (data: Text
     try {
       const text = await file.text()
       if (!isCurrent()) return
-      const data = file.name.endsWith('.json') ? JSON.parse(text) as unknown : importText(text, file.name, {task, tokenizer, representation, vocabularySize: size, maxLength: length, stride: Math.min(length, stride), lowercase, fixedLength: task==='classification' && representation==='tokens', factWords: representation==='facts'?10:undefined, maxFacts: representation==='facts'?64:undefined})
+      const data = /\.json$/i.test(file.name) ? JSON.parse(text) as unknown : importText(text, file.name, {task, tokenizer, representation, vocabularySize: size, maxLength: length, stride: Math.min(length, stride), lowercase, fixedLength: task==='classification' && representation==='tokens', factWords: representation==='facts'?10:undefined, maxFacts: representation==='facts'?64:undefined})
       if (!isTextDatasetData(data)) throw new Error('Invalid prepared text dataset.')
       onImport(data)
     } catch (cause) { if (isCurrent()) setError(cause instanceof Error ? cause.message : 'Could not read text data.') }
@@ -41,7 +41,7 @@ export function TextImportDialog({ onImport, onCancel }: { onImport: (data: Text
     <label className="inspector-field">{task === 'language' ? 'Context length' : 'Maximum text tokens'}<NumberInput aria-label="Text context length" type="number" min="1" max="256" value={length} onChange={event => setLength(Number(event.target.value))}/></label>
     {task === 'language' && <label className="inspector-field">Window stride<NumberInput aria-label="Window stride" type="number" min="1" max={length} value={stride} onChange={event => setStride(Number(event.target.value))}/></label>}
     <label><input type="checkbox" checked={lowercase} onChange={event => setLowercase(event.target.checked)}/> Lowercase text</label>
-    <p>Vocabulary is fitted on training documents only. Sentiment text is truncated to the selected length. Tensor training pads batches internally and masks padded positions.</p>
+    <p>Vocabulary is fitted on training documents only. Sentiment text is truncated to the selected length. Tensor training pads batches internally and masks padded positions. Prepared story-question JSON uses its declared story and question lengths automatically.</p>
     <input type="file" accept=".csv,.txt,.json,text/plain,text/csv,application/json" aria-label="Choose text data file" onChange={event => {requestVersion.current++; setBusy(false); setFile(event.target.files?.[0]); setError('')}}/>
     {error && <p role="alert">{error}</p>}
     <button type="button" disabled={!file || busy} onClick={() => void load()}>{busy ? 'Preparing…' : 'Import text dataset'}</button>

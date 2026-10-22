@@ -24,13 +24,35 @@ export function decodeTokens(ids: number[], data: TextDatasetData): string {
 
 /** Shared encoding for imported stories and temporary inference edits. Never truncates. */
 export function encodeStory(story: StoryExperiment, data: TextDatasetData): { features: TensorValue[]; unknownWords: string[] } {
+  if (data.representation === 'story-question') {
+    validateStoryQuestionLengths(data)
+    const index = new Map(data.vocabulary.map((token, id) => [token, id]))
+    const unknownWords = new Set<string>()
+    const encode = (text: string | undefined, label: string, length: number) => {
+      if (typeof text !== 'string') throw Error(`${label} must be text.`)
+      const tokens = tokenize(text, data.tokenizer, data.lowercase)
+      if (!tokens.length) throw Error(`${label} needs at least one token.`)
+      if (tokens.length > length) throw Error(`${label} has ${tokens.length} tokens; the limit is ${length}. Nothing was truncated.`)
+      const ids = tokens.map(token => {
+        if (!index.has(token)) unknownWords.add(token)
+        return index.get(token) ?? 0
+      })
+      return [...ids, ...Array(length - ids.length).fill(1)]
+    }
+    const s = encode(story.text, 'Story', data.maxLength)
+    const q = encode(story.question, 'Question', data.questionLength!)
+    return { features: [tensor([s.length], s), tensor([q.length], q),
+      tensor([s.length, 1], s.map(id => Number(id !== 1))), tensor([q.length, 1], q.map(id => Number(id !== 1)))],
+      unknownWords: [...unknownWords] }
+  }
   const words = data.factWords!, n = data.maxFacts!
   if (data.representation !== 'facts' || !Number.isInteger(words) || !Number.isInteger(n) || words < 1 || n < 1) throw Error('Choose a Facts and question dataset.')
   if (!Array.isArray(story.facts) || !story.facts.length || story.facts.length > n) throw Error(`Provide 1–${n} facts, one per line. No facts were truncated.`)
+  const facts = story.facts
   const index = new Map(data.vocabulary.map((token, id) => [token, id]))
   const unknownWords = new Set<string>()
-  const encoded = [...story.facts, story.question].map((text, i) => {
-    const label = i === story.facts.length ? 'Question' : `Fact ${i + 1}`
+  const encoded = [...facts, story.question].map((text, i) => {
+    const label = i === facts.length ? 'Question' : `Fact ${i + 1}`
     if (typeof text !== 'string') throw Error(`${label} must be text.`)
     const tokens = tokenize(text, data.tokenizer, data.lowercase)
     if (!tokens.length) throw Error(`${label} needs at least one token.`)
@@ -41,19 +63,27 @@ export function encodeStory(story: StoryExperiment, data: TextDatasetData): { fe
     })
   })
   const padded = (ids: number[]) => [...ids, ...Array(words - ids.length).fill(1)]
-  const f = [...encoded.slice(0, -1).map(padded), ...Array.from({length: n - story.facts.length}, () => Array(words).fill(1))].flat()
+  const f = [...encoded.slice(0, -1).map(padded), ...Array.from({length: n - facts.length}, () => Array(words).fill(1))].flat()
   const q = padded(encoded.at(-1)!)
   return { features: [
     tensor([n, words], f), tensor([1, words], q),
     tensor([n], Array.from({length: n}, (_, i) => i)),
-    tensor([1, n], Array.from({length: n}, (_, i) => Number(i < story.facts.length))),
+    tensor([1, n], Array.from({length: n}, (_, i) => Number(i < facts.length))),
     tensor([n, words, 1], f.map(id => Number(id !== 1))),
     tensor([1, words, 1], q.map(id => Number(id !== 1))),
   ], unknownWords: [...unknownWords] }
 }
 
 export function activeStoryExperiment(node: GraphNode): StoryExperiment | undefined {
-  return node.type === 'dataset' && node.params.textData?.representation === 'facts' ? node.params.storyExperiment : undefined
+  return node.type === 'dataset' && ['facts', 'story-question'].includes(node.params.textData?.representation ?? '') ? node.params.storyExperiment : undefined
+}
+
+function validateStoryQuestionLengths(data: TextDatasetData) {
+  if (data.task !== 'classification') throw Error('Story and question inputs require classification.')
+  if (![data.maxLength, data.questionLength].every(length => Number.isInteger(length) && length! >= 1 && length! <= TEXT_LIMITS.length)) {
+    throw Error('Story maxLength and questionLength must each be whole numbers from 1 to 256.')
+  }
+  if (data.vocabulary[0] !== '<unk>' || data.vocabulary[1] !== '<pad>') throw Error('Story and question inputs require <unk> at ID 0 and distinct <pad> at ID 1.')
 }
 
 export function hasStoryExperiment(graph: GraphModel): boolean {
@@ -72,6 +102,7 @@ export interface TextPreparation {
   lowercase?: boolean
   vocabularySize?: number
   maxLength?: number
+  questionLength?: number
   stride?: number
   fixedLength?: boolean
   factWords?: number
@@ -88,13 +119,16 @@ export function prepareTextDocuments(documents: TextDocument[], fileName: string
   if (!Number.isInteger(vocabularySize) || vocabularySize < 2 || vocabularySize > TEXT_LIMITS.vocabulary) throw new Error('Vocabulary size must be 2–8192, including <unk>.')
   if (!Number.isInteger(maxLength) || maxLength < 1 || maxLength > TEXT_LIMITS.length || !Number.isInteger(stride) || stride < 1 || stride > maxLength) throw new Error('Use a context length of 1–256 and a stride from 1 to the context length.')
   validateDocuments(documents, options.task)
+  if (options.representation === 'story-question' && options.task !== 'classification') throw Error('Story and question inputs require classification.')
   const counts = new Map<string, number>()
   for (const doc of documents.filter(doc => doc.split === 'train')) {
-    for (const token of tokenize(doc.text, tokenizer, lowercase)) counts.set(token, (counts.get(token) ?? 0) + 1)
+    const texts = options.representation === 'story-question' ? [doc.text, doc.question ?? ''] : [doc.text]
+    for (const text of texts) for (const token of tokenize(text, tokenizer, lowercase)) counts.set(token, (counts.get(token) ?? 0) + 1)
   }
-  const vocabulary = ['<unk>', ...(options.fixedLength || options.representation === 'facts' ? ['<pad>'] : []), ...[...counts].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).filter(([token]) => token !== '<unk>' && token !== '<pad>').slice(0, vocabularySize - (options.fixedLength || options.representation === 'facts' ? 2 : 1)).map(([token]) => token)]
+  const padded = options.fixedLength || options.representation === 'facts' || options.representation === 'story-question'
+  const vocabulary = ['<unk>', ...(padded ? ['<pad>'] : []), ...[...counts].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).filter(([token]) => token !== '<unk>' && token !== '<pad>').slice(0, vocabularySize - (padded ? 2 : 1)).map(([token]) => token)]
   if (vocabulary.length < 2) throw new Error('Training text must contain tokens.')
-  const data: TextDatasetData = { version: 1, fileName, task: options.task, tokenizer, representation: options.task === 'language' ? 'tokens' : options.representation ?? 'counts', lowercase, vocabulary, maxLength, stride, documents, fixedLength: options.fixedLength, factWords: options.factWords, maxFacts: options.maxFacts, targetMode: options.targetMode, classLabels: options.task === 'classification' ? [...new Set(documents.filter(d=>d.split==='train').map(d=>d.label!))].sort() : undefined }
+  const data: TextDatasetData = { version: 1, fileName, task: options.task, tokenizer, representation: options.task === 'language' ? 'tokens' : options.representation ?? 'counts', lowercase, vocabulary, maxLength, stride, documents, ...(options.questionLength !== undefined ? {questionLength: options.questionLength} : {}), fixedLength: options.fixedLength, factWords: options.factWords, maxFacts: options.maxFacts, targetMode: options.targetMode, classLabels: options.task === 'classification' ? [...new Set(documents.filter(d=>d.split==='train').map(d=>d.label!))].sort() : undefined }
   textDataset(data) // Check that both splits produce examples before accepting the import.
   return data
 }
@@ -146,8 +180,9 @@ export function isTextDatasetData(value: unknown): value is TextDatasetData {
   if (!value || typeof value !== 'object') return false
   const data = value as TextDatasetData
   try {
-    if (data.version !== 1 || typeof data.fileName !== 'string' || data.fileName.length > 256 || !['sentiment', 'classification', 'language'].includes(data.task) || !['word', 'character'].includes(data.tokenizer) || !['counts', 'tokens', 'facts'].includes(data.representation) || (data.task === 'language' && data.representation !== 'tokens') || typeof data.lowercase !== 'boolean') return false
+    if (data.version !== 1 || typeof data.fileName !== 'string' || data.fileName.length > 256 || !['sentiment', 'classification', 'language'].includes(data.task) || !['word', 'character'].includes(data.tokenizer) || !['counts', 'tokens', 'facts', 'story-question'].includes(data.representation) || (data.task === 'language' && data.representation !== 'tokens') || typeof data.lowercase !== 'boolean') return false
     if (!Array.isArray(data.vocabulary) || data.vocabulary[0] !== '<unk>' || data.vocabulary.length < 2 || data.vocabulary.length > TEXT_LIMITS.vocabulary || data.vocabulary.some(token => typeof token !== 'string' || token.length > 1024) || new Set(data.vocabulary).size !== data.vocabulary.length) return false
+    if (data.representation === 'story-question' && data.vocabulary.some(token => !token.length)) return false
     if (!Number.isInteger(data.maxLength) || data.maxLength < 1 || data.maxLength > TEXT_LIMITS.length || !Number.isInteger(data.stride) || data.stride < 1 || data.stride > data.maxLength) return false
     if (data.fixedLength !== undefined && typeof data.fixedLength !== 'boolean') return false
     if (data.targetMode !== undefined && (data.targetMode !== 'last' || data.task !== 'language')) return false
@@ -162,7 +197,8 @@ export function textDataset(data: TextDatasetData): ToyDataset {
   const cached = cache.get(data)
   if (cached) return cached
   const examples: DatasetExample[] = []
-  if (data.task === 'classification' && (!Array.isArray(data.classLabels) || data.classLabels.length < 2 || new Set(data.classLabels).size !== data.classLabels.length || data.classLabels.some(x=>typeof x!=='string'||!x) || data.documents.some(d=>!data.classLabels!.includes(d.label!)))) throw Error('Every answer must belong to the training-fitted class labels.')
+  if (data.representation === 'story-question') validateStoryQuestionLengths(data)
+  if (data.task === 'classification' && (!Array.isArray(data.classLabels) || data.classLabels.length < 2 || new Set(data.classLabels).size !== data.classLabels.length || data.classLabels.some(x=>typeof x!=='string'||!(data.representation === 'story-question' ? x.trim() : x)) || data.documents.some(d=>!data.classLabels!.includes(d.label!)))) throw Error('Every answer must belong to the training-fitted class labels.')
   if ((data.fixedLength || data.representation === 'facts') && data.vocabulary[1] !== '<pad>') throw Error('Fixed inputs require a distinct <pad> token at ID 1.')
   if (data.representation === 'facts' && (data.task !== 'classification' || !Number.isInteger(data.factWords) || data.factWords!<1 || data.factWords!>32 || !Number.isInteger(data.maxFacts) || data.maxFacts!<1 || data.maxFacts!>64)) throw Error('Fact inputs require classification, 1–32 words per fact and 1–64 facts.')
   const index = new Map(data.vocabulary.map((token, id) => [token, id]))
@@ -184,12 +220,14 @@ export function textDataset(data: TextDatasetData): ToyDataset {
       }
       if (data.representation === 'facts') {
         features.splice(0, features.length, ...encodeStory({facts: doc.facts!, question: doc.question!}, data).features)
+      } else if (data.representation === 'story-question') {
+        features.splice(0, features.length, ...encodeStory({text: doc.text, question: doc.question!}, data).features)
       }
       examples.push({ label: 'Source document ' + documentIndex + ' · offset ' + offset + ' · ' + (data.task !== 'language' ? doc.label : decodeTokens(tokens, data).slice(0, 45)), split: doc.split, features, target, text: decodeTokens(tokens, data), documentIndex, offset })
     }
     if (data.task !== 'language') {
       if (!ids.length) throw new Error('A review has no tokens after tokenization.')
-      if (data.task === 'classification' && ids.length>data.maxLength && data.representation!=='facts') throw Error('Classification text exceeds the context limit; increase it instead of discarding facts.')
+      if (data.task === 'classification' && ids.length>data.maxLength && !['facts', 'story-question'].includes(data.representation)) throw Error('Classification text exceeds the context limit; increase it instead of discarding facts.')
       add(ids.slice(0, data.maxLength), data.task==='sentiment' ? tensor([1, 1], [Number(doc.label === 'positive')]) : tensor([1],[data.classLabels!.indexOf(doc.label!)]), 0)
     } else {
       for (let start = 0; start + data.maxLength < ids.length; start += data.stride) {
@@ -198,12 +236,13 @@ export function textDataset(data: TextDatasetData): ToyDataset {
     }
   })
   if (!examples.some(example => example.split === 'train') || !examples.some(example => example.split === 'test')) throw new Error('Both splits need usable examples. Shorten the context or provide longer passages.')
-  const dataset: ToyDataset = { kind: 'custom-text', label: data.fileName, task: data.task === 'sentiment' ? 'binary-classification' : data.task==='classification' ? 'classification' : 'sequence', ...textDatasetLabels(data), featureValues: examples[0].features, targetValue: examples[0].target, examples, vocabulary: data.vocabulary, classLabels: data.task === 'sentiment' ? ['negative', 'positive'] : data.classLabels, maxLength: data.maxLength, description: 'Training-only vocabulary · ' + data.vocabulary.length + ' tokens including <unk> · ' + data.tokenizer + ' tokenization · ' + data.representation + (data.fixedLength || data.representation==='facts' ? ' · fixed padded inputs. ' : ' · unpadded canvas examples. ') + 'Held-out documents retain their split.' }
+  const dataset: ToyDataset = { kind: 'custom-text', label: data.fileName, task: data.task === 'sentiment' ? 'binary-classification' : data.task==='classification' ? 'classification' : 'sequence', ...textDatasetLabels(data), featureValues: examples[0].features, targetValue: examples[0].target, examples, vocabulary: data.vocabulary, classLabels: data.task === 'sentiment' ? ['negative', 'positive'] : data.classLabels, maxLength: data.maxLength, description: 'Training-only vocabulary · ' + data.vocabulary.length + ' tokens including <unk> · ' + data.tokenizer + ' tokenization · ' + data.representation + (data.fixedLength || data.representation==='facts' || data.representation==='story-question' ? ' · fixed padded inputs. ' : ' · unpadded canvas examples. ') + 'Held-out documents retain their split.' }
   cache.set(data, dataset)
   return dataset
 }
 
 /** Socket metadata does not require encoding or materializing dataset tensors. */
 export function textDatasetLabels(data: Pick<TextDatasetData, 'representation' | 'task'>): Pick<ToyDataset, 'featureLabels' | 'targetLabel'> {
+  if (data.representation === 'story-question') return { featureLabels: ['story token IDs', 'question token IDs', 'story word mask', 'question word mask'], targetLabel: 'answer' }
   return { featureLabels: data.representation==='facts' ? ['fact token IDs','question token IDs','fact position IDs','fact mask','fact word mask','question word mask'] : [data.representation === 'counts' ? 'word counts' : 'token IDs', 'position IDs'], targetLabel: data.task === 'sentiment' ? 'sentiment' : data.task==='classification' ? 'answer' : 'next-token IDs' }
 }

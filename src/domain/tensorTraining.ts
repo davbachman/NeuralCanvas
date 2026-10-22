@@ -141,7 +141,7 @@ export class TensorGraph {
   }
   private execute(rows:DatasetExample[], training = false, capture?: {id:string; slot:number; signal?:Signal}): {loss:tf.Scalar; dataLoss:tf.Scalar; prediction:tf.Tensor; target:tf.Tensor; mask:tf.Tensor} {
     const data=this.source.params.textData, count=rows.length
-    const generic=!data || data.representation==='facts'
+    const generic=!data || data.representation==='facts' || data.representation==='story-question'
     const lengths=rows.map(row=>generic?1:row.features[1].data.length), length=Math.max(...lengths)
     const mask=tf.tensor2d(lengths.flatMap(n=>Array.from({length},(_,i)=>Number(i<n))),[count,length])
     const pad=(items:number[],n=length)=>[...items,...Array(n-items.length).fill(0)]

@@ -457,7 +457,8 @@ export function cloneGraph(graph: GraphModel): GraphModel {
       params: {
         ...node.params,
         datasetValues: node.params.datasetValues?.map(cloneTensor),
-        ...(node.params.storyExperiment ? {storyExperiment: {...node.params.storyExperiment, facts: [...node.params.storyExperiment.facts]}} : {}),
+        ...(node.params.storyExperiment ? {storyExperiment: node.params.storyExperiment.facts
+          ? {...node.params.storyExperiment, facts: [...node.params.storyExperiment.facts]} : {...node.params.storyExperiment}} : {}),
         axes: node.params.axes ? [...node.params.axes] : undefined,
         shape: node.params.shape ? [...node.params.shape] : undefined,
         value: node.params.value !== undefined ? toTensor(node.params.value) : undefined,

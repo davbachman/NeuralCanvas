@@ -67,6 +67,7 @@ Greedy decoding tends to repeat. Sampling introduces variation. A short run on a
 - Word/token labels in tensor inspection, including embedding rows and both axes of attention scores.
 - Faster multi-epoch training that uses the same numerical operations and derivatives as step-by-step tracing. Fast and traced SGD match in regression tests.
 - Save/import preserves the text preprocessing recipe and vocabulary. Python/notebook export includes a sibling dataset JSON containing prepared examples and text metadata. Exports train/evaluate those numerical examples; the generated Python does not include the browser's text-generation UI.
+- Prepared [`story-question` datasets](STORY-QUESTION-DATASETS.md) supply a whole story and a separate question with independent padded lengths, word masks, and temporary inference experiments.
 
 Current limits and batched GPU/AdamW training are documented in [Accelerated text training](ACCELERATED-TEXT-TRAINING.md). The original pilot below used unpadded single-example SGD; its results and timings describe that historical configuration. Attention costs grow quadratically with context length.
 

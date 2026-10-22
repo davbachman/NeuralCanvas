@@ -59,10 +59,9 @@ export interface CustomCsvData {
   task: 'regression' | 'binary-classification' | 'classification'
 }
 
-export interface StoryExperiment {
-  facts: string[]
-  question: string
-}
+export type StoryExperiment =
+  | { facts: string[]; question: string; text?: never }
+  | { text: string; question: string; facts?: never }
 
 export interface TextDocument {
   text: string
@@ -78,10 +77,12 @@ export interface TextDatasetData {
   fileName: string
   task: 'sentiment' | 'classification' | 'language'
   tokenizer: 'word' | 'character'
-  representation: 'counts' | 'tokens' | 'facts'
+  representation: 'counts' | 'tokens' | 'facts' | 'story-question'
   lowercase: boolean
   vocabulary: string[]
   maxLength: number
+  /** Required for story-question; independent of the padded story maxLength. */
+  questionLength?: number
   stride: number
   documents: TextDocument[]
   classLabels?: string[]
