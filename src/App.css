@@ -57,6 +57,18 @@
   gap: 8px;
 }
 
+.project-filename {
+  min-width: 0;
+  max-width: 40vw;
+  margin: 0 0 0 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted-strong);
+  font-size: 12px;
+  text-align: right;
+}
+
 .topbar-button {
   min-height: 34px;
   padding: 7px 10px;

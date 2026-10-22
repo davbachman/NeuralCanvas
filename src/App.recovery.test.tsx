@@ -10,7 +10,7 @@ beforeEach(() => vi.stubGlobal('indexedDB', new IDBFactory()))
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 it('offers recovery without overwriting it and restores training paused', async () => {
-  const workspace = recoveryWorkspace()
+  const workspace = { ...recoveryWorkspace(), projectFilename: 'My recovered model.json' }
   await storage.writeRecovery(workspace)
   const write = vi.spyOn(storage, 'writeRecovery')
   render(<App />)
@@ -18,6 +18,7 @@ it('offers recovery without overwriting it and restores training paused', async 
   fireEvent(window, new Event('pagehide'))
   expect(write).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: 'Restore workspace' }))
+  expect(screen.getByTitle(workspace.projectFilename)).toHaveTextContent(workspace.projectFilename)
   expect(screen.getAllByText('Epoch 500').length).toBeGreaterThan(0)
   expect(screen.getByLabelText('Epochs per run')).toHaveValue(2000)
   expect(screen.getByLabelText(/Report loss every/)).toHaveValue(500)
@@ -39,6 +40,7 @@ it('discards the old workspace and periodically saves subsequent edits', async (
   render(<App />)
   fireEvent.click(await screen.findByRole('button', { name: 'Discard recovery' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  expect(screen.getByTitle('untitled')).toHaveTextContent('untitled')
   expect(await storage.readRecovery()).toBeUndefined()
   fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
   fireEvent.change(screen.getByLabelText('Epochs per run'), { target: { value: '42' } })

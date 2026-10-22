@@ -108,6 +108,7 @@ import {
   createProjectStateFile,
   downloadProjectStateFile,
   parseProjectStateFile,
+  projectStateFilename,
 } from './domain/session'
 import {
   cloneTensor,
@@ -316,8 +317,8 @@ function App({
       runSettings: { epochsPerRun, reportEvery, examplesPerUpdate: batchSizeInput },
       display: { showMath: SHOW_MATH_LAYER, showGradient: SHOW_GRADIENT_LAYER, showCode: SHOW_CODE_LAYER, showVisualization: rightTab === 'visualization' },
     },
-    lossReports, shuffleEachEpoch,
-  }), [graph, visualizationGraph, initialParams, selectedNodeIds, selectedGroupId, selectedGroupIds, phase, traceSteps, traceIndex, epoch, currentLoss, epochsPerRun, reportEvery, batchSizeInput, rightTab, lossReports, shuffleEachEpoch])
+    lossReports, shuffleEachEpoch, projectFilename,
+  }), [graph, visualizationGraph, initialParams, selectedNodeIds, selectedGroupId, selectedGroupIds, phase, traceSteps, traceIndex, epoch, currentLoss, epochsPerRun, reportEvery, batchSizeInput, rightTab, lossReports, shuffleEachEpoch, projectFilename])
   const recovery = useLocalRecovery(recoveryWorkspace, isTraining && (graph.training ?? DEFAULT_TRAINING).engine === 'tensor')
   const saveRecoveryCheckpoint = recovery.save
 
@@ -1330,30 +1331,29 @@ function App({
   const saveProjectState = (filename = projectFilename) => {
     setImportError(undefined)
     setExportNotice(undefined)
-    downloadProjectStateFile(
-      createProjectStateFile({
-        graph,
-        visualizationGraph,
-        initialParameterValues: initialParams,
-        selectedNodeIds,
-        ...(selectedGroupIds.length ? { selectedGroupIds } : {}),
-        selectedGroupId,
-        phase,
-        traceSteps,
-        traceIndex,
-        epoch,
-        currentLoss,
-        runSettings: { epochsPerRun, reportEvery, examplesPerUpdate: batchSizeInput },
-        display: {
-          showMath: SHOW_MATH_LAYER,
-          showGradient: SHOW_GRADIENT_LAYER,
-          showCode: SHOW_CODE_LAYER,
-          showVisualization: rightTab === 'visualization',
-        },
-      }),
-      filename,
-    )
-    if (filename) setProjectFilename(filename)
+    const file = createProjectStateFile({
+      graph,
+      visualizationGraph,
+      initialParameterValues: initialParams,
+      selectedNodeIds,
+      ...(selectedGroupIds.length ? { selectedGroupIds } : {}),
+      selectedGroupId,
+      phase,
+      traceSteps,
+      traceIndex,
+      epoch,
+      currentLoss,
+      runSettings: { epochsPerRun, reportEvery, examplesPerUpdate: batchSizeInput },
+      display: {
+        showMath: SHOW_MATH_LAYER,
+        showGradient: SHOW_GRADIENT_LAYER,
+        showCode: SHOW_CODE_LAYER,
+        showVisualization: rightTab === 'visualization',
+      },
+    })
+    const savedFilename = projectStateFilename(filename ?? `neural-canvas-state-${file.savedAt.slice(0, 10)}`)
+    downloadProjectStateFile(file, savedFilename)
+    setProjectFilename(savedFilename)
   }
 
   const closeSaveAs = () => {
@@ -1660,6 +1660,7 @@ function App({
           ) : null}
           {exportNotice ? <p className="export-notice" role="status">{exportNotice}</p> : null}
         </div>
+        <p className="project-filename" title={projectFilename ?? 'untitled'} aria-live="polite">{projectFilename ?? 'untitled'}</p>
       </header>
 
       {isSaveAsOpen && <SaveAsDialog filename={projectFilename} onCancel={closeSaveAs} onSave={filename => { saveProjectState(filename); closeSaveAs() }} />}
@@ -1693,7 +1694,7 @@ function App({
           <p id="recovery-description">A local copy was saved {new Date(recovery.pending.file.savedAt).toLocaleString()}. Restore the model, dataset, parameters, and training history at epoch {recovery.pending.file.state.epoch}. Training will remain paused.</p>
           <button type="button" autoFocus onClick={() => {
             const record = recovery.pending!
-            restoreProjectState(record.file.state)
+            restoreProjectState(record.file.state, record.projectFilename)
             setLossReports(record.lossReports)
             setShuffleEachEpoch(record.shuffleEachEpoch)
             setLeftTab('train')

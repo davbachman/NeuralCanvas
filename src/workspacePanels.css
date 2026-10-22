@@ -57,8 +57,9 @@
 @media (max-width: 1050px) {
   .app-shell.workspace-split { position: relative; height: 100dvh; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .app-shell.workspace-split .top-bar { grid-row: 1; flex-wrap: wrap; gap: 6px; padding: 10px 12px; }
-  .app-shell.workspace-split .top-actions { flex-wrap: nowrap; overflow-x: auto; width: 100%; }
+  .app-shell.workspace-split .top-actions { flex-wrap: nowrap; overflow-x: auto; width: 100%; order: 1; flex-basis: 100%; }
   .app-shell.workspace-split .top-actions > * { flex-shrink: 0; }
+  .app-shell.workspace-split .project-filename { max-width: min(40vw, calc(100vw - 260px)); }
   .app-shell.workspace-split .compact-panel-toggle { display: inline-flex; }
   .app-shell.workspace-split .sidebar-splitter { display: none; }
   .app-shell.workspace-split .canvas-panel { grid-column: 1; grid-row: 2; min-height: 0; }

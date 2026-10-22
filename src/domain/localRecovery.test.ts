@@ -16,6 +16,13 @@ it('round-trips the model, parameters, reports, and controls through IndexedDB a
   expect(loaded?.file.state).toEqual(createProjectStateFile(workspace.state).state)
   expect(loaded?.lossReports).toEqual(workspace.lossReports)
   expect(loaded?.shuffleEachEpoch).toBe(false)
+  expect(loaded?.projectFilename).toBeUndefined()
+  // Renaming without changing the model must update the durable record,
+  // rather than being mistaken for a viewport-only save.
+  await writeRecovery({ ...workspace, projectFilename: 'Named model.json' })
+  expect((await readRecovery())?.projectFilename).toBe('Named model.json')
+  await writeRecovery(workspace)
+  expect((await readRecovery())?.projectFilename).toBeUndefined()
   await deleteRecovery()
   expect(await readRecovery()).toBeUndefined()
 })
@@ -24,6 +31,7 @@ it('rejects corrupted recovery records without treating them as a workspace', as
   const record = await readRecovery()
   expect(() => parseRecovery({ ...record, lossReports: [{ epoch: -1, loss: 2 }] })).toThrow('invalid')
   expect(() => parseRecovery({ ...record, file: {} })).toThrow('invalid')
+  expect(() => parseRecovery({ ...record, projectFilename: 42 })).toThrow('invalid')
 })
 it('reports unavailable storage', async () => {
   vi.stubGlobal('indexedDB', undefined)

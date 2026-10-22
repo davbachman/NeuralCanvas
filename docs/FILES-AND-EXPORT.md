@@ -8,6 +8,8 @@ Saved projects use the `neural-canvas-state` format name. Projects saved by the 
 
 Choose **File → Save** to download a project JSON file. It includes the graph, node settings and parameters, group hierarchy, current view and selection, and the recorded execution state. Choose **File → Import** to reopen it. Import also opens any [example project](../public/models/README.md). **File → New** clears the workspace; save the current project first if you want to keep it. Projects are local files rather than accounts or hosted documents.
 
+The top-right toolbar shows the current filename, or **untitled** before the project has a name. **Save** reuses the name from the last save or import; **Save as…** lets you choose a new name and adds `.json` automatically. Local recovery also restores the filename.
+
 Use **Edit → Undo**, Copy, Paste, and Duplicate while building. The app does not promise compatibility with every historical saved-project format.
 
 ## Export runnable PyTorch

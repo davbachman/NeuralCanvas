@@ -6,12 +6,14 @@ export interface RecoveryWorkspace {
   state: ProjectStateSnapshot
   lossReports: LossReport[]
   shuffleEachEpoch: boolean
+  projectFilename?: string
 }
 export interface RecoveryRecord {
   version: 1
   file: ProjectStateFile
   lossReports: LossReport[]
   shuffleEachEpoch: boolean
+  projectFilename?: string
 }
 
 const DATABASE = 'neural-canvas-recovery'
@@ -45,12 +47,13 @@ export function parseRecovery(value: unknown): RecoveryRecord {
   if (!value || typeof value !== 'object') throw Error('The local recovery copy could not be read. Use a saved model file.')
   const record = value as Partial<RecoveryRecord>
   const parsed = parseProjectStateFile(JSON.stringify(record.file))
-  if (record.version !== 1 || !parsed.ok || typeof record.shuffleEachEpoch !== 'boolean' || !Array.isArray(record.lossReports) ||
+  if (record.version !== 1 || !parsed.ok || typeof record.shuffleEachEpoch !== 'boolean' ||
+      (record.projectFilename !== undefined && typeof record.projectFilename !== 'string') || !Array.isArray(record.lossReports) ||
       !record.lossReports.every(row => row && Number.isInteger(row.epoch) && row.epoch >= 0 && Number.isFinite(row.loss) &&
         (row.heldOutLoss === undefined || Number.isFinite(row.heldOutLoss)))) {
     throw Error('The local recovery copy is invalid. Use a saved model file.')
   }
-  return { version: 1, file: parsed.file, lossReports: record.lossReports, shuffleEachEpoch: record.shuffleEachEpoch }
+  return { version: 1, file: parsed.file, lossReports: record.lossReports, shuffleEachEpoch: record.shuffleEachEpoch, projectFilename: record.projectFilename }
 }
 
 export async function readRecovery(): Promise<RecoveryRecord | undefined> {
@@ -72,7 +75,7 @@ export async function writeRecovery(workspace: RecoveryWorkspace): Promise<void>
     lastWritten = workspace
     return
   }
-  const record: RecoveryRecord = { version: 1, file: createProjectStateFile(workspace.state), lossReports: workspace.lossReports.map(row => ({ ...row })), shuffleEachEpoch: workspace.shuffleEachEpoch }
+  const record: RecoveryRecord = { version: 1, file: createProjectStateFile(workspace.state), lossReports: workspace.lossReports.map(row => ({ ...row })), shuffleEachEpoch: workspace.shuffleEachEpoch, projectFilename: workspace.projectFilename }
   // Keep the previous good copy if an in-progress edit is not serializable.
   const validated = parseRecovery(record)
   await transaction('readwrite', store => { store.delete(VIEWPORT); return store.put(validated, KEY) })
@@ -96,7 +99,7 @@ export function sameRecoveryContent(a: RecoveryWorkspace, b: RecoveryWorkspace):
   const { viewport: _bp, ...br } = bv ?? {}
   void _ap; void _bp
   const shallow = (x: object, y: object) => Object.keys(x).length === Object.keys(y).length && Object.entries(x).every(([key, value]) => value === (y as Record<string, unknown>)[key])
-  return a.lossReports === b.lossReports && a.shuffleEachEpoch === b.shuffleEachEpoch && shallow(am, bm)
+  return a.lossReports === b.lossReports && a.shuffleEachEpoch === b.shuffleEachEpoch && a.projectFilename === b.projectFilename && shallow(am, bm)
     && JSON.stringify({ expandedGroupIds: [], ...ar }) === JSON.stringify({ expandedGroupIds: [], ...br })
     && shallow(as, bs) && JSON.stringify(ad) === JSON.stringify(bd) && JSON.stringify(ac) === JSON.stringify(bc)
 }
