@@ -257,7 +257,7 @@ function lossFormula(kind: LossKind, inputLabels: string[], isTensor: boolean): 
   const prediction = inputLabels[0] ?? 'prediction'
   const target = inputLabels[1] ?? 'target'
   if (kind === 'cross-entropy') return `L = mean(-log softmax(${prediction})[${target}])`
-  if (kind === 'binary-cross-entropy-with-logits') return `L = -mean(${target} * log(sigmoid(${prediction})) + (1 - ${target}) * log(1 - sigmoid(${prediction})))`
+  if (kind === 'binary-cross-entropy-with-logits') return `L = mean(softplus(${prediction}) - ${target} * ${prediction})`
 
   if (!isTensor) {
     if (kind === 'mse') return `L = (${prediction} - ${target})^2`
