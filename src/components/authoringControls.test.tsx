@@ -108,7 +108,7 @@ describe('scratch model authoring controls',()=>{
     for (const [kind, formula] of [
       ['mse', 'L = (prediction - target)^2'],
       ['mae', 'L = |prediction - target|'],
-      ['binary-cross-entropy-with-logits', 'L = mean(softplus(prediction) - target * prediction)'],
+      ['binary-cross-entropy-with-logits', 'L = -mean(target * log(sigmoid(prediction)) + (1 - target) * log(1 - sigmoid(prediction)))'],
       ['cross-entropy', 'L = mean(-log softmax(prediction)[target])'],
     ]) {
       fireEvent.change(screen.getByLabelText('Loss function'), { target: { value: kind } })
