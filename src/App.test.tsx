@@ -614,7 +614,7 @@ describe('Neural Canvas app', () => {
     expect(screen.getByLabelText('prediction input')).toBeInTheDocument()
   })
 
-  it('renders dataset browser and import actions in the card dropdown', () => {
+  it('renders simple dataset shortcuts, browser and import actions in the card dropdown', () => {
     const graph: GraphModel = {
       learningRate: 0.1,
       nodes: [
@@ -664,6 +664,9 @@ describe('Neural Canvas app', () => {
     fireEvent.change(datasetSelect!, { target: { value: 'browse' } })
     expect(onBrowseDataset).toHaveBeenCalledWith('dataset')
     expect(onDatasetChange).not.toHaveBeenCalled()
+
+    fireEvent.change(datasetSelect!, { target: { value: 'plane-2d' } })
+    expect(onDatasetChange).toHaveBeenCalledWith('dataset', 'plane-2d')
 
     fireEvent.change(datasetSelect!, { target: { value: 'custom-csv' } })
 

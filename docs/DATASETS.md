@@ -10,7 +10,9 @@ Selecting a dataset shows its **Train / test split**, **Examples**, and, where a
 
 Choose **Browse datasets…** from the Dataset card's dropdown, or select the block
 and click **Browse datasets…** in **Details**. The dropdown shows the current
-dataset when closed and offers browsing and custom import actions when opened.
+dataset when closed. When opened, it offers direct shortcuts for line, cubic,
+and plane regression, threshold, circle/center, and parabola classification,
+neuron basics, and XOR, along with browsing and custom import actions.
 The library groups real datasets and all existing built-in examples into Regression,
 Classification, Text and sequences, Images, and Attention and probabilities.
 Search by name or learning task, then open a dataset family. Its preview shows

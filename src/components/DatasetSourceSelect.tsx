@@ -9,12 +9,15 @@ interface Props {
   onDataset: (kind: DatasetKind) => void
 }
 
-/** Show the current source when closed, and offer browser/import actions only. */
+/** Show the current source when closed, with simple examples and source actions. */
 export function DatasetSourceSelect({ label, 'aria-label': ariaLabel, className, onBrowse, onDataset }: Props) {
   return <select aria-label={ariaLabel} title={label} className={className} value="" onChange={event => {
     const action = event.target.value
     if (action === 'browse') onBrowse?.()
-    else if (action === 'custom-csv' || action === 'custom-text') onDataset(action)
+    else {
+      const option = DATASET_MENU_OPTIONS.find(item => item.kind === action)
+      if (option) onDataset(option.kind)
+    }
   }}>
     <option value="" disabled hidden>{label}</option>
     <option value="browse">Browse datasets…</option>

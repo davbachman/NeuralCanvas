@@ -59,19 +59,26 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     expect(screen.getByRole('button', { name: 'Replace CSV file' })).toBeInTheDocument()
   })
 
-  it('offers only browser and import actions while keeping every built-in dataset available', async () => {
+  it('offers simple numeric shortcuts and browser access to the other built-in datasets', async () => {
     const { container } = render(<App initialGraph={datasetModel(semanticZoom)} />)
     const card = container.querySelector<HTMLElement>('[data-id="dataset-1"]')!
     const selector = within(card).getByLabelText('Dataset for dataset')
     expect(selector).toHaveClass('nodrag', 'nowheel')
     expect(within(selector).getAllByRole('option').map(option => option.textContent)).toEqual(['Browse datasets…', ...DATASET_MENU_OPTIONS.map(option => option.label)])
+    expect(within(selector).getAllByRole('option').map(option => (option as HTMLOptionElement).value)).toEqual([
+      'browse', 'line-1d', 'cubic-1d', 'plane-2d', 'threshold-1d', 'circle-center',
+      'parabola-boundary', 'neuron-basics', 'xor', 'custom-csv', 'custom-text',
+    ])
     expect(selector).toHaveDisplayValue(DATASET_OPTIONS[0].label)
     // Opening and cancelling the browser must not replace the current source.
     fireEvent.change(selector, { target: { value: 'browse' } })
     fireEvent.click(screen.getByRole('button', { name: 'Close dataset library' }))
     expect(selector).toHaveDisplayValue(DATASET_OPTIONS[0].label)
     for (const dataset of DATASET_OPTIONS) {
-      await chooseBuiltin(selector, dataset.kind)
+      if (DATASET_MENU_OPTIONS.some(option => option.kind === dataset.kind)) {
+        fireEvent.change(selector, { target: { value: dataset.kind } })
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      } else await chooseBuiltin(selector, dataset.kind)
       expect(selector).toHaveDisplayValue(dataset.label)
       expect(card.querySelectorAll('.source-handle')).toHaveLength(dataset.featureLabels.length + 1)
       expect(Array.from(card.querySelectorAll('.node-output-labels span')).map(label => label.textContent)).toEqual([...dataset.featureLabels, dataset.targetLabel])
@@ -89,7 +96,7 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     fireEvent.click(card)
     const nodeSelector = within(card).getByLabelText('Dataset for dataset')
     const inspectorSelector = () => screen.getByRole('combobox', { name: 'Dataset selection' })
-    await chooseBuiltin(nodeSelector, 'circle-center')
+    await user.selectOptions(nodeSelector, 'circle-center')
     expect(inspectorSelector()).toHaveDisplayValue(DATASET_OPTIONS.find(option => option.kind === 'circle-center')!.label)
     expect(screen.queryByText('Inside the calculation')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Dataset outputs')).not.toBeInTheDocument()
@@ -113,7 +120,7 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     await user.click(screen.getByRole('button', { name: 'Run forward' }))
     expectResults('circle-center')
     fireEvent.click(card)
-    await chooseBuiltin(inspectorSelector(), 'cubic-1d')
+    await user.selectOptions(inspectorSelector(), 'cubic-1d')
     expect(nodeSelector).toHaveDisplayValue(DATASET_OPTIONS.find(option => option.kind === 'cubic-1d')!.label)
     expect(within(card).getByLabelText('Target y output')).toHaveAttribute('data-handleid', 'out-1')
     await user.click(screen.getByRole('button', { name: 'Run forward' }))

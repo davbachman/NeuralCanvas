@@ -17,7 +17,15 @@ const {execFileSync}=require('node:child_process');
   await p.locator(`[data-id="${dataset.id}"]`).dispatchEvent('click');
   await p.getByRole('tab',{name:'Details',exact:true}).click();
   const cardSource=p.getByRole('combobox',{name:`Dataset for ${dataset.label}`,exact:true});
-  assert.deepEqual(await cardSource.locator('option:not([hidden])').allTextContents(),['Browse datasets…','Custom CSV…','Text / sentiment…']);
+  const shortcuts=['line-1d','cubic-1d','plane-2d','threshold-1d','circle-center','parabola-boundary','neuron-basics','xor'];
+  assert.deepEqual(await cardSource.locator('option:not([hidden])').evaluateAll(options=>options.map(option=>option.value)),['browse',...shortcuts,'custom-csv','custom-text']);
+  for(const kind of shortcuts){
+   const label=await cardSource.locator(`option[value="${kind}"]`).textContent();
+   await cardSource.selectOption(kind);
+   assert.equal(await cardSource.locator('option:checked').textContent(),label);
+   assert.equal(await p.getByRole('dialog').count(),0);
+  }
+  reports.push({workflow:'direct card selection of all eight simple regression and classification datasets',passed:true});
   await cardSource.selectOption('browse');
   const dialog=p.getByRole('dialog',{name:'Dataset library'});
   await dialog.getByRole('button',{name:/Football stories/}).click();
