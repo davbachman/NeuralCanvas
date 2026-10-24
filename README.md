@@ -1,32 +1,21 @@
-Created by David Bachman with Codex
-
 # Neural Canvas
 
-[Open Neural Canvas](https://davbachman.github.io/NeuralCanvas/)
+Neural Canvas is a visual workbench for learning and teaching neural networks. Build models from individual operations, train them in the browser, and inspect their values and gradients. Group calculations into neurons, layers, attention heads, and transformer blocks, then zoom between those levels.
 
-Neural Canvas is a visual, editable machine-learning workbench for students. Start with a blank canvas, connect individual calculations into a model, and watch values move forward and gradients move backward. Group calculations into neurons, layers, attention heads, or larger modules, then zoom between those scales. You can train and test on built-in or imported data and export a working PyTorch version of a supported graph.
+**[Open Neural Canvas](https://davbachman.github.io/NeuralCanvas/)** · [Get started](#get-started) · [Datasets](#datasets) · [Course assignments](#course-assignments) · [Reference](#reference) · [Development](#development)
 
-## Guide
+## Get started
 
-| Page | What it covers |
-| --- | --- |
-| [Get started](docs/USAGE.md) | A first model, the sidebars, and the route from blank canvas to a training run |
-| [Canvas and navigation](docs/CANVAS.md) | Adding, connecting, moving, grouping, zooming, and using the code outline |
-| [Block reference](docs/BLOCKS.md) | Every block in the palette, its inputs, and common tensor shapes |
-| [Build models from scratch](docs/BUILDING-MODELS.md) | Recipes for an MLP, attention, a transformer block, and a digit CNN |
-| [Datasets](docs/DATASETS.md) | The dataset browser, teaching datasets, custom imports, feature and target wiring, and train/test splits |
-| [Accelerated text training](docs/ACCELERATED-TEXT-TRAINING.md) | Padded batches, AdamW, WebGL, early stopping, and controlled IMDb results |
-| [Text curriculum pilot](docs/TEXT-CURRICULUM.md) | Earlier IMDb and Alice experiments with embeddings, attention, and text generation |
-| [Training, testing, and reports](docs/TRAINING.md) | Backpropagation, epoch runs, inference, predictions, accuracy, and troubleshooting |
-| [Example models and lessons](docs/EXAMPLES.md) | Importable projects from a neuron through attention, a transformer, and a digit CNN |
-| [Saving and exporting](docs/FILES-AND-EXPORT.md) | Project JSON, PyTorch files and notebooks, and dataset files |
-| [Development](docs/DEVELOPMENT.md) | Local setup, checks, model generation, and dataset attribution |
+1. Open the app and start with a blank canvas, or import an [example model](public/models/README.md) through **File → Import**.
+2. Add a Dataset block and choose a simple example from its dropdown or open **Browse datasets…**.
+3. Add model operations from **Build**, connect their ports, and select blocks to edit their settings in **Details**.
+4. Use **Train** to inspect a forward pass or train the model, then **Test** to evaluate it. Save the editable project as JSON or export a supported model to PyTorch.
 
-The [importable model files](public/models/README.md) are editable projects made with the same blocks as the blank canvas.
+For a guided first build, follow [Get started](docs/USAGE.md) or begin with [Assignment 1](https://davbachman.github.io/NeuralCanvas/course/01-mpg.html). Normal browser use requires no account or local installation.
 
 ## Datasets
 
-Add a Dataset block and choose **Browse datasets…** from its dropdown or **Details**. The categorized browser includes the datasets used throughout the course, additional classroom datasets, and the original small examples. Open a family to choose its configuration, inspect example inputs and targets, and see output shapes and training/held-out counts before clicking **Use this dataset**.
+The dataset browser groups data by learning task. Open a family to choose a configuration and preview its inputs, targets, output shapes, and training/held-out counts. Click **Use this dataset** to add it to the selected Dataset block. The eight simple regression and classification examples are also available directly from the card's dropdown.
 
 | Browser category | Available datasets |
 | --- | --- |
@@ -36,15 +25,26 @@ Add a Dataset block and choose **Browse datasets…** from its dropdown or **Det
 | Images | UCI handwritten digits: 8 × 8 images with ten digit classes. |
 | Attention and probabilities | Query/message and three-token attention lookups, plus class-score and softmax experiments. |
 
-**Football stories** has configurations for narrative generation and question answering. Narratives can train on the final next token or on every input position. Question tasks offer word counts, ordered tokens, separate story/question inputs, or a combined input that predicts the answer token. Question coverage can be football location only, mixed questions about the football, people, and possession, or mixed training with a shared football-only evaluation set. The browser shows the supported combinations, vocabularies, and fixed splits.
+### Football stories
 
-The eight simple regression and classification examples are also direct shortcuts in the Dataset card's dropdown. For your own data, choose **Custom data** in the browser or the card's **Custom CSV…** or **Text / sentiment…** option. Custom imports accept numeric CSV, text/review/question files, and prepared dataset JSON; prepared JSON supplies its vocabulary, shapes, targets, and splits automatically. Selected data is embedded in saved model projects.
+Synthetic stories follow two people and a football through a sequence of events. The browser offers two tasks:
+
+- **Narrative generation:** predict the next token, with training targets at the final position or at every input position.
+- **Question answering:** use word counts, ordered tokens, separate story/question inputs, or a combined sequence that predicts the answer token. Choose football-location questions, mixed questions about locations and possession, or mixed training with the shared football-only evaluation set.
+
+Each configuration supplies its vocabulary, input lengths, targets, and fixed split. The browser shows the supported combinations; the assignments specify which configuration to use.
+
+### Custom data
+
+Choose **Custom data** in the browser, or **Custom CSV…** or **Text / sentiment…** on the Dataset card. Import numeric CSV, text/review/question files, or prepared dataset JSON. Prepared JSON supplies its vocabulary, shapes, targets, and splits automatically. Selected data is embedded in saved model projects.
 
 See the [dataset guide](docs/DATASETS.md) for controls and the [dataset sources](public/datasets/README.md) for attribution and exact preparations.
 
 ## Course assignments
 
-These 19 assignments progress from regression to a transformer question-answering capstone. Students build editable models in Neural Canvas, use datasets from the browser, and save their models as JSON. Many assignments extend the preceding solution; keep the trained models for later comparisons and fine-tuning. Each link opens the student instructions.
+These 19 assignments progress from regression to a transformer question-answering capstone. Students build editable models, select datasets from the browser, and save their work as JSON. Many assignments extend the preceding solution, so keep trained models for later comparisons and fine-tuning. Each link opens the student instructions.
+
+### Regression and classification
 
 | Assignment | What students explore |
 | --- | --- |
@@ -54,18 +54,50 @@ These 19 assignments progress from regression to a transformer question-answerin
 | [4. From weighted sums to matrix models](https://davbachman.github.io/NeuralCanvas/course/04-matrices.html) | Rewrite MPG regression as a matrix calculation, then classify three Iris species. Introduce concatenation, tensor parameters, matrix multiplication, softmax, and multiclass cross-entropy. |
 | [5. When layers become a neural network](https://davbachman.github.io/NeuralCanvas/course/05-mlp.html) | Compare linear regression with a ReLU multilayer perceptron for predicting concrete strength. Investigate how a nonlinear hidden layer learns useful intermediate features. |
 | [6. When a straight boundary is not enough](https://davbachman.github.io/NeuralCanvas/course/06-rings.html) | Compare linear and MLP classifiers on three-class concentric rings, examining how nonlinear features change decision boundaries. |
+
+### Text representations and cross-attention
+
+| Assignment | What students explore |
+| --- | --- |
 | [7. What can word counts tell us?](https://davbachman.github.io/NeuralCanvas/course/07-word-counts.html) | Build a guided IMDb sentiment classifier, then independently adapt word-count classification to football-story questions. |
 | [8. Learn a compact representation of words](https://davbachman.github.io/NeuralCanvas/course/08-embeddings.html) | Preserve word order and compare one-hot inputs with learned word embeddings on football questions, using comparable parameter counts and training budgets. |
 | [9. Positional embeddings and separate questions](https://davbachman.github.io/NeuralCanvas/course/09-positional-embeddings.html) | Add learned story positions and a separate question encoder to an embedding MLP. Establish a baseline on the common football-question benchmark. |
 | [10. Let questions attend to story tokens](https://davbachman.github.io/NeuralCanvas/course/10-attention.html) | Replace the flattened story input with question-directed cross-attention. Compare accuracy and parameter count with the preceding MLP on the same football questions. |
+
+### Language generation and transformers
+
+| Assignment | What students explore |
+| --- | --- |
 | [11. Predict the next word](https://davbachman.github.io/NeuralCanvas/course/11-next-word.html) | Turn classification into generation with a football-narrative bigram model that predicts the next token from the preceding token. |
 | [12. Control how the model chooses words](https://davbachman.github.io/NeuralCanvas/course/12-sampling.html) | Explore temperature and probabilistic sampling while preserving the trained bigram model's parameters. Apply these generation choices to later language models. |
 | [13. Give the generator a longer memory](https://davbachman.github.io/NeuralCanvas/course/13-context.html) | Extend the bigram generator into a fixed-context MLP that uses an ordered sequence of embedded tokens to predict the next token. |
 | [14. Share attention across word positions](https://davbachman.github.io/NeuralCanvas/course/14-self-attention.html) | Replace the context MLP with self-attention, learned positions, and a causal mask so each token can attend to its available context. |
 | [15. Preserve and transform the representation](https://davbachman.github.io/NeuralCanvas/course/15-residuals.html) | Add an attention output projection, residual connections, and a shared feed-forward MLP to preserve and transform token representations. |
-| [16. Normalize the block and learn at every position](https://davbachman.github.io/NeuralCanvas/course/16-normalization.html) | Add layer normalization and train on next-token targets at every position. Make an unchanged-weight final-position evaluation copy for a comparable measurement. |
+| [16. Normalize the block and learn at every position](https://davbachman.github.io/NeuralCanvas/course/16-normalization.html) | Add layer normalization and train on next-token targets at every position. Evaluate the trained model at the final position to compare it with earlier generators. |
 | [17. Let attention build on attention](https://davbachman.github.io/NeuralCanvas/course/17-stacking.html) | Stack two independently parameterized transformer blocks so later attention can use already contextualized representations. Compare with the trained one-block model. |
 | [18. Give each block two attention patterns](https://davbachman.github.io/NeuralCanvas/course/18-multiple-heads.html) | Give each transformer block two independently learned attention heads while keeping the total feature width fixed. Keep the trained generator for the capstone. |
 | [19. Fine-tune your generator to answer questions](https://davbachman.github.io/NeuralCanvas/course/19-qa-finetuning.html) | Fine-tune the trained generator to predict answer tokens for football-story questions. Compare before and after fine-tuning, and with the earlier cross-attention model, on the common benchmark. |
 
-Learn more about [David Bachman](https://pzacad.pitzer.edu/~dbachman/) and his AI podcast, [*Entropy Bonus*](https://profbachman.substack.com/).
+## Reference
+
+| Topic | Guide |
+| --- | --- |
+| Workspace | [Canvas navigation and grouping](docs/CANVAS.md) · [Block reference](docs/BLOCKS.md) |
+| Model construction | [Build models from scratch](docs/BUILDING-MODELS.md) · [Example models and lessons](docs/EXAMPLES.md) |
+| Training and evaluation | [Training, testing, and reports](docs/TRAINING.md) |
+| Files and exports | [Save projects and export PyTorch models](docs/FILES-AND-EXPORT.md) |
+
+## Development
+
+The app uses React, TypeScript, and Vite. To run it locally from the repository root:
+
+```sh
+npm ci
+npm run dev
+```
+
+Use `npm run build` for a production build, `npm test` for tests, and `npm run lint` for lint checks. See the [development guide](docs/DEVELOPMENT.md) for model generation and data attribution, and [validation and scope](docs/VALIDATION.md) for verification coverage and model-size limits.
+
+## About
+
+Created by [David Bachman](https://pzacad.pitzer.edu/~dbachman/) with Codex. David also hosts the AI podcast [*Entropy Bonus*](https://profbachman.substack.com/).
