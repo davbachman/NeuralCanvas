@@ -89,6 +89,19 @@ describe('PyTorch export', () => {
     expect(exported.script).toContain(' * ')
   })
 
+  it('includes library CSV examples in the model export without requiring a local source file', () => {
+    const graph = customArithmeticGraph()
+    graph.nodes.find(node => node.type === 'dataset')!.params.datasetLibraryPreset = 'auto-mpg'
+    const exported = generatePyTorchExport(graph)
+    expect(exported.script).toContain('DATASET_FILE = "neural-canvas-dataset.json"')
+    expect(exported.script).not.toContain('csv.reader(source)')
+    const data = JSON.parse(exported.datasetFile!.content)
+    expect(data.examples).toHaveLength(4)
+    expect(data.examples[0]).toMatchObject({ features: [{ data: [1] }], target: { data: [2] } })
+    expect(exported.script).toContain('v_dataset_1_s0 = target')
+    expect(exported.script).toContain('v_dataset_1_s1 = features[0]')
+  })
+
   it('refuses incomplete builders with an actionable error', () => {
     expect(() => generatePyTorchExport(createEmptyGraph())).toThrow('Dataset block')
     const graph = createModelPreset('linear')

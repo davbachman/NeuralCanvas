@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { DATASET_MENU_OPTIONS, datasetExampleIndex, datasetExamples, datasetExamplesForNode, datasetForNode, datasetMode, datasetOutputLabelForSlot, datasetOutputValueForSlot } from '../domain/datasets'
 import { datasetInputPorts } from '../domain/datasetInputs'
 import { analyzeCustomCsv } from '../domain/customCsv'
+import { DATASET_LIBRARY } from '../domain/datasetLibrary'
 import { TextDatasetPanel } from './TextDatasetPanel'
 import { EditableBlockTitle } from './EditableBlockTitle'
 import type { CustomCsvData, DatasetKind, GraphModel, GraphNode, NodeParams } from '../domain/types'
@@ -15,9 +16,10 @@ interface Props {
   onDataset: (id: string, dataset: DatasetKind) => void
   onRename?: (id: string, label: string) => void
   onChooseCustomCsv?: (nodeId: string) => void
+  onBrowse?: (nodeId: string) => void
 }
 
-export function DatasetWorkbench({ graph, node, onParams, onDataset, onRename, onChooseCustomCsv }: Props) {
+export function DatasetWorkbench({ graph, node, onParams, onDataset, onRename, onChooseCustomCsv, onBrowse }: Props) {
   const dataset = datasetForNode(node), examples = datasetExamplesForNode(node)
   const index = datasetExampleIndex(node), mode = datasetMode(node)
   const [split, setSplit] = useState<'all' | 'train' | 'test'>('all')
@@ -36,8 +38,15 @@ export function DatasetWorkbench({ graph, node, onParams, onDataset, onRename, o
   const inputs = datasetInputPorts(graph).filter(port => port.nodeId === node.id)
     .sort((a, b) => a.sourceSlot - b.sourceSlot).map(port => datasetOutputLabelForSlot(node, port.sourceSlot))
   const image = dataset.kind === 'digits-8x8' ? datasetOutputValueForSlot(node, 0) : undefined
+  const libraryFamily = DATASET_LIBRARY.find(family => family.presets.some(preset => preset.id === node.params.datasetLibraryPreset))
+  const libraryPreset = libraryFamily?.presets.find(preset => preset.id === node.params.datasetLibraryPreset)
   return <section className="dataset-workbench" aria-label="Dataset configuration">
     <EditableBlockTitle key={node.id} label={node.label} onRename={onRename ? label => onRename(node.id, label) : undefined}/>
+    {libraryFamily && <p className="coordinate-note" aria-label="Library dataset"><strong>{libraryFamily.label}</strong> · {libraryPreset?.label}</p>}
+    <div className="dataset-library-entry">
+      <button type="button" onClick={() => onBrowse?.(node.id)}>Browse datasets…</button>
+      <button type="button" onClick={() => onDataset(node.id, 'custom-text')}>Import prepared JSON / text…</button>
+    </div>
     <label className="inspector-field">Source<select aria-label="Dataset selection" value={dataset.kind} onChange={event => onDataset(node.id, event.target.value as DatasetKind)}>
       {DATASET_MENU_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
     </select></label>

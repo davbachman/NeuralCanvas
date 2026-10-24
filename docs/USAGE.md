@@ -18,6 +18,12 @@ Open the [app](https://davbachman.github.io/NeuralCanvas/). It starts on a blank
 
 Both sidebars can be resized or collapsed. The **Dark** button in the top bar switches between light and dark themes; the browser remembers your choice. The clickable **Neural Canvas** title opens **About** and **Reference** (the online guide). **File** contains New, Save, Import, and PyTorch exports; **Edit** contains Undo, Copy, Paste, and Duplicate. **Randomize parameters** is in **Train**.
 
+To choose teaching data, add a Dataset block and open **Details → Browse datasets…**.
+The categorized library includes real datasets, synthetic examples, and configurable
+Football stories. **Custom data → Import prepared JSON or text…** opens the text
+importer; prepared JSON supplies its own settings. Existing **Text / sentiment…**
+and **Custom CSV…** source choices also remain available. See [Datasets](DATASETS.md).
+
 ## Build your first regression model
 
 For the quickest guided start, import [`linear.json`](../public/models/linear.json) and inspect its Dataset → Input → Param and arithmetic → Loss path. To assemble the same idea yourself:

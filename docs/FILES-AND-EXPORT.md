@@ -18,6 +18,11 @@ Use **Edit → Undo**, Copy, Paste, and Duplicate while building. The app does n
 
 Dataset rows are not embedded in the Python file or notebook. For an imported CSV, put the original CSV beside the downloaded file, keeping its filename and row order. For a built-in dataset, the app downloads `neural-canvas-dataset.json` alongside the model export. Keep both downloads in the same folder. The generated code loads the sibling dataset file before creating and running the model. In a notebook, run it with that folder as the working directory.
 
+Datasets selected from the dataset library also include
+`neural-canvas-dataset.json` with the Python/notebook export, including tabular
+library datasets originally stored as CSV. You do not need a separate local CSV
+to export a library dataset. The library has no separate dataset-download action.
+
 The generated program is a starting point for experiments outside the visual app. It includes a small training loop when the graph has a loss and emits evaluation results. The current **Train** settings carry over: batch size, reshuffling, epoch count, and reporting interval. At each report it evaluates training and held-out loss without updating parameters on the held-out examples, and plots both curves when Matplotlib is available. It is not a hosted training service or an export of the canvas layout.
 
 If you only want the guide, choose **Neural Canvas → Reference** in the app's top bar. It opens the GitHub README in a new tab.

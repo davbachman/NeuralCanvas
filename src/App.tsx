@@ -13,6 +13,7 @@ import { DatasetWorkbench } from './components/DatasetWorkbench'
 import { datasetExamplesForNode, datasetForNode, datasetMode } from './domain/datasets'
 import { parseCustomCsv } from './domain/customCsv'
 import { TextImportDialog } from './components/TextImportDialog'
+import { DatasetLibraryDialog } from './components/DatasetLibraryDialog'
 import type { TextDatasetData } from './domain/types'
 import { generatePyTorchExport } from './domain/pytorchExport'
 import { denseGroupDetail } from './domain/authoring'
@@ -283,6 +284,7 @@ function App({
     return () => window.clearTimeout(timeout)
   }, [exportNotice])
   const [textImportNode, setTextImportNode] = useState<string>()
+  const [datasetLibraryNode, setDatasetLibraryNode] = useState<string>()
   const [csvPickerOpen, setCsvPickerOpen] = useState(false)
   const importInputRef = useRef<HTMLInputElement | null>(null)
   const customCsvInputRef = useRef<HTMLInputElement | null>(null)
@@ -293,6 +295,7 @@ function App({
     pendingCustomCsvNodeId.current = undefined
     setCsvPickerOpen(false)
     setTextImportNode(undefined)
+    setDatasetLibraryNode(undefined)
     setImportError(undefined)
   }, [])
 
@@ -1066,12 +1069,12 @@ function App({
   )
 
   const applyDatasetSelection = useCallback(
-    (nodeId: string, dataset: DatasetKind, customCsv?: CustomCsvData, textData?: TextDatasetData) => {
+    (nodeId: string, dataset: DatasetKind, customCsv?: CustomCsvData, textData?: TextDatasetData, datasetLibraryPreset?: string) => {
       pushHistory()
       clearRecordedExecution()
       const updateNode = (node: GraphModel['nodes'][number]) => {
         if (node.id !== nodeId || node.type !== 'dataset') return node
-        const updated = { ...node, params: { ...node.params, dataset, customCsv, textData, trainPercent: undefined, datasetIndex: dataset === 'custom-csv' ? 1 : 0, datasetMode: dataset === 'custom-csv' ? 'batch' as const : node.params.datasetMode, datasetSplit: dataset === 'custom-csv' ? 'train' as const : node.params.datasetSplit, datasetValues: undefined, storyExperiment: undefined } }
+        const updated = { ...node, params: { ...node.params, dataset, customCsv, textData, datasetLibraryPreset, trainPercent: undefined, datasetIndex: dataset === 'custom-csv' ? 1 : 0, datasetMode: dataset === 'custom-csv' ? 'batch' as const : node.params.datasetMode, datasetSplit: dataset === 'custom-csv' ? 'train' as const : node.params.datasetSplit, datasetValues: undefined, storyExperiment: undefined } }
         const value = datasetOutputValueForSlot(updated, 0)
         return { ...updated, value, grad: zeroLike(value) }
       }
@@ -1298,7 +1301,7 @@ function App({
       ...graph,
       nodes: graph.nodes.map((node) =>
         node.id === nodeId
-          ? { ...node, params: { ...node.params, ...(('datasetIndex' in params || 'datasetSplit' in params || 'textData' in params) ? {storyExperiment: undefined, datasetValues: undefined} : {}), ...params } }
+          ? { ...node, params: { ...node.params, ...(('datasetIndex' in params || 'datasetSplit' in params || 'textData' in params) ? {storyExperiment: undefined, datasetValues: undefined} : {}), ...(('textData' in params || 'customCsv' in params || 'trainPercent' in params) ? { datasetLibraryPreset: undefined } : {}), ...params } }
           : node,
       ),
     })
@@ -1717,6 +1720,7 @@ function App({
       </div>}
 
       {textImportNode && <TextImportDialog onCancel={dismissPendingImports} onImport={data => { applyDatasetSelection(textImportNode, 'custom-text', undefined, data); setTextImportNode(undefined) }}/>}
+      {datasetLibraryNode && <DatasetLibraryDialog onClose={dismissPendingImports} onCustom={kind => updateDataset(datasetLibraryNode, kind)} onUse={selection => applyDatasetSelection(datasetLibraryNode, selection.dataset, selection.customCsv, selection.textData, selection.datasetLibraryPreset)}/>}
       <aside className="left-panel" aria-label="Build, train, and test sidebar">
         <div className="sidebar-heading">
           {leftOpen ? <div className="left-sidebar-tabs" role="tablist" aria-label="Left sidebar views">
@@ -2005,7 +2009,7 @@ function App({
             />}
             </Suspense>
           )}
-        {!selectedGroupId && !selectedEdgeId && graph.nodes.filter(node => node.type === 'dataset' && (selectedNodeId === node.id || (!selectedNodeId && (!graph.groups?.some(group => group.id === 'network') || Boolean(datasetForNode(node).examples))))).map(node => <DatasetWorkbench key={`${node.id}:${node.params.dataset}`} graph={graph} node={node} onParams={updateNodeParams} onDataset={updateDataset} onRename={selectedNodeId === node.id ? (id,label) => applyGraphChange({...graph,nodes:graph.nodes.map(candidate => candidate.id === id ? {...candidate,label} : candidate)}) : undefined} onChooseCustomCsv={id => updateDataset(id, 'custom-csv')} />) }
+        {!selectedGroupId && !selectedEdgeId && graph.nodes.filter(node => node.type === 'dataset' && (selectedNodeId === node.id || (!selectedNodeId && (!graph.groups?.some(group => group.id === 'network') || Boolean(datasetForNode(node).examples))))).map(node => <DatasetWorkbench key={`${node.id}:${node.params.dataset}`} graph={graph} node={node} onParams={updateNodeParams} onDataset={updateDataset} onBrowse={id => { cancelActiveRun(); dismissPendingImports(); setDatasetLibraryNode(id) }} onRename={selectedNodeId === node.id ? (id,label) => applyGraphChange({...graph,nodes:graph.nodes.map(candidate => candidate.id === id ? {...candidate,label} : candidate)}) : undefined} onChooseCustomCsv={id => updateDataset(id, 'custom-csv')} />) }
         {(selectedGroup || (selectedNodeIds.length > 0 && inspectedNode?.type !== 'dataset')) && <ModelInspector
           graph={graph}
           node={inspectedNode}

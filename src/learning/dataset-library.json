@@ -1,0 +1,146 @@
+{
+  "auto-mpg": {
+    "file": "mpg.csv",
+    "sha256": "071580c80dadb5c2ce1f1e8d9253921f57df517ff019b57de70118436a346851",
+    "sourceRecords": {
+      "train": 318,
+      "test": 80
+    }
+  },
+  "auto-mpg-small": {
+    "file": "mpg-regularization.csv",
+    "sha256": "687a2564b2d6244599637b4747f06d48925e62d176cb01c8609f5396e5974836",
+    "sourceRecords": {
+      "train": 24,
+      "test": 80
+    }
+  },
+  "breast-cancer": {
+    "file": "breast-cancer.csv",
+    "sha256": "da04f1823ac15474be0f7978538e3dfcbc423ed2045cb7a3ac11ac50142a7ef8",
+    "sourceRecords": {
+      "train": 456,
+      "test": 113
+    }
+  },
+  "iris": {
+    "file": "iris.csv",
+    "sha256": "91fa34837beec0f1d8641969a1c784c59214e6ef6a3ce582d0a6bdf0b3d0e83d",
+    "sourceRecords": {
+      "train": 120,
+      "test": 30
+    }
+  },
+  "concrete": {
+    "file": "concrete.csv",
+    "sha256": "9db6f90a305b9ab79ae2d25ae63e26935123d7d478996b2f105a3ae162e7c6b5",
+    "sourceRecords": {
+      "train": 828,
+      "test": 202
+    }
+  },
+  "rings": {
+    "file": "rings.csv",
+    "sha256": "1b89a85df24ffa1b6809388e607a40bfa7705a84c4065fb47b3c9a609d642c85",
+    "sourceRecords": {
+      "train": 600,
+      "test": 300
+    }
+  },
+  "imdb": {
+    "file": "imdb.json",
+    "sha256": "e049d3a5a9876fa614bb0a6107f53af32380e48b83ce1158d3be4da99c0fe079",
+    "sourceRecords": {
+      "train": 1200,
+      "test": 400
+    }
+  },
+  "football-counts": {
+    "file": "football-counts.json",
+    "sha256": "c510903cc7ac6efb40a66290b0745e9a0bb205b2df2bce051ba425c620ae52f3",
+    "sourceRecords": {
+      "train": 480,
+      "test": 240
+    }
+  },
+  "football-tokens": {
+    "file": "football-tokens.json",
+    "sha256": "0beeff26f5bada0e91340f246397c44f748d3282dfafcc338c374bd3eb85a5f7",
+    "sourceRecords": {
+      "train": 480,
+      "test": 240
+    }
+  },
+  "football-mixed": {
+    "file": "stories.json",
+    "sha256": "0380ce7ffd8f26b9ffc580eaf3dc0b275bdde92fa03c43db8f33161d685fcd22",
+    "sourceRecords": {
+      "train": 3840,
+      "test": 1920
+    }
+  },
+  "football-benchmark": {
+    "file": "football-test.json",
+    "sha256": "1faddcf1525876a0fb98aa4b9b01bd2b711f1f26db4293578e6934959296f626",
+    "sourceRecords": {
+      "train": 3840,
+      "test": 240
+    }
+  },
+  "narrative-last": {
+    "file": "football-narratives-last.json",
+    "sha256": "627cdfb9b675ee7be42430156f5561f6142c2b31cfad0de23f79f88708a6cc1c",
+    "sourceRecords": {
+      "train": 30,
+      "test": 15
+    }
+  },
+  "narrative-all": {
+    "file": "football-narratives-all.json",
+    "sha256": "5a2cfe35717add8fb12445e3e9cc5b3572989107e6e22c9decd63ec1401feaec",
+    "sourceRecords": {
+      "train": 30,
+      "test": 15
+    }
+  },
+  "football-qa": {
+    "file": "story-questions.json",
+    "sha256": "3877e63c81f63ab51f814d3c7a5e578184b437d526950f82d88c6ca2d59b3708",
+    "sourceRecords": {
+      "train": 3840,
+      "test": 240
+    }
+  },
+  "wine": {
+    "file": "wine.csv",
+    "sha256": "1ec99ed33c251dd1afc87144ce7580ce61666ce2faedcb113f8332ffaed2ea52",
+    "sourceRecords": {
+      "train": 142,
+      "test": 36
+    }
+  },
+  "diabetes": {
+    "file": "diabetes.csv",
+    "sha256": "e497d4b1964fe241ef87de92fa84abb036ec696955e843b2559cfebed8509e25",
+    "sourceRecords": {
+      "train": 354,
+      "test": 88
+    }
+  },
+  "penguins": {
+    "file": "penguins.csv",
+    "sha256": "4bf286a5728f80a79f2ca0863b33aeff2e7d91aaf6df0b2429f8b0c5f6aa8b1c",
+    "sourceRecords": {
+      "train": 273,
+      "test": 69
+    }
+  },
+  "california-housing": {
+    "file": "california-housing.csv",
+    "sha256": "0ed39e2d57d20014a92029b410f3e9d3c92382742a890b1bba5fe56282c061e2",
+    "sourceRecords": {
+      "train": 16346,
+      "test": 4087
+    }
+  }
+}

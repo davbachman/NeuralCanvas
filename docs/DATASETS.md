@@ -6,6 +6,50 @@ Add a **Dataset** block and choose its **Source** on the block or in **Details**
 
 Selecting a dataset shows its **Train / test split**, **Examples**, and, where applicable, **Output mode** in Details. The **Data** tab lets you browse all dataset rows, see which split each row belongs to, and inspect the values currently flowing from each output column. **One example** is useful for tracing a calculation. **Numeric batch** sends an entire numeric split through the graph. Image and token-sequence sources provide complete tensor examples one at a time. Changing the selected example changes what you inspect on the canvas; multi-epoch training still uses the training split, and **Test → Run inference** evaluates the selected test or training split without updating weights.
 
+## Browse the dataset library
+
+Select a Dataset block, open **Details**, and click **Browse datasets…**. The
+library groups real datasets and all existing built-in examples into Regression,
+Classification, Text and sequences, Images, and Attention and probabilities.
+Search by name or learning task, then open a dataset family. Its preview shows
+an input and target, output names and shapes per example, split counts, and
+source/preparation notes. **Use this dataset** replaces the selected block's data;
+it preserves your model operations and learned parameters. Existing target wires
+are remapped to the new target output. Check shapes when changing tasks. Undo can
+restore the previous dataset.
+
+Real-data families include Auto MPG (full and small-training variants), Concrete
+strength, Breast cancer measurements, Iris, Movie reviews, Wine, Diabetes,
+Palmer penguins, and California housing. Concentric rings and Football stories
+are synthetic. Existing line/cubic/plane, decision boundaries, digits, token
+patterns, attention messages, and class-score examples are also in the library.
+Data files load only when selected, and are embedded in the saved project.
+
+**Football stories** offers named presets plus task-specific controls:
+
+- **Continue stories** contains no questions. Choose one final-position target
+  or a next-token target at every input position; story text and splits match.
+- **Answer questions** offers football-location-only training/evaluation, mixed
+  questions throughout, or mixed training with football-only evaluation.
+- **Model inputs and prediction** offers supported combinations of word counts,
+  ordered tokens, separate story/question inputs and masks, or a combined
+  story/question sequence with an answer-token target. Presets preserve their
+  declared vocabulary, lengths, answer mapping, and split.
+
+Mixed questions ask where the football, Liam, and Nora are, and who holds the
+football. A benchmark with football-only evaluation still has mixed training
+questions. The answer-token preset uses the same examples as that benchmark and
+excludes the answer from its input. Read the preview before changing formats.
+
+For custom files, choose **Custom data** in the library, then **Import prepared
+JSON or text…** or **Import numeric CSV…**. The direct **Import prepared JSON /
+text…** button and the existing **Text / sentiment…** and **Custom CSV…** source
+choices remain available. Prepared JSON supplies its own settings; no importer
+controls need changing. Numeric CSV, custom text, and saved-project imports retain
+their existing formats. **File → Import** opens a saved model, not a dataset file.
+
+See [dataset sources and exact preparations](../public/datasets/README.md).
+
 ## Included sources
 
 | Family | Sources and use |

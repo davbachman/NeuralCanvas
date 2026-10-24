@@ -253,6 +253,7 @@ function isNodeParams(value: unknown): value is NodeParams {
     (value.dataset === undefined || isDatasetKind(value.dataset as DatasetKind)) &&
     (value.customCsv === undefined || isCustomCsvData(value.customCsv)) &&
     (value.textData === undefined || isTextDatasetData(value.textData)) &&
+    (value.datasetLibraryPreset === undefined || (typeof value.datasetLibraryPreset === 'string' && value.datasetLibraryPreset.length <= 160)) &&
     (value.dataset !== 'custom-text' || isTextDatasetData(value.textData)) &&
     (value.numClasses === undefined || (isNonNegativeInteger(value.numClasses) && Number(value.numClasses) >= 2 && Number(value.numClasses) <= 8192)) &&
     (value.dataset !== 'custom-csv' || isCustomCsvData(value.customCsv)) &&

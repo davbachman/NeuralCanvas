@@ -1,0 +1,2 @@
+# Keep curated/source CSV bytes stable, including their original line endings.
+*.csv -text whitespace=cr-at-eol

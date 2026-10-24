@@ -113,6 +113,8 @@ export interface NodeParams {
   regularizationStrength?: number
   regularizationParameterIds?: string[]
   dataset?: DatasetKind
+  /** Optional library provenance; data remains embedded and self-contained. */
+  datasetLibraryPreset?: string
   customCsv?: CustomCsvData
   textData?: TextDatasetData
   numClasses?: number

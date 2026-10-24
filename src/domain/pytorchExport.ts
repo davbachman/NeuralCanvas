@@ -136,7 +136,9 @@ export function generatePyTorchExport(graph: GraphModel, options: PyTorchExportO
   const reportEvery = options.reportEvery ?? 1
   if (!Number.isInteger(trainingEpochs) || trainingEpochs < 0 || !Number.isInteger(reportEvery) || reportEvery < 1) throw new Error('Choose positive whole-number training and reporting settings before exporting.')
   const targetSlot = datasetTargetSlotForNode(datasetNode)
-  const customCsv = datasetNode.params.dataset === 'custom-csv' ? datasetNode.params.customCsv : undefined
+  // Library users have not selected a local CSV file. Export its numerical data
+  // alongside the model, just as for other included sources.
+  const customCsv = datasetNode.params.dataset === 'custom-csv' && !datasetNode.params.datasetLibraryPreset ? datasetNode.params.customCsv : undefined
   const countData = datasetNode.params.dataset === 'custom-text' && datasetNode.params.textData?.representation === 'counts'
     ? datasetNode.params.textData : undefined
   const vocabularyIndices = new Map(countData?.vocabulary.map((token, index) => [token, index]))
