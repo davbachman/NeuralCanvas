@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assignment 4: From weighted sums to matrix models · Neural Canvas</title>
+  <style>
+    body { margin: 0 auto; padding: 1.25rem; max-width: 960px; color: #20242c; background: #fff; font-family: sans-serif; line-height: 1.6; }
+    nav { margin-bottom: 1.5rem; }
+    a { color: #244c9b; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Course navigation"><a href="../">Open Neural Canvas</a> · <a href="https://github.com/davbachman/NeuralCanvas#course-assignments">All course assignments</a></nav>
+  <main>
+<div style="max-width:960px;line-height:1.6;font-family:sans-serif">
+<h2>Assignment 4: From weighted sums to matrix models</h2>
+<p>Build two models in <a href="https://davbachman.github.io/NeuralCanvas/" target="_blank" rel="noopener">Neural Canvas</a>. First express the familiar two-feature MPG regression as a matrix calculation. Then give the matrix three output columns to classify Iris flowers. You will use concatenation, tensor Params, matrix multiplication, logits, softmax, and multiclass cross-entropy.</p>
+<h3>Before you begin: rows, columns, and batches</h3>
+<p>A batch contains <strong>B examples</strong>. A feature matrix has one row per example and one column per feature. Multiplying a B-by-d matrix by a d-by-c weight matrix gives B-by-c outputs. The inner dimensions must match. A Param can store an entire learned matrix: its entries are separate trainable numbers, even though they share one block.</p>
+<p>For two features and one output, <strong>Xw + b</strong> computes exactly the same predictions as <strong>w&#8321;u + w&#8322;v + b</strong>. Matrix notation changes the organization, not the model's expressive power.</p>
+<h3>Part A: Rebuild MPG regression with a matrix &#8212; 40 points</h3>
+<p>Start a new project and add a Dataset block.</p><p data-library-preset="auto-mpg" data-library-file="mpg.csv">Select your Dataset block and open <strong>Details → Browse datasets…</strong>. Choose <strong>Regression</strong> → <strong>Auto MPG</strong>. Set <strong>Configuration</strong> to <strong>Full sample</strong>. Click <strong>Use this dataset</strong>. Keep the supplied data and split unchanged.</p><p> This is the same dataset and fixed split as Assignment 1: <strong>318 training rows and 80 validation rows</strong>. Confirm <strong>Regression</strong>, with <code>mpg</code> as the target. Use <code>weight_lb</code> and <code>model_year</code> as inputs; keep all rows, columns, and split labels unchanged.</p>
+<ol>
+<li>Set the Dataset output mode to <strong>Numeric batch</strong> and Rows to <strong>Training</strong>.</li>
+<li>Add <strong>Concatenate</strong>. Set Axis to <code>1</code> and input count to <code>2</code>. Connect the Dataset's <code>weight_lb</code> output first, then <code>model_year</code>. Concatenate treats each length-B vector as a B-by-1 column automatically, producing a B-by-2 matrix. No feature reshapes are needed; axis 0 would join the vectors end to end instead.</li>
+<li>Connect Concatenate to one <strong>Standardize features</strong> block. In Details, click <strong>Fit on training rows</strong>. Confirm 318 observations and two fitted means/scales: each column is standardized independently using training data. Call this block's output <strong>X</strong>. Keep these statistics fixed during training and validation.</li>
+<li>Add a <strong>Param</strong> for <strong>w</strong>. In Details, choose the <code>uniform</code> initializer, enter Shape <code>2, 1</code>, and press <strong>Enter</strong> in the Shape field to initialize the tensor. Check that two values appear.</li>
+<li>Add <strong>Matrix product</strong>: connect X to its first input and w to its second. The result has shape B-by-1.</li>
+<li>Add a second Param, a <strong>scalar bias b</strong> initialized to 0. Add it to the product with <strong>Arithmetic</strong> addition. Connect the product first and b second; use the addition expression shown for those inputs (the underlying operation is <code>x1 + x2</code>). The same scalar is added to every example.</li>
+<li>Reshape the Dataset's <code>mpg</code> output to <code>-1, 1</code> with a Tensor transform. The <code>-1</code> infers the row count, so this works for both 318 training rows and 80 validation rows. Connect predictions and this target column to the first and second inputs of <strong>Loss &#8594; Mean squared error</strong>, respectively. Choose <strong>Penalty: None</strong>. Do not standardize the target. Matching the B-by-1 prediction and target shapes avoids unintended broadcasting.</li>
+<li>Train with the settings below, evaluate both splits, and save with <strong>File &#8594; Save</strong> as <code>matrix_regression.json</code>.</li>
+</ol>
+<p>Compare with your earlier two-feature regression. The fitted predictions and errors should be very similar. Do not expect matrix multiplication alone to improve accuracy.</p>
+<h3>Part B: Three-class Iris classification &#8212; 60 points</h3>
+<p>Start a separate project and add a Dataset block.</p><p data-library-preset="iris" data-library-file="iris.csv">Select your Dataset block and open <strong>Details → Browse datasets…</strong>. Choose <strong>Classification</strong> → <strong>Iris flowers</strong>. Click <strong>Use this dataset</strong>. Keep the supplied data and split unchanged.</p><p> It contains 150 real flowers, with <strong>120 training and 30 validation rows</strong>: 40 training and 10 validation examples of each species. Confirm <strong>Multiclass classification</strong>, with <code>species</code> as the target. The app orders the labels as <strong>setosa = 0, versicolor = 1, virginica = 2</strong>. Keep all labels and split assignments unchanged.</p>
+<ol>
+<li>Set Numeric batch / Training. Connect the four Dataset feature outputs directly to <strong>Concatenate</strong>, with Axis <code>1</code> and input count <code>4</code>, in this exact order: <strong>sepal_length_cm, sepal_width_cm, petal_length_cm, petal_width_cm</strong>. It automatically treats the vectors as columns, producing a B-by-4 matrix without feature reshapes. All measurements are in centimeters.</li>
+<li>Connect the matrix to one <strong>Standardize features</strong> block and click <strong>Fit on training rows</strong>. Confirm <strong>120 training observations</strong> and four fitted means/scales. Each column is standardized independently. Call the output <strong>X</strong>; its shape remains B-by-4. Keep the fitted statistics fixed during training and validation.</li>
+<li>Create a weight Param <strong>W</strong>. Choose the <code>uniform</code> initializer, enter Shape <code>4, 3</code>, and press <strong>Enter</strong> in the Shape field; confirm 12 values. Connect X and W to Matrix product. Each of W's three columns supplies weights for one class.</li>
+<li>Create a bias Param <strong>b</strong>. Choose the <code>zeros</code> initializer, enter Shape <code>3</code>, and press <strong>Enter</strong> in the Shape field; confirm three zeros. Add it to XW using Arithmetic addition. The bias vector broadcasts across the batch: one bias per class, reused for every flower.</li>
+<li>The resulting B-by-3 values are <strong>logits</strong>: unrestricted class scores, not probabilities. Connect them directly to <strong>Loss &#8594; Cross entropy (logits)</strong>. Connect the Dataset's <code>species</code> output directly to the second Loss input. Leave the target as a length-B vector of class IDs; do not one-hot encode, standardize, or reshape it into three columns. Choose Penalty: None.</li>
+<li>Branch the logits into a <strong>Softmax</strong> block to inspect probabilities. Keep the original logits-to-Loss connection. <strong>Do not put Softmax between the logits and Cross entropy (logits)</strong>: that loss already includes the softmax calculation.</li>
+<li>Train, evaluate both splits, and save as <code>iris.json</code>.</li>
+</ol>
+<p>Softmax converts a row of scores z into probabilities <strong>p&#11388; = exp(z&#11388;) / &#931;&#8342; exp(z&#8342;)</strong>. A row's three probabilities sum to 1. Cross-entropy is the mean of <strong>&#8722;log(p of the true class)</strong>, using natural logarithms. The predicted species is the class with the largest logit, equivalently the largest softmax probability. Unlike binary classification, there is no separate 0.5 threshold for each class.</p>
+<h3>Shape checklist</h3>
+<table style="border-collapse:collapse;width:100%">
+<thead><tr><th scope="col">Quantity</th><th scope="col">MPG regression</th><th scope="col">Iris classification</th></tr></thead>
+<tbody><tr><td>Standardized feature matrix X</td><td>B &#215; 2</td><td>B &#215; 4</td></tr><tr><td>Weight Param</td><td>2 &#215; 1</td><td>4 &#215; 3</td></tr><tr><td>Bias Param</td><td>Scalar</td><td>Vector of length 3</td></tr><tr><td>Prediction / logits</td><td>B &#215; 1</td><td>B &#215; 3</td></tr><tr><td>Target into Loss</td><td>B &#215; 1</td><td>Vector of length B</td></tr></tbody>
+</table>
+<p>Concatenate the feature vectors first, then standardize the resulting matrix with one block. Each column gets its own training-fitted mean and scale. Only the MPG target needs an explicit reshape to match its B-by-1 predictions; leave the Iris target as a vector. Input and Target alias blocks are not required.</p>
+<h3>Training and evaluation</h3>
+<p>For both models, in <strong>Train &#8594; Training execution</strong>, change the default Tensor engine to <strong>Trace engine &#183; SGD</strong>. Use no loss penalty. Use the initializers specified above and these full-batch settings:</p>
+<table style="border-collapse:collapse;width:100%">
+<thead><tr><th scope="col">Model</th><th scope="col">Learning rate</th><th scope="col">Examples per update</th><th scope="col">Epochs</th><th scope="col">Report every</th></tr></thead>
+<tbody><tr><td>MPG</td><td>0.05</td><td>318</td><td>1,000</td><td>500 epochs</td></tr><tr><td>Iris</td><td>0.1</td><td>120</td><td>2,000</td><td>500 epochs</td></tr></tbody>
+</table>
+<p>Use <strong>Train &#8594; Run epochs</strong>. Consecutive runs continue training unless you reset parameters. Open <strong>Reporting</strong> for loss history: it updates at epoch 0 and at the chosen reporting interval. Use <strong>Test &#8594; Held-out test set &#8594; Run inference</strong> to evaluate validation data; choose Training set to evaluate training data. Here &#8220;held-out test&#8221; is validation because we use it to compare models. There is no hidden performance set.</p>
+<p>The MPG model has two inputs and supports a simple model visualization. The Iris model uses four inputs, so no simple input-output plot is expected; use its loss history, inference results, and accuracy. After held-out inference, select Softmax and open <strong>Data</strong>. Keep <strong>Inspection context</strong> on held-out inference and use the arrows beside <strong>Examples</strong> to browse all evaluated rows. Match the original <strong>Dataset row</strong> numbers to the prediction report. Compare each probability row's largest entry with its predicted species, and check that the probabilities sum to 1. This exploration requires no written response. The probability branch is for inspection and is not separately graded.</p>
+<h3>Grading and submission</h3>
+<p>Part A awards 5 points for the saved model and dataset, 20 for the assigned matrix model and scaling, 10 for training MSE, and 5 for validation MSE. Part B awards 5 for file/data, 30 for matrix model/scaling, 10 each for training and validation cross-entropy, and 5 for validation accuracy. Performance credit requires the assigned matrix construction. All cutoffs below are inclusive.</p>
+<table style="border-collapse:collapse;width:100%">
+<thead><tr><th scope="col">Model</th><th scope="col">Training loss &#8804;</th><th scope="col">Validation loss &#8804;</th><th scope="col">Validation accuracy &#8805;</th></tr></thead>
+<tbody><tr><td>MPG (MSE)</td><td>14</td><td>10</td><td>Not applicable</td></tr><tr><td>Iris (cross-entropy)</td><td>0.15</td><td>0.25</td><td>90% (at least 27/30)</td></tr></tbody>
+</table>
+<p>Submit only <strong>matrix_regression.json</strong> and <strong>iris.json</strong>, not a ZIP or screenshots. Reopen each with File &#8594; Import to verify its saved data and parameters. The grader recomputes outputs from the saved graph and parameters; reported losses and cached predictions do not determine the score. Each part is independent and you may resubmit.</p>
+<p>Use one Dataset and one Loss per model, one learned weight matrix directly connected to Matrix product's second input, and one separate bias Param with the shapes specified above. Use Concatenate in the prediction path and the prescribed feature order and training-fitted scaling. Do not replace the matrix Param with separate scalar weights, add extra trainable layers, powers, or other features. Renamed blocks, visual groups, and optional Input/Target aliases are accepted. Keep at most 100 blocks, 200 wires, and 64 values in any Param tensor.</p>
+<p style="font-size:0.9em">Version: matrices-04-v1. MPG: R. Quinlan, Auto MPG, UCI, DOI 10.24432/C5859H; the issued Assignment 1 data and split are reused unchanged. Iris: R. A. Fisher, Iris, UCI, DOI 10.24432/C56C76; raw measurements and labels from scikit-learn 1.5.2 with a reproducible stratified split. Both datasets are provided under CC BY 4.0.</p>
+</div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assignment 6: When a straight boundary is not enough · Neural Canvas</title>
+  <style>
+    body { margin: 0 auto; padding: 1.25rem; max-width: 960px; color: #20242c; background: #fff; font-family: sans-serif; line-height: 1.6; }
+    nav { margin-bottom: 1.5rem; }
+    a { color: #244c9b; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Course navigation"><a href="../">Open Neural Canvas</a> · <a href="https://github.com/davbachman/NeuralCanvas#course-assignments">All course assignments</a></nav>
+  <main>
+<div style="max-width:960px;line-height:1.6;font-family:sans-serif">
+<h2>Assignment 6: When a straight boundary is not enough</h2>
+<p>Build a linear classifier and a multilayer perceptron (MLP) in <a href="https://davbachman.github.io/NeuralCanvas/" target="_blank" rel="noopener">Neural Canvas</a>. This exercise brings together classification and MLPs from earlier assignments, focusing on how to interpret their decision boundaries. Both receive the same two coordinates. Can adding a nonlinear hidden layer separate points that a straight decision boundary cannot?</p>
+<h3>The data</h3>
+<p>Add a Dataset block.</p><p data-library-preset="rings" data-library-file="rings.csv">Select your Dataset block and open <strong>Details → Browse datasets…</strong>. Choose <strong>Classification</strong> → <strong>Concentric rings</strong>. Click <strong>Use this dataset</strong>. Keep the supplied data and split unchanged.</p><p> These synthetic points form two rings with <strong>three classes: 0 = lower half of the outer ring, 1 = upper half of the outer ring, and 2 = the entire inner ring</strong>. The library supplies <strong>Multiclass classification</strong> with <code>class</code> as the target. Keep the supplied split of <strong>600 training and 300 held-out examples</strong>: 200 training and 100 held-out points per class.</p>
+<p>Use Numeric batch mode and Training examples. Concatenate the raw columns <code>x1</code> then <code>x2</code> on axis <code>1</code> to form X. Both coordinates already have comparable scales; use them directly without standardization. Do not add squared terms, a radius, or other engineered features: the hidden layer should learn the useful features.</p>
+<h3>Part A: Linear classifier — 40 points</h3>
+<p>Build <strong>logits = XW + b</strong>, with <strong>three outputs</strong>, one score for each class. Determine the matrix and bias-vector shapes from the two inputs and three outputs. Initialize W with Xavier and b with Zeros.</p>
+<p>Use <strong>Cross entropy (logits)</strong>, with logits connected directly to Loss and the Dataset's class label connected directly to the target input. Add a separate <strong>Softmax</strong> branch to inspect the three probabilities in its Data tab. This is the multiclass setup from Assignment 4; do not select binary cross-entropy or put Softmax before Loss.</p>
+<p>Train with the settings below and save as <strong>linear.json</strong>. Expect limited accuracy: straight decision boundaries cannot cleanly separate all three regions. A loss near 0.53 can be a correctly trained baseline, not a wiring mistake.</p>
+<h3>Part B: MLP classifier — 60 points</h3>
+<p>Build a new model with <strong>16 hidden units</strong>:</p>
+<p><strong>H = ReLU(XW₁ + b₁)</strong><br><strong>logits = HW₂ + b₂</strong></p>
+<p>Determine the parameter shapes. Use separate Params for both layers, Xavier matrices, and zero bias vectors. Keep the same raw inputs, three output scores, cross-entropy Loss, and separate Softmax branch. Train and save as <strong>mlp.json</strong>.</p>
+<h3>Train and compare</h3>
+<p>For both models, use <strong>Tensor engine · minibatches</strong> in Train. Change <strong>Backend</strong> from Auto to <strong>Tensor CPU</strong> and <strong>Optimizer</strong> from Adam to <strong>SGD</strong>. Set learning rate <strong>0.1</strong>, <strong>32 examples per update</strong>, and <strong>100 epochs</strong>. Enable <strong>Reshuffle training examples each epoch</strong> and report every <strong>10 epochs</strong>. Use no loss penalty. Change <strong>Gradient norm limit</strong> to <strong>0</strong>; leave <strong>Early stopping patience</strong> at <strong>0</strong>. Check these settings when reopening an older saved model, too.</p>
+<p>Compare the decision regions in <strong>Reporting</strong>, then use <strong>Test → Held-out test set → Run inference</strong> to compare loss and accuracy. Inspect probabilities using the Softmax block's <strong>Data</strong> tab in the held-out inference context. Browse with the arrows beside <strong>Examples</strong> and match <strong>Dataset row</strong> numbers to the prediction report. How does the MLP's boundary differ from the linear model's? Why would adding another linear layer without ReLU fail to solve the problem? Discuss these questions in class; no written responses are required.</p>
+<table style="border-collapse:collapse;width:100%" border="1" cellpadding="8">
+<caption>Full-credit performance thresholds</caption>
+<thead><tr><th scope="col">Model</th><th scope="col">Training cross-entropy</th><th scope="col">Held-out cross-entropy</th><th scope="col">Held-out accuracy</th></tr></thead>
+<tbody><tr><th scope="row">Linear</th><td>≤ 0.56</td><td>≤ 0.57</td><td>Reported, not graded</td></tr><tr><th scope="row">MLP</th><td>≤ 0.08</td><td>≤ 0.10</td><td>≥ 97%</td></tr></tbody></table>
+<p>Different initializations can give different results. If the MLP falls short, check its architecture and training settings before adding epochs. The held-out split serves as validation while you tune the models.</p>
+<h3>Submit</h3>
+<p>Upload <strong>linear.json</strong> and <strong>mlp.json</strong>, downloaded using File → Save. Keep the probability branches in both saved models. No screenshots or written responses are required.</p>
+<p>Linear: 5 points for the saved model and original data, 20 for model form, 10 for training loss, and 5 for held-out loss. MLP: 5 for file/data, 25 for model form, and 10 each for training loss, held-out loss, and held-out accuracy. Performance credit requires the assigned architecture. The grader recomputes predictions from saved parameters.</p>
+<h3>Optional extension: handwritten digits</h3>
+<p>In a separate copy, try transferring the same comparison to handwritten digits.</p><p data-library-preset="digits-8x8" data-library-file="digits-8x8">Select your Dataset block and open <strong>Details → Browse datasets…</strong>. Choose <strong>Images</strong> → <strong>Handwritten digits</strong>. Click <strong>Use this dataset</strong>. Keep the supplied data and split unchanged.</p><p> Its pixels are already scaled to [0,1]. Reshape each image to <code>1, 64</code>, use ten output scores, and try 32 hidden units for the MLP. Compare accuracy and cross-entropy: a more expressive model need not improve accuracy when the linear baseline is already strong. This extension is not submitted or graded.</p>
+<p><small>Assignment version: rings-06-v3. Synthetic data generated for this course with seed 20261007. This replaces the earlier digits and binary-rings versions of Assignment 6; submit models trained on the Concentric rings dataset.</small></p>
+</div>
+  </main>
+</body>
+</html>

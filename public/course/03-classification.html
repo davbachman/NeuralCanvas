@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assignment 3: From scores to probabilities · Neural Canvas</title>
+  <style>
+    body { margin: 0 auto; padding: 1.25rem; max-width: 960px; color: #20242c; background: #fff; font-family: sans-serif; line-height: 1.6; }
+    nav { margin-bottom: 1.5rem; }
+    a { color: #244c9b; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Course navigation"><a href="../">Open Neural Canvas</a> · <a href="https://github.com/davbachman/NeuralCanvas#course-assignments">All course assignments</a></nav>
+  <main>
+<div style="max-width: 960px; line-height: 1.6; font-family: sans-serif;">
+<h2>Assignment 3: From scores to probabilities</h2>
+<p>In <a href="https://davbachman.github.io/NeuralCanvas/" target="_blank" rel="noopener">Neural Canvas</a>, build two binary classifiers. You will train linear scores (logits) with binary cross-entropy, interpret them as probabilities using sigmoid, and distinguish probability quality from decisions made at a threshold.</p>
+<h3>Data and labels</h3>
+<p>Use <strong>Breast cancer measurements</strong> from the dataset browser. It contains 569 observations from the <a href="https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic">Wisconsin Diagnostic Breast Cancer dataset</a>: <strong>456 training rows and 113 validation rows</strong>. The two inputs are <code>mean_radius</code> (mean cell-nucleus radius) and <code>mean_texture</code> (variation in grayscale values within the image). The target <code>malignant</code> is <strong>0 for benign and 1 for malignant</strong>. These are measurements from cell-nucleus images, not patient ages or tumor stages.</p>
+<p>Add a Dataset block.</p><p data-library-preset="breast-cancer" data-library-file="breast-cancer.csv">Select your Dataset block and open <strong>Details → Browse datasets…</strong>. Choose <strong>Classification</strong> → <strong>Breast cancer measurements</strong>. Click <strong>Use this dataset</strong>. Keep the supplied data and split unchanged.</p><p>Confirm <strong>binary classification</strong> with <code>malignant</code> as the target. Keep all rows, columns, and split labels unchanged. The app calls the other split &#8220;Held-out test set&#8221;; here it serves as <strong>validation data</strong> because we use it to compare models. No hidden performance set determines your grade.</p>
+<h3>Part A: One-feature logistic classifier &#8212; 50 points</h3>
+<ol>
+<li>Connect the Dataset's <code>mean_radius</code> output directly to a <strong>Standardize features</strong> block. In Details, click <strong>Fit on training rows</strong> and confirm 456 observations. Call the output <strong>u</strong>. Leave <code>mean_texture</code> unused.</li>
+<li>Use separate scalar Param blocks and Arithmetic blocks to build the linear score <strong>z = w&#8321;u + b</strong>. You can use <code>x1 * x2</code> for a product and <code>x1 + x2</code> for a sum.</li>
+<li>Add a separate branch to inspect probabilities: connect z to an <strong>Activation</strong> block set to <strong>sigmoid</strong>. Its output is <strong>p = 1 / (1 + exp(&#8722;z))</strong>, interpreted as the model's estimated probability of class 1 (malignant). After running the model, select this Sigmoid block and open its <strong>Data</strong> tab to inspect the probabilities. Keep this branch in your saved model.</li>
+<li>Connect <strong>z directly</strong> to the first input of a <strong>Loss</strong> block set to <strong>Binary cross entropy (logits)</strong>. This loss includes sigmoid internally: <strong>do not connect the separate sigmoid output to Loss</strong>. Connect the Dataset's <code>malignant</code> output directly to the Loss block's second input. Choose <strong>Penalty: None</strong>. Do not standardize the target.</li>
+<li>Train with the settings below, evaluate both splits, and use <strong>File &#8594; Save</strong>. Rename the downloaded file <code>one_feature.json</code>.</li>
+</ol>
+<p>Binary cross-entropy is <strong>&#8722;mean[y log(p) + (1&#8722;y) log(1&#8722;p)]</strong>, where p = sigmoid(z), using natural logarithms. The logits Loss computes this directly from z in a numerically stable way. Smaller is better. A confidently wrong prediction is penalized more heavily than a tentative wrong prediction. Do not use MSE, multiclass cross-entropy, or the raw linear score as the probability.</p>
+<h3>Part B: Add a second feature &#8212; 50 points</h3>
+<p>Keep the same dataset and split. Connect the Dataset's <code>mean_texture</code> output directly to its own <strong>Standardize features</strong> block. Fit it using the 456 training rows; call its output <strong>v</strong>. Build <strong>z = w&#8321;u + w&#8322;v + b</strong> with three separate scalar Params, connected directly to the same <strong>Binary cross entropy (logits)</strong> Loss, with a separate sigmoid branch for viewing probabilities. Keep the features linear: do not add powers or hidden layers. Reset the Params to small starting values, train, evaluate, and save as <code>two_features.json</code>.</p>
+<p>Compare training BCE, validation BCE, and validation accuracy with Part A. Adding texture should help cross-entropy on this split, but <strong>a lower BCE does not guarantee higher accuracy at threshold 0.5</strong>. Accuracy counts decisions; BCE also measures how much probability the model assigns to the observed labels.</p>
+<h3>Training settings for both models</h3>
+<ul>
+<li>Dataset output mode: <strong>Numeric batch</strong>; Rows: <strong>Training</strong>.</li>
+<li>In <strong>Train &#8594; Training execution</strong>, change the default Tensor engine to <strong>Trace engine &#183; SGD</strong>; learning rate <strong>0.1</strong>; <strong>456 examples per update</strong> (full batch).</li>
+<li>Start with small coefficients using Randomize parameters, or set all Params to zero. Run <strong>2,000 epochs</strong>, reporting every <strong>500 epochs</strong>. You may run consecutive chunks without resetting parameters.</li>
+<li>Use no loss penalty. Fit feature statistics only on training rows and keep them fixed for validation.</li>
+</ul>
+<p>The validation loss here is BCE, not the MSE used in Assignments 1 and 2. Their numerical values and grading cutoffs are not comparable.</p>
+<h3>Viewing the model and validation loss</h3>
+<p>Open the <strong>Reporting</strong> tab to see the model visualization and its <strong>Training loss</strong> and <strong>Held-out loss</strong> readouts. Held-out loss is the validation BCE for this assignment. The app identifies the input features from the Dataset columns connected to the prediction path into Loss. No separate Input or Target blocks are needed for training, visualization, or validation reporting. Existing models with those passthrough blocks remain valid; you do not need to rebuild them.</p>
+<p>The separate <strong>Loss by epoch</strong> chart records training and held-out loss at epoch 0 and at the reporting interval. With these settings, new reports appear every <strong>500 epochs</strong>, not every epoch. This history does not require Input or Target blocks. To evaluate a saved model separately, open <strong>Test</strong>, choose <strong>Held-out test set</strong>, and click <strong>Run inference</strong>. After inference, select the Sigmoid block and open <strong>Data</strong>. The <strong>Inspection context</strong> defaults to held-out inference; use the arrows beside <strong>Examples</strong> to browse probabilities. Match each <strong>Dataset row</strong> to the same row in the prediction report, including incorrect predictions. If held-out reporting is unavailable, check the warning in Reporting and confirm that the dataset still has its original training and test split.</p>
+<h3>Threshold exploration &#8212; no additional submission</h3>
+<p>A probability becomes a decision only after choosing a threshold: <strong>predict 1 if p &#8805; t; otherwise predict 0</strong>. The app's dataset accuracy uses <strong>t = 0.5</strong>. It does not provide a threshold control for that report.</p>
+<ol>
+<li>For hypothetical probabilities <strong>0.20, 0.40, 0.60, and 0.80</strong>, work out the predicted classes at thresholds <strong>0.25, 0.5, and 0.75</strong>. Which predictions change? A probability exactly equal to the threshold counts as class 1.</li>
+<li>After submitting your saved models, inspect the autograder's validation-accuracy feedback. It recomputes confusion counts at all three thresholds from your saved probabilities. A <strong>false negative</strong> is a malignant example predicted benign; a <strong>false positive</strong> is a benign example predicted malignant. Lowering the threshold cannot increase false negatives, but can increase false positives.</li>
+<li>Compare the counts for your two models. Explain to yourself why changing only a decision threshold leaves the probabilities and BCE unchanged. Do not retrain or change the sigmoid to represent a different decision threshold.</li>
+</ol>
+<p>This is an educational classification example, not a clinical decision tool. The exercise illustrates a tradeoff; it does not establish a medically appropriate threshold. No written response or threshold file is required.</p>
+<h3>Grading</h3>
+<p>Each model earns 5 points for the readable saved file and original dataset, 25 for the correct model and training-fitted scaling, 10 for training BCE, 5 for validation BCE, and 5 for validation accuracy. All cutoffs are inclusive. Performance credit requires the assigned model form.</p>
+<table style="border-collapse: collapse; width: 100%;">
+<caption>Full-credit performance criteria</caption>
+<thead><tr><th scope="col">Model</th><th scope="col">Training BCE &#8804;</th><th scope="col">Validation BCE &#8804;</th><th scope="col">Validation accuracy at 0.5 &#8805;</th></tr></thead>
+<tbody><tr><td>One feature</td><td>0.31</td><td>0.29</td><td>87%</td></tr><tr><td>Two features</td><td>0.28</td><td>0.26</td><td>87%</td></tr></tbody>
+</table>
+<p>The grader independently recomputes predictions from saved coefficients; reported losses, cached values, and epoch counts do not determine the grade. Both parts are independent and you may resubmit. Use at most 100 blocks and 200 wires, with tensors of at most 64 values. Renamed blocks and visual groups are accepted. Use Dataset, Standardize features, separate scalar Params, Arithmetic, a linear score directly connected to Binary cross entropy (logits) Loss, a separate sigmoid branch for inspection, and optional Input/Target passthrough blocks. Direct Dataset wiring is accepted by the grader and supports model visualization. Equivalent small tensor operations for the same model are also accepted.</p>
+<p>Previously saved models using sigmoid directly into the legacy probability-based BCE Loss are still accepted. When building a new model, use the logits setup above.</p>
+<h3>Submission checklist</h3>
+<ul><li>Upload <strong>one_feature.json</strong> and <strong>two_features.json</strong> together. Do not submit a ZIP or screenshots.</li><li>Reopen both saved files with File &#8594; Import and check that their dataset, fitted statistics, logits-to-Loss connection, separate sigmoid branch, and trained coefficients are present.</li><li>Review the performance and threshold feedback in Gradescope. Save again after any further training before resubmitting.</li></ul>
+<p style="font-size: 0.9em;">Assignment version: classification-03-v1 (logits-loss compatibility update). Data: W. H. Wolberg, W. N. Street, and O. L. Mangasarian, Breast Cancer Wisconsin (Diagnostic), UCI Machine Learning Repository, DOI 10.24432/C5DW2B, CC BY 4.0; obtained from scikit-learn 1.5.2. Two original features are retained, malignant is encoded as 1, and a reproducible stratified split is supplied.</p>
+</div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assignment 5: When layers become a neural network · Neural Canvas</title>
+  <style>
+    body { margin: 0 auto; padding: 1.25rem; max-width: 960px; color: #20242c; background: #fff; font-family: sans-serif; line-height: 1.6; }
+    nav { margin-bottom: 1.5rem; }
+    a { color: #244c9b; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Course navigation"><a href="../">Open Neural Canvas</a> · <a href="https://github.com/davbachman/NeuralCanvas#course-assignments">All course assignments</a></nav>
+  <main>
+<div style="max-width:960px;line-height:1.6;font-family:sans-serif">
+<h2>Assignment 5: When layers become a neural network</h2>
+<p>Build two models in <a href="https://davbachman.github.io/NeuralCanvas/" target="_blank" rel="noopener">Neural Canvas</a> to predict concrete compressive strength from its ingredients and age. First build a linear baseline. Then add a hidden layer and a nonlinear activation to build a multilayer perceptron (MLP). Submit two saved model files; no written responses are required.</p>
+<h3>Why a nonlinear activation?</h3>
+<p>Suppose you compute H = XW&#8321; + b&#8321;, then predictions = HW&#8322; + b&#8322;. Substitution gives X(W&#8321;W&#8322;) + (b&#8321;W&#8322; + b&#8322;): still one linear regression model with an intercept. Two matrix products alone do not make a more expressive model.</p>
+<p>Instead, compute H = ReLU(XW&#8321; + b&#8321;), where ReLU(t) = max(0, t) is applied to every entry. The hidden layer contains 16 learned intermediate features. Its activations depend on the input, allowing the prediction to change slope. The final output is a strength, so leave it unrestricted: no sigmoid or softmax at the output.</p>
+<h3>Data and shared setup</h3>
+<p>Add a Dataset block.</p><p data-library-preset="concrete" data-library-file="concrete.csv">Select your Dataset block and open <strong>Details → Browse datasets…</strong>. Choose <strong>Regression</strong> → <strong>Concrete strength</strong>. Click <strong>Use this dataset</strong>. Keep the supplied data and split unchanged.</p><p> The 1,030 measured mixtures have <strong>828 training and 202 held-out validation examples</strong>. Rows with identical input features are kept in the same split. Confirm <strong>Regression</strong> and that <code>strength</code> is the target. Strength is measured in megapascals (MPa). Do not change the data or split labels.</p>
+<ol>
+<li>Set Dataset output mode to <strong>Numeric batch</strong> and Rows to <strong>Training</strong>.</li>
+<li>Connect all eight feature outputs to <strong>Concatenate</strong>, with Axis <code>1</code> and eight inputs, in this order: <strong>cement, slag, ash, water, superplastic, coarseagg, fineagg, age</strong>. Ingredient quantities are in kg/m&#179;; age is in days. Do not include strength among the features.</li>
+<li>Connect the resulting matrix to one <strong>Standardize features</strong> block. Click <strong>Fit on training rows</strong> in Details. Confirm 828 observations and eight means/scales. Its output X has shape B-by-8, where B is the number of examples being evaluated. Keep these training-fitted statistics fixed for validation.</li>
+<li>Connect the Dataset's <strong>strength</strong> output to <strong>Tensor transform &#8594; Reshape</strong>, with Shape <code>-1, 1</code>. This is the <strong>target</strong> column: it will connect to the second input of Loss. The inferred row count works for both splits. Do not standardize the target.</li>
+</ol>
+<h3>Part A: Linear baseline &#8212; 40 points</h3>
+<ol>
+<li>Create a weight <strong>Param W</strong>. In Details choose <strong>Xavier</strong>, set Random seed to <code>137</code>, enter Shape <code>8, 1</code>, and press <strong>Enter in the Shape field</strong> to initialize its eight values. Connect X and W to the first and second inputs of <strong>Matrix product</strong>.</li>
+<li>Create a separate <strong>scalar bias Param b</strong> initialized to zero. Add it to the product with <strong>Arithmetic</strong> addition, underlying expression <code>x1 + x2</code>. The prediction XW + b has shape B-by-1.</li>
+<li>Connect the predictions directly to the first input of <strong>Loss &#8594; Mean squared error</strong>, and the reshaped strength target to the second. Choose <strong>Penalty: None</strong>.</li>
+<li>Train using the settings below, inspect both splits, then use <strong>File &#8594; Save</strong> and name the file <code>linear.json</code>.</li>
+</ol>
+<h3>Part B: One hidden layer with ReLU &#8212; 60 points</h3>
+<p>Keep Part A's saved file. In a separate project or a copy of it, reuse the Dataset, Concatenate, fitted Standardize, and target reshape. Replace the learned prediction path with the following two layers.</p>
+<ol>
+<li>Create <strong>W&#8321;</strong> with Shape <code>8, 16</code>, choosing Xavier and Random seed <code>137</code> before entering the shape and pressing Enter. Confirm 128 values. Compute XW&#8321; with Matrix product.</li>
+<li>Create <strong>b&#8321;</strong> with Shape <code>16</code> and the <strong>zeros</strong> initializer; press Enter in Shape. Add it to XW&#8321; using Arithmetic addition. The 16 biases broadcast across examples.</li>
+<li>Connect this sum to <strong>Activation &#8594; ReLU</strong>. Its output H is B-by-16. This is the hidden layer: 16 intermediate values for each example, rather than the final answer.</li>
+<li>Create <strong>W&#8322;</strong> with Shape <code>16, 1</code>, Xavier initialization, and Random seed <code>139</code>; press Enter in Shape. Compute HW&#8322; with a second Matrix product.</li>
+<li>Add a separate <strong>scalar bias b&#8322;</strong> initialized to zero. Connect these B-by-1 predictions to MSE Loss and the reshaped strength target to its second input. Keep Penalty: None. Use exactly these four Params, with no extra learned layers.</li>
+<li>Train, evaluate both splits, and save as <code>mlp.json</code>. Compare its held-out MSE with your linear baseline. After held-out inference, inspect the ReLU output in <strong>Data</strong> with <strong>Inspection context</strong> set to held-out inference. Browse the evaluated rows with the arrows beside <strong>Examples</strong>; compare the block's input and output using <strong>Inspect signal</strong>. Negative pre-activation values become zero. Eight original features do not have a simple two-dimensional model plot; use the Data tab, loss history, and inference results.</li>
+</ol>
+<h3>Shape checklist</h3>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th>Quantity</th><th>Linear</th><th>MLP</th></tr></thead><tbody>
+<tr><td>Standardized X</td><td>B &#215; 8</td><td>B &#215; 8</td></tr>
+<tr><td>First weight Param</td><td>8 &#215; 1</td><td>8 &#215; 16</td></tr>
+<tr><td>First bias</td><td>Scalar</td><td>Vector of length 16</td></tr>
+<tr><td>Hidden activation H</td><td>&#8212;</td><td>B &#215; 16</td></tr>
+<tr><td>Output weight / bias</td><td>&#8212;</td><td>16 &#215; 1 / scalar</td></tr>
+<tr><td>Predictions and target</td><td>Both B &#215; 1</td><td>Both B &#215; 1</td></tr>
+</tbody></table>
+<h3>Training and evaluation</h3>
+<p>In <strong>Train &#8594; Training execution</strong>, change the default Tensor engine to <strong>Trace engine &#183; SGD</strong>. Use no loss penalty. Use Xavier for weight matrices and zeros for biases; initializing every weight to zero prevents hidden units from learning distinct features.</p>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th>Model</th><th>Learning rate</th><th>Examples per update</th><th>Epochs</th><th>Report every</th></tr></thead><tbody>
+<tr><td>Linear</td><td>0.03</td><td>828</td><td>4,000</td><td>500</td></tr>
+<tr><td>MLP</td><td>0.003</td><td>828</td><td>6,000</td><td>500</td></tr>
+</tbody></table>
+<p>Use <strong>Train &#8594; Run epochs</strong>. These runs can take several minutes or longer depending on your browser and computer; keep the tab foregrounded. You can run consecutive chunks without resetting parameters. Reporting shows training and held-out loss at the chosen interval. To evaluate separately, use <strong>Test &#8594; Training set</strong> or <strong>Held-out test set &#8594; Run inference</strong>. The app calls it a test set; here we use it as validation to compare models. Do not fit preprocessing on it.</p>
+<p>Loss is <strong>MSE in MPa&#178;</strong>, not RMSE. Its square root gives RMSE in MPa. A smaller training error alone does not establish better generalization: compare validation error too. The MLP has more parameters and takes longer; nonlinear models need not improve every dataset or every training run.</p>
+<h3>Grading and submission</h3>
+<p>Part A awards 5 points for file/data, 15 for model form/scaling, and 10 each for training and validation performance. Part B awards 5 for file/data, 25 for model form/scaling, and 15 each for training and validation performance. Performance credit requires the assigned architecture and training-fitted scaling. Cutoffs are inclusive:</p>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th>Model</th><th>Training MSE at most</th><th>Validation MSE at most</th></tr></thead><tbody><tr><td>Linear</td><td>120</td><td>150</td></tr><tr><td>MLP</td><td>45</td><td>65</td></tr></tbody></table>
+<p>Submit only <strong>linear.json</strong> and <strong>mlp.json</strong>, downloaded using File &#8594; Save. Reopen them with File &#8594; Import to verify the saved models. Each part is graded independently. The grader recomputes predictions from the saved operations and parameters; cached losses, values, and epoch counts do not establish credit. Use at most 100 blocks, 200 wires, 512 values per Param, and 32 MiB per file. Renamed blocks, visual groups, and connected Input/Target aliases are accepted.</p>
+<p style="font-size:0.9em">Version mlp-05-v1. Data: I-Cheng Yeh, Concrete Compressive Strength, UCI DOI 10.24432/C5PK67, CC BY 4.0. Source CSV mirror: stedy/Machine-Learning-with-R-datasets. All original observations are retained, with a fixed split prepared for this assignment.</p>
+</div>
+  </main>
+</body>
+</html>
