@@ -76,6 +76,7 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
       'parabola-boundary', 'neuron-basics', 'xor', 'browse',
     ])
     expect(selector).toHaveDisplayValue(DATASET_OPTIONS[0].label)
+    expect(Array.from(selector.querySelectorAll('option')).filter(option => option.textContent === DATASET_OPTIONS[0].label)).toHaveLength(1)
     // Opening and cancelling the browser must not replace the current source.
     fireEvent.change(selector, { target: { value: 'browse' } })
     fireEvent.click(screen.getByRole('button', { name: 'Close dataset library' }))
@@ -84,6 +85,8 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
       if (DATASET_MENU_OPTIONS.some(option => option.kind === dataset.kind)) {
         fireEvent.change(selector, { target: { value: dataset.kind } })
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+        expect(selector).toHaveValue(dataset.kind)
+        expect(Array.from(selector.querySelectorAll('option')).filter(option => option.textContent === dataset.label)).toHaveLength(1)
       } else await chooseBuiltin(selector, dataset.kind)
       expect(selector).toHaveDisplayValue(dataset.label)
       expect(card.querySelectorAll('.source-handle')).toHaveLength(dataset.featureLabels.length + 1)

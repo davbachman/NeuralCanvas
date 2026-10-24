@@ -45,7 +45,7 @@ export function SemanticNode(props: NodeProps): ReactElement {
     <div className="semantic-operation-heading"><Icon size={14}/><span>{imageInput ? 'Digit image' : node.label}</span></div>
     {imageInput ? <div className="semantic-image-thumbnail" aria-label="Handwritten digit input">{value.data.map((pixel,index)=><span key={index} style={{background:`rgba(53,78,112,${.06+Math.max(0,Math.min(1,pixel))*.94})`}}/>)}</div> : null}
     {dataset ? <>
-      <DatasetSourceSelect aria-label={`Dataset for ${node.label}`} className="semantic-dataset-select nodrag nowheel" label={dataset.label} onBrowse={() => data.onBrowseDataset?.(node.id)} onDataset={kind => data.onDatasetChange(node.id, kind)}/>
+      <DatasetSourceSelect kind={dataset.kind} aria-label={`Dataset for ${node.label}`} className="semantic-dataset-select nodrag nowheel" label={dataset.label} onBrowse={() => data.onBrowseDataset?.(node.id)} onDataset={kind => data.onDatasetChange(node.id, kind)}/>
       <span className="semantic-dataset-summary">{datasetExamples(dataset).length} examples · {dataset.featureLabels.length} {dataset.featureLabels.length === 1 ? 'feature' : 'features'}</span>
     </> : <>
       {node.type === 'loss' ? <select aria-label="loss" className="semantic-operation-select nodrag nowheel" value={data.lossKind} onChange={event => data.onLossChange(node.id, event.target.value as LossKind)}>

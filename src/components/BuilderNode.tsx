@@ -66,7 +66,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
     {node.type === 'tensor-transform' && <label className="node-field">transform<select aria-label="Tensor transform" className="nodrag nowheel" value={node.params.transform ?? 'reshape'} onChange={event => data.onTransformChange(node.id, event.target.value as TensorTransformKind)}>
       {TENSOR_TRANSFORM_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
     </select></label>}
-    {node.type === 'dataset' && <label className="node-field">dataset<DatasetSourceSelect aria-label={`Dataset for ${node.label}`} className="nodrag nowheel" label={datasetForNode(node).label} onBrowse={() => data.onBrowseDataset?.(node.id)} onDataset={kind => data.onDatasetChange(node.id, kind)}/></label>}
+    {node.type === 'dataset' && <label className="node-field">dataset<DatasetSourceSelect kind={datasetForNode(node).kind} aria-label={`Dataset for ${node.label}`} className="nodrag nowheel" label={datasetForNode(node).label} onBrowse={() => data.onBrowseDataset?.(node.id)} onDataset={kind => data.onDatasetChange(node.id, kind)}/></label>}
     {node.type === 'arithmetic' && <label className="node-field">operation<select aria-label="Arithmetic operation" className="nodrag nowheel"
       value={arithmeticOperation(node.params.expression ?? 'x1 * x2')}
       onChange={event => data.onExpressionChange(node.id, arithmeticOperationExpression(event.target.value as ArithmeticOperation, inputCount))}>
