@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import * as datasetTraining from './domain/datasetTraining'
+import { datasetForNode } from './domain/datasets'
 import { formatNumber, runTrainingStep } from './domain/engine'
 import { createStarterGraph } from './domain/examples'
 import { createModelPreset } from './domain/modelPresets'
@@ -121,7 +122,7 @@ describe('execution ownership and reports', () => {
     const pending = deferred<string>()
     const { container } = render(<App initialGraph={createStarterGraph(true)} />)
     const dataset = container.querySelector<HTMLSelectElement>('.node-dataset select')!
-    const original = dataset.value
+    const original = dataset.selectedOptions[0].textContent!
     fireEvent.change(dataset, { target: { value: 'custom-csv' } })
     const file = new File([], 'delayed.csv', { type: 'text/csv' })
     vi.spyOn(file, 'text').mockReturnValue(pending.promise)
@@ -129,7 +130,7 @@ describe('execution ownership and reports', () => {
     if (action === 'Cancel') fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     else fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     await act(async () => { pending.resolve('x,target\n1,2\n2,4\n3,6\n'); await pending.promise })
-    expect(dataset).toHaveValue(original)
+    expect(dataset).toHaveDisplayValue(original)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
@@ -174,7 +175,7 @@ describe('execution ownership and reports', () => {
     })
     await act(async () => { pendingProject.resolve(savedProject(graph, 99)); await pendingProject.promise })
     expect(screen.getByText('Epoch 99')).toBeInTheDocument()
-    expect(container.querySelector('.node-dataset select')).not.toHaveValue('custom-text')
+    expect(container.querySelector('.node-dataset select')).toHaveDisplayValue(datasetForNode(graph.nodes.find(node => node.type === 'dataset')!).label)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
@@ -263,7 +264,15 @@ describe('execution ownership and reports', () => {
     if (field === 'value') editWeight(container, '-10')
     if (field === 'activation') fireEvent.change(container.querySelector('.node-activation select')!, { target: { value: 'tanh' } })
     if (field === 'loss') fireEvent.change(container.querySelector('.node-loss select')!, { target: { value: 'mse' } })
-    if (field === 'dataset') fireEvent.change(container.querySelector('.node-dataset select')!, { target: { value: 'line-1d' } })
+    if (field === 'dataset') {
+      fireEvent.change(container.querySelector('.node-dataset select')!, { target: { value: 'browse' } })
+      const library = screen.getByRole('dialog', { name: 'Dataset library' })
+      fireEvent.click(within(library).getByRole('button', { name: /Simple regression examples/ }))
+      const useDataset = within(library).getByRole('button', { name: 'Use this dataset' })
+      await waitFor(() => expect(useDataset).toBeEnabled())
+      expect(screen.getByRole('region', { name: 'Inference report' })).toBeInTheDocument()
+      fireEvent.click(useDataset)
+    }
     expect(screen.queryByRole('region', { name: 'Inference report' })).not.toBeInTheDocument()
   })
 
