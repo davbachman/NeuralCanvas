@@ -4,6 +4,10 @@ Neural Canvas is a visual workbench for learning and teaching neural networks. B
 
 **[Open Neural Canvas](https://davbachman.github.io/NeuralCanvas/)** · [Get started](#get-started) · [Datasets](#datasets) · [Course assignments](#course-assignments) · [Reference](#reference) · [Development](#development)
 
+## About
+
+Created by [David Bachman](https://pzacad.pitzer.edu/~dbachman/) with Codex. David also writes the AI substack [*Entropy Bonus*](https://profbachman.substack.com/).
+
 ## Get started
 
 1. Open the app and start with a blank canvas, or import an [example model](public/models/README.md) through **File → Import**.
@@ -87,17 +91,5 @@ These 19 assignments progress from regression to a transformer question-answerin
 | Training and evaluation | [Training, testing, and reports](docs/TRAINING.md) |
 | Files and exports | [Save projects and export PyTorch models](docs/FILES-AND-EXPORT.md) |
 
-## Development
 
-The app uses React, TypeScript, and Vite. To run it locally from the repository root:
 
-```sh
-npm ci
-npm run dev
-```
-
-Use `npm run build` for a production build, `npm test` for tests, and `npm run lint` for lint checks. See the [development guide](docs/DEVELOPMENT.md) for model generation and data attribution, and [validation and scope](docs/VALIDATION.md) for verification coverage and model-size limits.
-
-## About
-
-Created by [David Bachman](https://pzacad.pitzer.edu/~dbachman/) with Codex. David also hosts the AI podcast [*Entropy Bonus*](https://profbachman.substack.com/).
