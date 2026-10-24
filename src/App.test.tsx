@@ -658,7 +658,7 @@ describe('Neural Canvas app', () => {
     expect(datasetSelect).toBeDefined()
     expect(datasetSelect).toHaveDisplayValue(DATASET_OPTIONS[0].label)
     expect(within(datasetSelect!).getAllByRole('option').map((option) => option.textContent)).toEqual(
-      ['Browse datasets…', ...DATASET_MENU_OPTIONS.map((option) => option.label)],
+      [...DATASET_MENU_OPTIONS.filter(option => !option.kind.startsWith('custom-')).map((option) => option.label), 'Browse datasets…'],
     )
 
     fireEvent.change(datasetSelect!, { target: { value: 'browse' } })
@@ -668,9 +668,8 @@ describe('Neural Canvas app', () => {
     fireEvent.change(datasetSelect!, { target: { value: 'plane-2d' } })
     expect(onDatasetChange).toHaveBeenCalledWith('dataset', 'plane-2d')
 
-    fireEvent.change(datasetSelect!, { target: { value: 'custom-csv' } })
-
-    expect(onDatasetChange).toHaveBeenCalledWith('dataset', 'custom-csv')
+    expect(within(datasetSelect!).queryByRole('option', { name: 'Custom CSV…' })).not.toBeInTheDocument()
+    expect(within(datasetSelect!).queryByRole('option', { name: 'Text / sentiment…' })).not.toBeInTheDocument()
   })
 
   it('hides value editors on input and target nodes fed by a dataset', () => {

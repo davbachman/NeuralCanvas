@@ -10,6 +10,12 @@ import type { DatasetKind } from './domain/types'
 import { createNode, createSingleNeuronGraph } from './domain/examples'
 import { tensorValue } from './domain/tensor'
 
+function openCustomImport(selector: Element, kind: 'custom-csv' | 'custom-text') {
+  fireEvent.change(selector, { target: { value: 'browse' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Use a custom dataset…' }))
+  fireEvent.click(screen.getByRole('button', { name: kind === 'custom-csv' ? 'Import numeric CSV…' : 'Import prepared JSON or text…' }))
+}
+
 afterEach(() => vi.restoreAllMocks())
 
 function datasetModel(semanticZoom: boolean) {
@@ -40,7 +46,7 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     const card = container.querySelector<HTMLElement>('[data-id="dataset-1"]')!
     fireEvent.click(card)
     const selector = within(card).getByLabelText('Dataset for dataset')
-    fireEvent.change(selector, { target: { value: 'custom-csv' } })
+    openCustomImport(selector, 'custom-csv')
     const chooser = screen.getByRole('dialog', { name: 'Choose a CSV file' })
     const input = within(chooser).getByLabelText('Choose custom CSV file') as HTMLInputElement
     expect(input).toBeVisible()
@@ -64,10 +70,10 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     const card = container.querySelector<HTMLElement>('[data-id="dataset-1"]')!
     const selector = within(card).getByLabelText('Dataset for dataset')
     expect(selector).toHaveClass('nodrag', 'nowheel')
-    expect(within(selector).getAllByRole('option').map(option => option.textContent)).toEqual(['Browse datasets…', ...DATASET_MENU_OPTIONS.map(option => option.label)])
+    expect(within(selector).getAllByRole('option').map(option => option.textContent)).toEqual([...DATASET_MENU_OPTIONS.filter(option => !option.kind.startsWith('custom-')).map(option => option.label), 'Browse datasets…'])
     expect(within(selector).getAllByRole('option').map(option => (option as HTMLOptionElement).value)).toEqual([
-      'browse', 'line-1d', 'cubic-1d', 'plane-2d', 'threshold-1d', 'circle-center',
-      'parabola-boundary', 'neuron-basics', 'xor', 'custom-csv', 'custom-text',
+      'line-1d', 'cubic-1d', 'plane-2d', 'threshold-1d', 'circle-center',
+      'parabola-boundary', 'neuron-basics', 'xor', 'browse',
     ])
     expect(selector).toHaveDisplayValue(DATASET_OPTIONS[0].label)
     // Opening and cancelling the browser must not replace the current source.

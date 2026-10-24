@@ -7,6 +7,12 @@ import { createNode, createSingleNeuronGraph } from './domain/examples'
 import { datasetForNode } from './domain/datasets'
 import * as session from './domain/session'
 
+function openCustomImport(selector: Element, kind: 'custom-csv' | 'custom-text') {
+  fireEvent.change(selector, { target: { value: 'browse' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Use a custom dataset…' }))
+  fireEvent.click(screen.getByRole('button', { name: kind === 'custom-csv' ? 'Import numeric CSV…' : 'Import prepared JSON or text…' }))
+}
+
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
 function graph() {
   const result = createSingleNeuronGraph('identity', { x: 1, w: 2, b: 0, target: 3 })
@@ -42,13 +48,13 @@ it('installs a library CSV with fixed splits, remaps its target wire, saves, and
   fireEvent.keyDown(document, { key: 'z', metaKey: true })
   expect(screen.getByRole('combobox', { name: 'Dataset selection' })).toHaveDisplayValue(datasetForNode(graph().nodes.find(n => n.id === 'dataset-1')!).label)
 })
-it.each(['imdb.json', 'football-counts.json'])('preserves the existing prepared JSON import route for %s', async filename => {
+it.each(['imdb.json', 'football-counts.json'])('imports prepared JSON through the dataset browser for %s', async filename => {
   const { container } = render(<App initialGraph={graph()} />)
   const card = container.querySelector<HTMLElement>('[data-id="dataset-1"]')!
   fireEvent.click(card)
   const selector = within(card).getByLabelText('Dataset for dataset')
-  expect(within(selector).getByRole('option', { name: 'Text / sentiment…' })).toBeInTheDocument()
-  fireEvent.change(selector, { target: { value: 'custom-text' } })
+  expect(within(selector).queryByRole('option', { name: 'Text / sentiment…' })).not.toBeInTheDocument()
+  openCustomImport(selector, 'custom-text')
   const text = readFileSync(resolve('public/datasets', `${filename}`), 'utf8')
   const file = Object.assign(new File([text], filename, { type: 'application/json' }), { text: async () => text })
   fireEvent.change(screen.getByLabelText('Choose text data file'), { target: { files: [file] } })

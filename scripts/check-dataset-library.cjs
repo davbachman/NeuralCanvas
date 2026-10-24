@@ -18,7 +18,7 @@ const {execFileSync}=require('node:child_process');
   await p.getByRole('tab',{name:'Details',exact:true}).click();
   const cardSource=p.getByRole('combobox',{name:`Dataset for ${dataset.label}`,exact:true});
   const shortcuts=['line-1d','cubic-1d','plane-2d','threshold-1d','circle-center','parabola-boundary','neuron-basics','xor'];
-  assert.deepEqual(await cardSource.locator('option:not([hidden])').evaluateAll(options=>options.map(option=>option.value)),['browse',...shortcuts,'custom-csv','custom-text']);
+  assert.deepEqual(await cardSource.locator('option:not([hidden])').evaluateAll(options=>options.map(option=>option.value)),[...shortcuts,'browse']);
   for(const kind of shortcuts){
    const label=await cardSource.locator(`option[value="${kind}"]`).textContent();
    await cardSource.selectOption(kind);

@@ -23,7 +23,7 @@ its dropdown or open **Details → Browse datasets…**.
 The categorized library includes real datasets, synthetic examples, and configurable
 Football stories. **Custom data → Import prepared JSON or text…** opens the text
 importer; prepared JSON supplies its own settings. Existing **Text / sentiment…**
-and **Custom CSV…** source choices also remain available. See [Datasets](DATASETS.md).
+and **Custom CSV…** source choices remain available in Details. See [Datasets](DATASETS.md).
 
 ## Build your first regression model
 

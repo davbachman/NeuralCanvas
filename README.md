@@ -36,7 +36,7 @@ Each configuration supplies its vocabulary, input lengths, targets, and fixed sp
 
 ### Custom data
 
-Choose **Custom data** in the browser, or **Custom CSV…** or **Text / sentiment…** on the Dataset card. Import numeric CSV, text/review/question files, or prepared dataset JSON. Prepared JSON supplies its vocabulary, shapes, targets, and splits automatically. Selected data is embedded in saved model projects.
+Choose **Browse datasets…** at the bottom of the Dataset card’s dropdown, then **Custom data**. Import numeric CSV, text/review/question files, or prepared dataset JSON. Prepared JSON supplies its vocabulary, shapes, targets, and splits automatically. Selected data is embedded in saved model projects.
 
 See the [dataset guide](docs/DATASETS.md) for controls and the [dataset sources](public/datasets/README.md) for attribution and exact preparations.
 

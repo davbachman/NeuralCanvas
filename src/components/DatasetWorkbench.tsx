@@ -48,7 +48,7 @@ export function DatasetWorkbench({ graph, node, onParams, onDataset, onRename, o
       <button type="button" onClick={() => onBrowse?.(node.id)}>Browse datasets…</button>
       <button type="button" onClick={() => onDataset(node.id, 'custom-text')}>Import prepared JSON / text…</button>
     </div>
-    <label className="inspector-field">Source<DatasetSourceSelect aria-label="Dataset selection" label={dataset.label} onBrowse={() => onBrowse?.(node.id)} onDataset={kind => onDataset(node.id, kind)}/></label>
+    <label className="inspector-field">Source<DatasetSourceSelect showImportOptions aria-label="Dataset selection" label={dataset.label} onBrowse={() => onBrowse?.(node.id)} onDataset={kind => onDataset(node.id, kind)}/></label>
     <p className="coordinate-note" aria-label="Detected dataset inputs">{inputs.length
       ? <>Connected inputs: <strong>{inputs.join(', ')}</strong>. Detected from the loss prediction path.</>
       : 'Connect dataset outputs through your model to the loss prediction input to detect inputs automatically.'}</p>

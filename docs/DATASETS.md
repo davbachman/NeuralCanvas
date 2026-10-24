@@ -12,7 +12,7 @@ Choose **Browse datasets…** from the Dataset card's dropdown, or select the bl
 and click **Browse datasets…** in **Details**. The dropdown shows the current
 dataset when closed. When opened, it offers direct shortcuts for line, cubic,
 and plane regression, threshold, circle/center, and parabola classification,
-neuron basics, and XOR, along with browsing and custom import actions.
+neuron basics, and XOR, followed by **Browse datasets…**. Custom imports are available through **Custom data** in the browser.
 The library groups real datasets and all existing built-in examples into Regression,
 Classification, Text and sequences, Images, and Attention and probabilities.
 Search by name or learning task, then open a dataset family. Its preview shows
@@ -48,7 +48,7 @@ excludes the answer from its input. Read the preview before changing formats.
 For custom files, choose **Custom data** in the library, then **Import prepared
 JSON or text…** or **Import numeric CSV…**. The direct **Import prepared JSON /
 text…** button and the existing **Text / sentiment…** and **Custom CSV…** source
-choices remain available. Prepared JSON supplies its own settings; no importer
+choices remain available in Details. Prepared JSON supplies its own settings; no importer
 controls need changing. Numeric CSV, custom text, and saved-project imports retain
 their existing formats. **File → Import** opens a saved model, not a dataset file.
 

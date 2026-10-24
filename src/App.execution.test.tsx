@@ -36,6 +36,12 @@ function savedProject(graph: GraphModel, epoch: number): string {
   }))
 }
 
+function openCustomImport(selector: Element, kind: 'custom-csv' | 'custom-text') {
+  fireEvent.change(selector, { target: { value: 'browse' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Use a custom dataset…' }))
+  fireEvent.click(screen.getByRole('button', { name: kind === 'custom-csv' ? 'Import numeric CSV…' : 'Import prepared JSON or text…' }))
+}
+
 afterEach(() => vi.restoreAllMocks())
 
 describe('execution ownership and reports', () => {
@@ -123,7 +129,7 @@ describe('execution ownership and reports', () => {
     const { container } = render(<App initialGraph={createStarterGraph(true)} />)
     const dataset = container.querySelector<HTMLSelectElement>('.node-dataset select')!
     const original = dataset.selectedOptions[0].textContent!
-    fireEvent.change(dataset, { target: { value: 'custom-csv' } })
+    openCustomImport(dataset, 'custom-csv')
     const file = new File([], 'delayed.csv', { type: 'text/csv' })
     vi.spyOn(file, 'text').mockReturnValue(pending.promise)
     fireEvent.change(screen.getByLabelText('Choose custom CSV file'), { target: { files: [file] } })
@@ -159,7 +165,7 @@ describe('execution ownership and reports', () => {
   it('does not let an older text read cancel a newer project import', async () => {
     const graph = createStarterGraph(true), pendingText = deferred<string>(), pendingProject = deferred<string>()
     const { container } = render(<App initialGraph={graph} />)
-    fireEvent.change(container.querySelector('.node-dataset select')!, { target: { value: 'custom-text' } })
+    openCustomImport(container.querySelector('.node-dataset select')!, 'custom-text')
     const textFile = new File([], 'older.csv', { type: 'text/csv' })
     vi.spyOn(textFile, 'text').mockReturnValue(pendingText.promise)
     fireEvent.change(screen.getByLabelText('Choose text data file'), { target: { files: [textFile] } })
@@ -186,7 +192,7 @@ describe('execution ownership and reports', () => {
     vi.spyOn(projectFile, 'text').mockReturnValue(pendingProject.promise)
     fireEvent.change(screen.getByLabelText('Import state file'), { target: { files: [projectFile] } })
 
-    fireEvent.change(container.querySelector('.node-dataset select')!, { target: { value: 'custom-text' } })
+    openCustomImport(container.querySelector('.node-dataset select')!, 'custom-text')
     expect(screen.getByRole('dialog', { name: 'Import text data' })).toBeInTheDocument()
     await act(async () => { pendingProject.resolve(savedProject(graph, 99)); await pendingProject.promise })
     expect(screen.getByText('Epoch 0')).toBeInTheDocument()
