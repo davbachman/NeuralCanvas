@@ -135,10 +135,9 @@ DATASET_OPTIONS.push(tensorDataset('class-scores', 'Class scores · softmax expe
   return { label: `Class ${(4 - i % 4) % 4} · row ${i}`, split: i >= 12 ? 'test' : 'train', features: [tensorValue([1, 4], scores)], target: tensorValue([1], [scores.indexOf(Math.max(...scores))]) }
 })))
 
-// The menu is separate from the built-in data catalog: selecting Custom CSV
-// opens a file picker rather than installing a placeholder dataset.
+// Built-in datasets are selected in the dataset browser. These menu actions
+// open importers rather than installing placeholder datasets.
 export const DATASET_MENU_OPTIONS: { kind: DatasetKind; label: string }[] = [
-  ...DATASET_OPTIONS.map(({ kind, label }) => ({ kind, label })),
   { kind: 'custom-csv', label: 'Custom CSV…' },
   { kind: 'custom-text', label: 'Text / sentiment…' },
 ]

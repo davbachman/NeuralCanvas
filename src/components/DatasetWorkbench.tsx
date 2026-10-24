@@ -1,6 +1,7 @@
 import { NumberInput } from './NumberInput'
 import { useState } from 'react'
-import { DATASET_MENU_OPTIONS, datasetExampleIndex, datasetExamples, datasetExamplesForNode, datasetForNode, datasetMode, datasetOutputLabelForSlot, datasetOutputValueForSlot } from '../domain/datasets'
+import { datasetExampleIndex, datasetExamples, datasetExamplesForNode, datasetForNode, datasetMode, datasetOutputLabelForSlot, datasetOutputValueForSlot } from '../domain/datasets'
+import { DatasetSourceSelect } from './DatasetSourceSelect'
 import { datasetInputPorts } from '../domain/datasetInputs'
 import { analyzeCustomCsv } from '../domain/customCsv'
 import { DATASET_LIBRARY } from '../domain/datasetLibrary'
@@ -47,9 +48,7 @@ export function DatasetWorkbench({ graph, node, onParams, onDataset, onRename, o
       <button type="button" onClick={() => onBrowse?.(node.id)}>Browse datasets…</button>
       <button type="button" onClick={() => onDataset(node.id, 'custom-text')}>Import prepared JSON / text…</button>
     </div>
-    <label className="inspector-field">Source<select aria-label="Dataset selection" value={dataset.kind} onChange={event => onDataset(node.id, event.target.value as DatasetKind)}>
-      {DATASET_MENU_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
-    </select></label>
+    <label className="inspector-field">Source<DatasetSourceSelect aria-label="Dataset selection" label={dataset.label} onBrowse={() => onBrowse?.(node.id)} onDataset={kind => onDataset(node.id, kind)}/></label>
     <p className="coordinate-note" aria-label="Detected dataset inputs">{inputs.length
       ? <>Connected inputs: <strong>{inputs.join(', ')}</strong>. Detected from the loss prediction path.</>
       : 'Connect dataset outputs through your model to the loss prediction input to detect inputs automatically.'}</p>

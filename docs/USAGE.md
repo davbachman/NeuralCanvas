@@ -18,7 +18,8 @@ Open the [app](https://davbachman.github.io/NeuralCanvas/). It starts on a blank
 
 Both sidebars can be resized or collapsed. The **Dark** button in the top bar switches between light and dark themes; the browser remembers your choice. The clickable **Neural Canvas** title opens **About** and **Reference** (the online guide). **File** contains New, Save, Import, and PyTorch exports; **Edit** contains Undo, Copy, Paste, and Duplicate. **Randomize parameters** is in **Train**.
 
-To choose teaching data, add a Dataset block and open **Details → Browse datasets…**.
+To choose teaching data, add a Dataset block and choose **Browse datasets…** from
+its dropdown or open **Details → Browse datasets…**.
 The categorized library includes real datasets, synthetic examples, and configurable
 Football stories. **Custom data → Import prepared JSON or text…** opens the text
 importer; prepared JSON supplies its own settings. Existing **Text / sentiment…**
@@ -28,7 +29,7 @@ and **Custom CSV…** source choices also remain available. See [Datasets](DATAS
 
 For the quickest guided start, import [`linear.json`](../public/models/linear.json) and inspect its Dataset → Input → Param and arithmetic → Loss path. To assemble the same idea yourself:
 
-1. Add a **Dataset** block and choose **Line regression (1D)**. Add an **Input** and connect the dataset's feature output to it.
+1. Add a **Dataset** block. Choose **Browse datasets… → Simple regression examples → Line regression (1D)**, then **Use this dataset**. Add an **Input** and connect the dataset's feature output to it.
 2. Add two **Param** blocks for a slope and intercept. Add an **Arithmetic** block and enter `x1 * x2`; connect the Input and slope to its ports.
 3. Add another **Arithmetic** block and enter `x1 + x2`; connect the product and intercept. Add a **Target** block and connect the dataset's target output to it.
 4. Add a **Loss** block, select **Mean squared error**, connect the model's prediction to the first loss port and the Target to the second. Select blocks to inspect or rename them in **Details**.

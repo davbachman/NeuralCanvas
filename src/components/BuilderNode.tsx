@@ -4,7 +4,8 @@ import { Handle, Position, useUpdateNodeInternals, type NodeProps } from '@xyflo
 import { Plus } from 'lucide-react'
 import { useEffect, type ReactElement } from 'react'
 import { LOSS_OPTIONS, TENSOR_TRANSFORM_OPTIONS, lossKindForNode, inputArityForNode, outputArityForNode, isFlexibleInputNodeType, MAX_FLEX_INPUT_COUNT } from '../domain/engine'
-import { DATASET_MENU_OPTIONS, datasetTargetSlotForNode } from '../domain/datasets'
+import { datasetForNode, datasetTargetSlotForNode } from '../domain/datasets'
+import { DatasetSourceSelect } from './DatasetSourceSelect'
 import { inputConnectionLabels, outputConnectionLabel } from '../domain/connectionLabels'
 import { builderCardHeight, builderCardWidth, builderInputPortY, builderOutputPortY } from '../domain/builderGeometry'
 import { formatCompactTensor, formatShape } from '../domain/tensor'
@@ -33,6 +34,7 @@ export interface BuilderNodeData extends Record<string, unknown> {
   onTransformChange: (nodeId: string, transform: TensorTransformKind) => void
   onLossChange: (nodeId: string, value: LossKind) => void
   onDatasetChange: (nodeId: string, value: DatasetKind) => void
+  onBrowseDataset?: (nodeId: string) => void
 }
 
 /** Trace cards add bounded value previews; complete tensors live in the sidebar. */
@@ -64,9 +66,7 @@ export function BuilderNode(props: NodeProps): ReactElement {
     {node.type === 'tensor-transform' && <label className="node-field">transform<select aria-label="Tensor transform" className="nodrag nowheel" value={node.params.transform ?? 'reshape'} onChange={event => data.onTransformChange(node.id, event.target.value as TensorTransformKind)}>
       {TENSOR_TRANSFORM_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
     </select></label>}
-    {node.type === 'dataset' && <label className="node-field">dataset<select aria-label={`Dataset for ${node.label}`} className="nodrag nowheel" value={node.params.dataset ?? 'line-1d'} onChange={event => data.onDatasetChange(node.id, event.target.value as DatasetKind)}>
-      {DATASET_MENU_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
-    </select></label>}
+    {node.type === 'dataset' && <label className="node-field">dataset<DatasetSourceSelect aria-label={`Dataset for ${node.label}`} className="nodrag nowheel" label={datasetForNode(node).label} onBrowse={() => data.onBrowseDataset?.(node.id)} onDataset={kind => data.onDatasetChange(node.id, kind)}/></label>}
     {node.type === 'arithmetic' && <label className="node-field">operation<select aria-label="Arithmetic operation" className="nodrag nowheel"
       value={arithmeticOperation(node.params.expression ?? 'x1 * x2')}
       onChange={event => data.onExpressionChange(node.id, arithmeticOperationExpression(event.target.value as ArithmeticOperation, inputCount))}>

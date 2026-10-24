@@ -4,8 +4,9 @@ import { Fragment, useEffect, useState, type ReactElement } from 'react'
 import { parseArithmetic } from '../domain/arithmetic'
 import { inputArityForNode, isFlexibleInputNodeType, outputArityForNode, TENSOR_TRANSFORM_OPTIONS } from '../domain/engine'
 import { expandedSemanticInputHeight, semanticHasAddInput, semanticInputFraction } from '../domain/semanticLayout'
-import { DATASET_MENU_OPTIONS, customCsvCardHeight, customCsvCardWidth, customCsvLabelWidth, customCsvOutputTop, datasetForNode, datasetExamples, datasetOutputLabelForSlot, datasetOutputValueForSlot, datasetTargetSlotForNode } from '../domain/datasets'
-import type { DatasetKind, LossKind, TensorTransformKind } from '../domain/types'
+import { customCsvCardHeight, customCsvCardWidth, customCsvLabelWidth, customCsvOutputTop, datasetForNode, datasetExamples, datasetOutputLabelForSlot, datasetOutputValueForSlot, datasetTargetSlotForNode } from '../domain/datasets'
+import type { LossKind, TensorTransformKind } from '../domain/types'
+import { DatasetSourceSelect } from './DatasetSourceSelect'
 import { formatCompactTensor, formatFullTensor } from '../domain/tensor'
 import type { BuilderNodeData } from './BuilderNode'
 
@@ -44,9 +45,7 @@ export function SemanticNode(props: NodeProps): ReactElement {
     <div className="semantic-operation-heading"><Icon size={14}/><span>{imageInput ? 'Digit image' : node.label}</span></div>
     {imageInput ? <div className="semantic-image-thumbnail" aria-label="Handwritten digit input">{value.data.map((pixel,index)=><span key={index} style={{background:`rgba(53,78,112,${.06+Math.max(0,Math.min(1,pixel))*.94})`}}/>)}</div> : null}
     {dataset ? <>
-      <select aria-label={`Dataset for ${node.label}`} title={dataset.label} className="semantic-dataset-select nodrag nowheel" value={dataset.kind} onChange={event => data.onDatasetChange(node.id, event.target.value as DatasetKind)}>
-        {DATASET_MENU_OPTIONS.map(option => <option key={option.kind} value={option.kind}>{option.label}</option>)}
-      </select>
+      <DatasetSourceSelect aria-label={`Dataset for ${node.label}`} className="semantic-dataset-select nodrag nowheel" label={dataset.label} onBrowse={() => data.onBrowseDataset?.(node.id)} onDataset={kind => data.onDatasetChange(node.id, kind)}/>
       <span className="semantic-dataset-summary">{datasetExamples(dataset).length} examples · {dataset.featureLabels.length} {dataset.featureLabels.length === 1 ? 'feature' : 'features'}</span>
     </> : <>
       {node.type === 'loss' ? <select aria-label="loss" className="semantic-operation-select nodrag nowheel" value={data.lossKind} onChange={event => data.onLossChange(node.id, event.target.value as LossKind)}>

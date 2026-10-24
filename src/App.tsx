@@ -1099,6 +1099,12 @@ function App({
     [pushHistory, clearRecordedExecution],
   )
 
+  const openDatasetLibrary = useCallback((nodeId: string) => {
+    cancelActiveRun()
+    dismissPendingImports()
+    setDatasetLibraryNode(nodeId)
+  }, [cancelActiveRun, dismissPendingImports])
+
   const updateDataset = useCallback((nodeId: string, dataset: DatasetKind) => {
     if (dataset === 'custom-text' || dataset === 'custom-csv') {
       cancelActiveRun()
@@ -1885,6 +1891,7 @@ function App({
         onTransformChange={(nodeId, transform) => updateNodeParams(nodeId, { transform })}
         onLossChange={updateLoss}
         onDatasetChange={updateDataset}
+        onBrowseDataset={openDatasetLibrary}
         onGroupCreate={mergeSelectedNodes}
         onGroupUnion={unionSelectedNodes}
         onGroupExplode={explodeGroup}
@@ -2009,7 +2016,7 @@ function App({
             />}
             </Suspense>
           )}
-        {!selectedGroupId && !selectedEdgeId && graph.nodes.filter(node => node.type === 'dataset' && (selectedNodeId === node.id || (!selectedNodeId && (!graph.groups?.some(group => group.id === 'network') || Boolean(datasetForNode(node).examples))))).map(node => <DatasetWorkbench key={`${node.id}:${node.params.dataset}`} graph={graph} node={node} onParams={updateNodeParams} onDataset={updateDataset} onBrowse={id => { cancelActiveRun(); dismissPendingImports(); setDatasetLibraryNode(id) }} onRename={selectedNodeId === node.id ? (id,label) => applyGraphChange({...graph,nodes:graph.nodes.map(candidate => candidate.id === id ? {...candidate,label} : candidate)}) : undefined} onChooseCustomCsv={id => updateDataset(id, 'custom-csv')} />) }
+        {!selectedGroupId && !selectedEdgeId && graph.nodes.filter(node => node.type === 'dataset' && (selectedNodeId === node.id || (!selectedNodeId && (!graph.groups?.some(group => group.id === 'network') || Boolean(datasetForNode(node).examples))))).map(node => <DatasetWorkbench key={`${node.id}:${node.params.dataset}`} graph={graph} node={node} onParams={updateNodeParams} onDataset={updateDataset} onBrowse={openDatasetLibrary} onRename={selectedNodeId === node.id ? (id,label) => applyGraphChange({...graph,nodes:graph.nodes.map(candidate => candidate.id === id ? {...candidate,label} : candidate)}) : undefined} onChooseCustomCsv={id => updateDataset(id, 'custom-csv')} />) }
         {(selectedGroup || (selectedNodeIds.length > 0 && inspectedNode?.type !== 'dataset')) && <ModelInspector
           graph={graph}
           node={inspectedNode}

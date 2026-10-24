@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { DATASET_MENU_OPTIONS, DATASET_OPTIONS, datasetExamples } from './domain/datasets'
+import { DATASET_LIBRARY } from './domain/datasetLibrary'
+import type { DatasetKind } from './domain/types'
 import { createNode, createSingleNeuronGraph } from './domain/examples'
 import { tensorValue } from './domain/tensor'
 
@@ -21,6 +23,17 @@ function datasetModel(semanticZoom: boolean) {
   return graph
 }
 
+async function chooseBuiltin(selector: HTMLElement, kind: DatasetKind) {
+  fireEvent.change(selector, { target: { value: 'browse' } })
+  const dialog = screen.getByRole('dialog', { name: 'Dataset library' })
+  const family = DATASET_LIBRARY.find(item => item.presets.some(preset => preset.builtin === kind))!
+  fireEvent.click(within(dialog).getByRole('button', { name: new RegExp(family.label) }))
+  if (family.presets.length > 1) fireEvent.change(within(dialog).getByLabelText('Dataset configuration preset'), { target: { value: kind } })
+  const useDataset = within(dialog).getByRole('button', { name: 'Use this dataset' })
+  await waitFor(() => expect(useDataset).toBeEnabled())
+  fireEvent.click(useDataset)
+}
+
 describe.each([true, false])('Dataset controls with continuous zoom %s', semanticZoom => {
   it('opens a CSV picker from the Dataset block and installs editable feature and target ports', async () => {
     const { container } = render(<App initialGraph={datasetModel(semanticZoom)} />)
@@ -34,7 +47,7 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     const text = 'height,width,y\n1,2,3\n2,3,5\n3,4,7\n4,5,9\n'
     const file = Object.assign(new File([text], 'measurements.csv', { type: 'text/csv' }), { text: async () => text })
     fireEvent.change(input, { target: { files: [file] } })
-    await waitFor(() => expect(selector).toHaveValue('custom-csv'))
+    await waitFor(() => expect(selector).toHaveDisplayValue('Custom CSV · measurements.csv'))
     expect(screen.queryByRole('dialog', { name: 'Choose a CSV file' })).not.toBeInTheDocument()
     expect(card.querySelector('.semantic-operation, .builder-node')).toHaveStyle({ width: `${builderCardWidth(createNode('dataset', 1))}px` })
     expect(within(card).getByLabelText('height output')).toHaveAttribute('data-handleid', 'out-0')
@@ -46,15 +59,20 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     expect(screen.getByRole('button', { name: 'Replace CSV file' })).toBeInTheDocument()
   })
 
-  it('restores every dataset choice and labels the actual feature and target handles', () => {
+  it('offers only browser and import actions while keeping every built-in dataset available', async () => {
     const { container } = render(<App initialGraph={datasetModel(semanticZoom)} />)
     const card = container.querySelector<HTMLElement>('[data-id="dataset-1"]')!
     const selector = within(card).getByLabelText('Dataset for dataset')
     expect(selector).toHaveClass('nodrag', 'nowheel')
-    expect(Array.from(selector.querySelectorAll('option')).map(option => option.textContent)).toEqual(DATASET_MENU_OPTIONS.map(option => option.label))
+    expect(within(selector).getAllByRole('option').map(option => option.textContent)).toEqual(['Browse datasets…', ...DATASET_MENU_OPTIONS.map(option => option.label)])
+    expect(selector).toHaveDisplayValue(DATASET_OPTIONS[0].label)
+    // Opening and cancelling the browser must not replace the current source.
+    fireEvent.change(selector, { target: { value: 'browse' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Close dataset library' }))
+    expect(selector).toHaveDisplayValue(DATASET_OPTIONS[0].label)
     for (const dataset of DATASET_OPTIONS) {
-      fireEvent.change(selector, { target: { value: dataset.kind } })
-      expect(selector).toHaveValue(dataset.kind)
+      await chooseBuiltin(selector, dataset.kind)
+      expect(selector).toHaveDisplayValue(dataset.label)
       expect(card.querySelectorAll('.source-handle')).toHaveLength(dataset.featureLabels.length + 1)
       expect(Array.from(card.querySelectorAll('.node-output-labels span')).map(label => label.textContent)).toEqual([...dataset.featureLabels, dataset.targetLabel])
       dataset.featureLabels.forEach((label, slot) => {
@@ -62,7 +80,7 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
       })
       expect(within(card).getByLabelText(`Target ${dataset.targetLabel} output`)).toHaveAttribute('data-handleid', `out-${dataset.featureLabels.length}`)
     }
-  })
+  }, 30000)
 
   it('keeps feature and target connections correct when either selector changes feature count, and supports undo', async () => {
     const user = userEvent.setup()
@@ -71,8 +89,8 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     fireEvent.click(card)
     const nodeSelector = within(card).getByLabelText('Dataset for dataset')
     const inspectorSelector = () => screen.getByRole('combobox', { name: 'Dataset selection' })
-    await user.selectOptions(nodeSelector, 'circle-center')
-    expect(inspectorSelector()).toHaveValue('circle-center')
+    await chooseBuiltin(nodeSelector, 'circle-center')
+    expect(inspectorSelector()).toHaveDisplayValue(DATASET_OPTIONS.find(option => option.kind === 'circle-center')!.label)
     expect(screen.queryByText('Inside the calculation')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Dataset outputs')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Dataset configuration')).toBeInTheDocument()
@@ -95,15 +113,15 @@ describe.each([true, false])('Dataset controls with continuous zoom %s', semanti
     await user.click(screen.getByRole('button', { name: 'Run forward' }))
     expectResults('circle-center')
     fireEvent.click(card)
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Dataset selection' }), 'cubic-1d')
-    expect(nodeSelector).toHaveValue('cubic-1d')
+    await chooseBuiltin(inspectorSelector(), 'cubic-1d')
+    expect(nodeSelector).toHaveDisplayValue(DATASET_OPTIONS.find(option => option.kind === 'cubic-1d')!.label)
     expect(within(card).getByLabelText('Target y output')).toHaveAttribute('data-handleid', 'out-1')
     await user.click(screen.getByRole('button', { name: 'Run forward' }))
     expectResults('cubic-1d')
     // Undo the forward pass, then the dataset change, restoring the old ports.
     fireEvent.keyDown(document, { key: 'z', metaKey: true })
     fireEvent.keyDown(document, { key: 'z', metaKey: true })
-    expect(nodeSelector).toHaveValue('circle-center')
+    expect(nodeSelector).toHaveDisplayValue(DATASET_OPTIONS.find(option => option.kind === 'circle-center')!.label)
     expect(within(card).getByLabelText('Target y output')).toHaveAttribute('data-handleid', 'out-2')
     await user.click(screen.getByRole('button', { name: 'Run forward' }))
     expectResults('circle-center')

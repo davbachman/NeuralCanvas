@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { afterEach, expect, it, vi } from 'vitest'
 import App from './App'
 import { createNode, createSingleNeuronGraph } from './domain/examples'
+import { datasetForNode } from './domain/datasets'
 import * as session from './domain/session'
 
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
@@ -39,7 +40,7 @@ it('installs a library CSV with fixed splits, remaps its target wire, saves, and
   if (!restored.ok) throw Error(restored.error)
   expect(restored.file.state.graph.nodes.find(n => n.id === 'dataset-1')?.params.customCsv).toEqual(data.params.customCsv)
   fireEvent.keyDown(document, { key: 'z', metaKey: true })
-  expect(screen.getByRole('combobox', { name: 'Dataset selection' })).toHaveValue('line-1d')
+  expect(screen.getByRole('combobox', { name: 'Dataset selection' })).toHaveDisplayValue(datasetForNode(graph().nodes.find(n => n.id === 'dataset-1')!).label)
 })
 it.each(['imdb.json', 'football-counts.json'])('preserves the existing prepared JSON import route for %s', async filename => {
   const { container } = render(<App initialGraph={graph()} />)
@@ -54,7 +55,7 @@ it.each(['imdb.json', 'football-counts.json'])('preserves the existing prepared 
   // Leave every importer setting at its default: prepared JSON is authoritative.
   fireEvent.click(screen.getByRole('button', { name: 'Import text dataset' }))
   await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Import text data' })).not.toBeInTheDocument())
-  expect(selector).toHaveValue('custom-text')
+  expect(selector).toHaveDisplayValue(filename)
   expect(screen.getByRole('button', { name: 'Replace text dataset' })).toBeVisible()
   expect(screen.getByText(/Context limit:/)).toBeVisible()
 }, 30000)

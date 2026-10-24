@@ -124,6 +124,7 @@ interface GraphCanvasProps {
   onTransformChange?: (nodeId: string, transform: TensorTransformKind) => void
   onLossChange?: (nodeId: string, loss: LossKind) => void
   onDatasetChange?: (nodeId: string, dataset: DatasetKind) => void
+  onBrowseDataset?: (nodeId: string) => void
   onGroupCreate: () => void
   onGroupUnion?: () => void
   onGroupExplode: (groupId: string) => void
@@ -166,6 +167,7 @@ function GraphCanvasInner({
   onTransformChange,
   onLossChange,
   onDatasetChange,
+  onBrowseDataset,
   onNavigationChange,
   onGroupCreate,
   onGroupUnion,
@@ -385,9 +387,10 @@ function GraphCanvasInner({
     onTransformChange: useStableCallback((nodeId: string, value: TensorTransformKind) => onTransformChange?.(nodeId, value)),
     onLossChange: useStableCallback((nodeId: string, value: LossKind) => onLossChange?.(nodeId, value)),
     onDatasetChange: useStableCallback((nodeId: string, value: DatasetKind) => onDatasetChange?.(nodeId, value)),
+    onBrowseDataset: useStableCallback((nodeId: string) => onBrowseDataset?.(nodeId)),
   }
   const { onFlexibleInputAdd: flexibleAction, onValueChange: valueAction, onActivationChange: activationAction,
-    onExpressionChange: expressionAction, onTransformChange: transformAction, onLossChange: lossAction, onDatasetChange: datasetAction } = nodeActions
+    onExpressionChange: expressionAction, onTransformChange: transformAction, onLossChange: lossAction, onDatasetChange: datasetAction, onBrowseDataset: browseDatasetAction } = nodeActions
   const toggleAction = useStableCallback(toggleGroup)
   const neuronAction = useStableCallback((groupId: string, unitIndex: number) => onInspectNeuron?.(groupId, unitIndex))
   const inspectNeuronAction = onInspectNeuron ? neuronAction : undefined
@@ -481,6 +484,7 @@ function GraphCanvasInner({
             onTransformChange: transformAction,
             onLossChange: lossAction,
             onDatasetChange: datasetAction,
+            onBrowseDataset: browseDatasetAction,
           },
         }))
 
@@ -494,6 +498,7 @@ function GraphCanvasInner({
       transformAction,
       lossAction,
       datasetAction,
+      browseDatasetAction,
       flexibleAction,
       valueAction,
       toggleAction,

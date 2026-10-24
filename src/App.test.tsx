@@ -8,7 +8,7 @@ import builderEdgeSource from './components/BuilderEdge.tsx?raw'
 import { BuilderEdge } from './components/BuilderEdge'
 import { GraphCanvas } from './components/GraphCanvas'
 import { MIN_NODE_HEIGHT, NODE_WIDTH, forwardPass, heightForInputCount, parameterValues } from './domain/engine'
-import { DATASET_MENU_OPTIONS } from './domain/datasets'
+import { DATASET_MENU_OPTIONS, DATASET_OPTIONS } from './domain/datasets'
 import { createNode, createStarterGraph } from './domain/examples'
 import { createModelPreset } from './domain/modelPresets'
 import { createProjectStateFile } from './domain/session'
@@ -614,7 +614,7 @@ describe('Neural Canvas app', () => {
     expect(screen.getByLabelText('prediction input')).toBeInTheDocument()
   })
 
-  it('renders a dataset dropdown with toy dataset choices', () => {
+  it('renders dataset browser and import actions in the card dropdown', () => {
     const graph: GraphModel = {
       learningRate: 0.1,
       nodes: [
@@ -629,6 +629,7 @@ describe('Neural Canvas app', () => {
       edges: [],
     }
     const onDatasetChange = vi.fn()
+    const onBrowseDataset = vi.fn()
     const noop = vi.fn()
     render(
       <GraphCanvas
@@ -644,6 +645,7 @@ describe('Neural Canvas app', () => {
         onActivationChange={noop}
         onLossChange={noop}
         onDatasetChange={onDatasetChange}
+        onBrowseDataset={onBrowseDataset}
         onGroupCreate={noop}
         onGroupExplode={noop}
         onGroupMove={noop}
@@ -654,14 +656,18 @@ describe('Neural Canvas app', () => {
       .getAllByRole('combobox', { hidden: true })
       .find((element) => element.getAttribute('aria-label') === 'Dataset for dataset')
     expect(datasetSelect).toBeDefined()
-    expect(datasetSelect).toHaveValue('line-1d')
-    expect(Array.from(datasetSelect!.querySelectorAll('option')).map((option) => option.textContent)).toEqual(
-      DATASET_MENU_OPTIONS.map((option) => option.label),
+    expect(datasetSelect).toHaveDisplayValue(DATASET_OPTIONS[0].label)
+    expect(within(datasetSelect!).getAllByRole('option').map((option) => option.textContent)).toEqual(
+      ['Browse datasets…', ...DATASET_MENU_OPTIONS.map((option) => option.label)],
     )
 
-    fireEvent.change(datasetSelect!, { target: { value: 'circle-center' } })
+    fireEvent.change(datasetSelect!, { target: { value: 'browse' } })
+    expect(onBrowseDataset).toHaveBeenCalledWith('dataset')
+    expect(onDatasetChange).not.toHaveBeenCalled()
 
-    expect(onDatasetChange).toHaveBeenCalledWith('dataset', 'circle-center')
+    fireEvent.change(datasetSelect!, { target: { value: 'custom-csv' } })
+
+    expect(onDatasetChange).toHaveBeenCalledWith('dataset', 'custom-csv')
   })
 
   it('hides value editors on input and target nodes fed by a dataset', () => {

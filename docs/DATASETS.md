@@ -8,8 +8,10 @@ Selecting a dataset shows its **Train / test split**, **Examples**, and, where a
 
 ## Browse the dataset library
 
-Select a Dataset block, open **Details**, and click **Browse datasets…**. The
-library groups real datasets and all existing built-in examples into Regression,
+Choose **Browse datasets…** from the Dataset card's dropdown, or select the block
+and click **Browse datasets…** in **Details**. The dropdown shows the current
+dataset when closed and offers browsing and custom import actions when opened.
+The library groups real datasets and all existing built-in examples into Regression,
 Classification, Text and sequences, Images, and Attention and probabilities.
 Search by name or learning task, then open a dataset family. Its preview shows
 an input and target, output names and shapes per example, split counts, and
