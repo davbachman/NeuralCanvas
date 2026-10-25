@@ -22,7 +22,7 @@
 <p>Use Numeric batch mode and Training examples. Concatenate the raw columns <code>x1</code> then <code>x2</code> on axis <code>1</code> to form X. Both coordinates already have comparable scales; use them directly without standardization. Do not add squared terms, a radius, or other engineered features: the hidden layer should learn the useful features.</p>
 <h3>Part A: Linear classifier — 40 points</h3>
 <p>Build <strong>logits = XW + b</strong>, with <strong>three outputs</strong>, one score for each class. Determine the matrix and bias-vector shapes from the two inputs and three outputs. Initialize W with Xavier and b with Zeros.</p>
-<p>Use <strong>Cross entropy (logits)</strong>, with logits connected directly to Loss and the Dataset's class label connected directly to the target input. Add a separate <strong>Softmax</strong> branch to inspect the three probabilities in its Data tab. This is the multiclass setup from Assignment 4; do not select binary cross-entropy or put Softmax before Loss.</p>
+<p>Use <strong>Cross entropy (logits)</strong>, with logits connected directly to Loss and the Dataset's class label connected directly to the target input. Add a separate <strong>Softmax</strong> branch to inspect the three probabilities in its Data tab. This is the multiclass setup from the matrix-model and Iris classification assignment; do not select binary cross-entropy or put Softmax before Loss.</p>
 <p>Train with the settings below and save as <strong>linear.json</strong>. Expect limited accuracy: straight decision boundaries cannot cleanly separate all three regions. A loss near 0.53 can be a correctly trained baseline, not a wiring mistake.</p>
 <h3>Part B: MLP classifier — 60 points</h3>
 <p>Build a new model with <strong>16 hidden units</strong>:</p>
@@ -41,7 +41,7 @@
 <p>Linear: 5 points for the saved model and original data, 20 for model form, 10 for training loss, and 5 for held-out loss. MLP: 5 for file/data, 25 for model form, and 10 each for training loss, held-out loss, and held-out accuracy. Performance credit requires the assigned architecture. The grader recomputes predictions from saved parameters.</p>
 <h3>Optional extension: handwritten digits</h3>
 <p>In a separate copy, try transferring the same comparison to handwritten digits.</p><p data-library-preset="digits-8x8" data-library-file="digits-8x8">Select your Dataset block and open <strong>Details → Browse datasets…</strong>. Choose <strong>Images</strong> → <strong>Handwritten digits</strong>. Click <strong>Use this dataset</strong>. Keep the supplied data and split unchanged.</p><p> Its pixels are already scaled to [0,1]. Reshape each image to <code>1, 64</code>, use ten output scores, and try 32 hidden units for the MLP. Compare accuracy and cross-entropy: a more expressive model need not improve accuracy when the linear baseline is already strong. This extension is not submitted or graded.</p>
-<p><small>Assignment version: rings-06-v3. Synthetic data generated for this course with seed 20261007. This replaces the earlier digits and binary-rings versions of Assignment 6; submit models trained on the Concentric rings dataset.</small></p>
+<p><small>Assignment version: rings-06-v3. Synthetic data generated for this course with seed 20261007. This replaces the earlier digits and binary-rings versions of this assignment; submit models trained on the Concentric rings dataset.</small></p>
 </div>
   </main>
 </body>
