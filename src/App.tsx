@@ -1324,15 +1324,14 @@ function App({
     setSelectedGroupId(result.selection.groupId)
   }
   const evaluateModel = () => {
-    if (blockingIssues.length) return
     setInferenceResult(undefined)
     pushHistory()
-    const result = forwardPass(graph)
+    const result = forwardPass(graph, true, { allowPartial: true })
     setGraph(result.graph)
     setVisualizationGraph(result.graph)
     setTraceSteps(result.steps)
     setTraceIndex(Math.max(0, result.steps.length - 1))
-    setPhase(hasLoss ? 'loss' : 'forward')
+    setPhase(result.loss !== undefined ? 'loss' : 'forward')
     setCurrentLoss(result.loss ?? null)
     setIsPlaying(false)
   }
@@ -1752,7 +1751,7 @@ function App({
           ) : null}
         </section>
         <section className="panel-section run-panel" role="tabpanel" aria-label="Train controls" hidden={leftTab !== 'train'}>
-          <button type="button" className="run-epochs-button primary-button" onClick={() => runCanvasAction(evaluateModel)} disabled={blockingIssues.length > 0 || isTraining}>Run forward</button>
+          <button type="button" className="run-epochs-button primary-button" onClick={() => runCanvasAction(evaluateModel)} disabled={isTraining}>Run forward</button>
           <div className="run-metrics"><span title="Total scalar values in all Param blocks. Shared blocks are counted once.">Trainable parameters: <strong aria-label="Trainable parameter count">{trainableParameterCount.toLocaleString('en-US')}</strong></span></div>
           <div className="run-section-divider" />
           <p className="eyebrow">Train the model</p>

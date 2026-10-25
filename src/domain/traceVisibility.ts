@@ -33,7 +33,7 @@ function visibleForwardGraph(graph: GraphModel, traceSteps: EvaluationTraceStep[
   )
   const sourceOrReached = (nodeId: string): boolean => {
     const node = graph.nodes.find((candidate) => candidate.id === nodeId)
-    if (!node) return false
+    if (!node || node.value === undefined) return false
     if (!SOURCE_TYPES.has(node.type)) return visibleNodeIds.has(node.id)
     const incoming = graph.edges.find(edge => edge.target === nodeId)
     return incoming ? sourceOrReached(incoming.source) : true

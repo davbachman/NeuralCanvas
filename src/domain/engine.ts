@@ -757,7 +757,12 @@ export function topologicalSort(graph: GraphModel): string[] {
   return order
 }
 
-export interface ForwardOptions { training?: boolean; random?: () => number }
+export interface ForwardOptions {
+  training?: boolean
+  random?: () => number
+  /** Evaluate available branches while leaving incomplete or invalid blocks empty. */
+  allowPartial?: boolean
+}
 
 /** Compile an inference-only pass for repeated dataset examples. Parameters and
  * dataset selection may change between calls; node and edge topology must stay
@@ -792,14 +797,36 @@ export function createForwardEvaluator(graph: GraphModel): (input?: GraphModel) 
 }
 
 export function forwardPass(graph: GraphModel, trace = true, options: ForwardOptions = {}): EvaluationResult {
-  assertValid(graph)
+  if (!options.allowPartial) assertValid(graph)
   const next = cloneGraph(graph)
   const order = topologicalSort(next)
   const steps: EvaluationTraceStep[] = []
+  const blockedNodes = new Set<string>()
+  const blockedEdges = new Set<string>()
+
+  if (options.allowPartial) {
+    for (const issue of validateGraph(graph)) {
+      if (issue.code === 'disconnected') continue
+      if (issue.edgeId) blockedEdges.add(issue.edgeId)
+      else if (issue.nodeId) blockedNodes.add(issue.nodeId)
+    }
+    // A previous pass must never supply values to an unavailable branch.
+    for (const node of next.nodes) {
+      node.value = undefined
+      node.grad = undefined
+      node.localDerivative = undefined
+      node.cache = undefined
+    }
+    for (const edge of next.edges) {
+      edge.value = undefined
+      edge.grad = undefined
+    }
+  }
 
   for (const nodeId of order) {
     const node = mustNode(next, nodeId)
     const incoming = incomingEdges(next, nodeId)
+    if (options.allowPartial && (blockedNodes.has(nodeId) || incoming.some(edge => edge.value === undefined))) continue
     const inputValues = incoming.map((edge) => valueForSourceEdge(next, edge))
     const computed = computeForward(node, inputValues, options)
 
@@ -815,6 +842,7 @@ export function forwardPass(graph: GraphModel, trace = true, options: ForwardOpt
     }
 
     for (const edge of next.edges.filter((candidate) => candidate.source === node.id)) {
+      if (blockedEdges.has(edge.id)) continue
       const outputValue = sourceValueForEdgeSource(node, edge)
       edge.value = cloneTensor(outputValue)
       edge.grad = zeroLike(outputValue)
@@ -825,7 +853,7 @@ export function forwardPass(graph: GraphModel, trace = true, options: ForwardOpt
     }
   }
 
-  const lossValue = next.nodes.find(isLossNode)?.value
+  const lossValue = next.nodes.find(node => isLossNode(node) && node.value !== undefined)?.value
   const loss = lossValue ? scalarFromTensor(lossValue) : undefined
   return { graph: next, steps, loss }
 }

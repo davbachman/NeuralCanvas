@@ -6,7 +6,9 @@ A trainable graph needs a prediction connected to the first **Loss** port and a 
 
 ## Watch one calculation at a time
 
-Open **Train**. **Run forward** computes current outputs and loss. **Step** (⇧ Space) advances through the forward pass, loss, backward gradients, and update; after an epoch finishes, another Step starts the next cycle. **Play** advances automatically at the selected playback speed. **Finish phase** advances to the end of the current phase, and **Step inside** opens a grouped calculation when available. Select a block or wire, then open **Data** to read its value and gradient. A parameter node's gradient includes all contributions to that parameter; a selected wire shows that connection's contribution.
+Open **Train**. **Run forward** carries dataset values as far as the connected graph can compute, even while other blocks are incomplete or unconnected. Blocks waiting for inputs stay empty; loss appears only when its inputs are available. Training actions still require a valid graph.
+
+**Step** (⇧ Space) advances through the forward pass, loss, backward gradients, and update; after an epoch finishes, another Step starts the next cycle. **Play** advances automatically at the selected playback speed. **Finish phase** advances to the end of the current phase, and **Step inside** opens a grouped calculation when available. Select a block or wire, then open **Data** to read its value and gradient. A parameter node's gradient includes all contributions to that parameter; a selected wire shows that connection's contribution.
 
 **Run one full training step** performs a full forward, backward, and SGD update on the current training example. **Randomize parameters** in Train gives trainable values a fresh starting point.
 
