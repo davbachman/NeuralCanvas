@@ -18,5 +18,3 @@ The files are complete editable projects, not screenshots or locked demonstratio
 | [block.json](block.json), [block-untrained.json](block-untrained.json) | Transformer block with trained or initial weights |
 | [decoder.json](decoder.json), [decoder-untrained.json](decoder-untrained.json) | Full miniature decoder with trained or initial weights |
 | [cnn.json](cnn.json) | Digit CNN |
-
-To regenerate these files after changing a model definition, run `npm run export:models` from the project root.
