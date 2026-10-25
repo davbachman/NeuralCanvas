@@ -1686,7 +1686,7 @@ function App({
           <div className="about-dialog-mark" aria-hidden="true">NC</div>
           <h2 id="about-title">About Neural Canvas</h2>
           <p id="about-description">Created by David Bachman with Codex. Build and explore machine-learning models from individual calculations through neural networks, attention, and transformers.</p>
-          <p>Learn more about <a href="https://pzacad.pitzer.edu/~dbachman/" target="_blank" rel="noopener noreferrer">David Bachman</a> and his AI podcast, <a href="https://profbachman.substack.com/" target="_blank" rel="noopener noreferrer"><em>Entropy Bonus</em></a>.</p>
+          <p>Learn more about <a href="https://pzacad.pitzer.edu/~dbachman/" target="_blank" rel="noopener noreferrer">David Bachman</a> and his AI substack, <a href="https://profbachman.substack.com/" target="_blank" rel="noopener noreferrer"><em>Entropy Bonus</em></a>.</p>
           <button type="button" autoFocus onClick={closeAbout}>Close</button>
         </section>
       </div> : null}
