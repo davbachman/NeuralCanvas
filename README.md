@@ -17,6 +17,15 @@ Created by [David Bachman](https://pzacad.pitzer.edu/~dbachman/) with Codex. Dav
 
 For a guided first build, follow [Get started](docs/USAGE.md) or begin with [Assignment 1](https://davbachman.github.io/NeuralCanvas/course/01-mpg.html). Normal browser use requires no account or local installation.
 
+## Reference
+
+| Topic | Guide |
+| --- | --- |
+| Workspace | [Canvas navigation and grouping](docs/CANVAS.md) · [Block reference](docs/BLOCKS.md) |
+| Model construction | [Build models from scratch](docs/BUILDING-MODELS.md) · [Example models and lessons](docs/EXAMPLES.md) |
+| Training and evaluation | [Training, testing, and reports](docs/TRAINING.md) |
+| Files and exports | [Save projects and export PyTorch models](docs/FILES-AND-EXPORT.md) |
+
 ## Datasets
 
 The dataset browser groups data by learning task. Open a family to choose a configuration and preview its inputs, targets, output shapes, and training/held-out counts. Click **Use this dataset** to add it to the selected Dataset block. The eight simple regression and classification examples are also available directly from the card's dropdown.
@@ -81,15 +90,4 @@ These 19 assignments progress from regression to a transformer question-answerin
 | [17. Let attention build on attention](https://davbachman.github.io/NeuralCanvas/course/17-stacking.html) | Stack two independently parameterized transformer blocks so later attention can use already contextualized representations. Compare with the trained one-block model. |
 | [18. Give each block two attention patterns](https://davbachman.github.io/NeuralCanvas/course/18-multiple-heads.html) | Give each transformer block two independently learned attention heads while keeping the total feature width fixed. Keep the trained generator for the capstone. |
 | [19. Fine-tune your generator to answer questions](https://davbachman.github.io/NeuralCanvas/course/19-qa-finetuning.html) | Fine-tune the trained generator to predict answer tokens for football-story questions. Compare before and after fine-tuning, and with the earlier cross-attention model, on the common benchmark. |
-
-## Reference
-
-| Topic | Guide |
-| --- | --- |
-| Workspace | [Canvas navigation and grouping](docs/CANVAS.md) · [Block reference](docs/BLOCKS.md) |
-| Model construction | [Build models from scratch](docs/BUILDING-MODELS.md) · [Example models and lessons](docs/EXAMPLES.md) |
-| Training and evaluation | [Training, testing, and reports](docs/TRAINING.md) |
-| Files and exports | [Save projects and export PyTorch models](docs/FILES-AND-EXPORT.md) |
-
-
 
