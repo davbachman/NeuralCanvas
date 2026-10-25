@@ -1,0 +1,28 @@
+{
+  "appCommit": "9d535a02b53bff5859e963d07cdf2d65df6cfacf",
+  "appDirty": false,
+  "source": "Assignment 18 checkpoint and pilots/football/student-capstone",
+  "pretrainingAssignment": 18,
+  "splitUnit": "Disjoint room-layout groups; actor and event-order variants stay together.",
+  "validationUsedForTaskSelection": true,
+  "pretrainingEpochs": 10,
+  "additionalQaEpochs": 5,
+  "epochCounters": [
+    0,
+    10,
+    15
+  ],
+  "backend": "webgl",
+  "suppliedStudentModel": false,
+  "limitations": "SwiftShader software rendering, contended runs; not physical GPU timing or hosted Gradescope validation.",
+  "studentFiles": {
+    "description.html": "321347db8402b91eef1838814f53985c992af84c73e8c9ace73f66198bb8db8f",
+    "story-questions.json": "3877e63c81f63ab51f814d3c7a5e578184b437d526950f82d88c6ca2d59b3708"
+  },
+  "earlierModel": {
+    "source": "Assignment 10 football.json",
+    "parameterCount": 6441,
+    "compatibility": "6,441-parameter whole-story cross-attention with concatenation; equivalent score masks.",
+    "representation": "story-question, direct 32/8 token IDs and word masks"
+  }
+}

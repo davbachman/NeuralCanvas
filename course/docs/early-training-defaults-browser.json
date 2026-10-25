@@ -1,0 +1,139 @@
+{
+  "appCommit": "51e00c7c64d6b68624a7d02a246479530c88b09c",
+  "appDirty": false,
+  "scope": "Production UI defaults, engine/backend/optimizer selection, and File > Save. No retraining; original parameter values preserved.",
+  "records": [
+    {
+      "assignment": "01-mpg",
+      "defaultsVerified": {
+        "Training execution": "tensor",
+        "Training backend": "auto",
+        "Optimizer": "adam",
+        "Gradient norm limit": "1",
+        "Early stopping patience": "0",
+        "Minimum validation improvement": "0"
+      },
+      "savedTraining": {
+        "engine": "trace",
+        "backend": "auto",
+        "optimizer": "adam",
+        "weightDecay": 0.01,
+        "clipNorm": 1,
+        "patience": 0,
+        "minDelta": 0
+      },
+      "parametersUnchanged": true,
+      "errors": []
+    },
+    {
+      "assignment": "02-regularization",
+      "defaultsVerified": {
+        "Training execution": "tensor",
+        "Training backend": "auto",
+        "Optimizer": "adam",
+        "Gradient norm limit": "1",
+        "Early stopping patience": "0",
+        "Minimum validation improvement": "0"
+      },
+      "savedTraining": {
+        "engine": "trace",
+        "backend": "auto",
+        "optimizer": "adam",
+        "weightDecay": 0.01,
+        "clipNorm": 1,
+        "patience": 0,
+        "minDelta": 0
+      },
+      "parametersUnchanged": true,
+      "errors": []
+    },
+    {
+      "assignment": "03-classification",
+      "defaultsVerified": {
+        "Training execution": "tensor",
+        "Training backend": "auto",
+        "Optimizer": "adam",
+        "Gradient norm limit": "1",
+        "Early stopping patience": "0",
+        "Minimum validation improvement": "0"
+      },
+      "savedTraining": {
+        "engine": "trace",
+        "backend": "auto",
+        "optimizer": "adam",
+        "weightDecay": 0.01,
+        "clipNorm": 1,
+        "patience": 0,
+        "minDelta": 0
+      },
+      "parametersUnchanged": true,
+      "errors": []
+    },
+    {
+      "assignment": "04-matrices",
+      "defaultsVerified": {
+        "Training execution": "tensor",
+        "Training backend": "auto",
+        "Optimizer": "adam",
+        "Gradient norm limit": "1",
+        "Early stopping patience": "0",
+        "Minimum validation improvement": "0"
+      },
+      "savedTraining": {
+        "engine": "trace",
+        "backend": "auto",
+        "optimizer": "adam",
+        "weightDecay": 0.01,
+        "clipNorm": 1,
+        "patience": 0,
+        "minDelta": 0
+      },
+      "parametersUnchanged": true,
+      "errors": []
+    },
+    {
+      "assignment": "05-mlp",
+      "defaultsVerified": {
+        "Training execution": "tensor",
+        "Training backend": "auto",
+        "Optimizer": "adam",
+        "Gradient norm limit": "1",
+        "Early stopping patience": "0",
+        "Minimum validation improvement": "0"
+      },
+      "savedTraining": {
+        "engine": "trace",
+        "backend": "auto",
+        "optimizer": "adam",
+        "weightDecay": 0.01,
+        "clipNorm": 1,
+        "patience": 0,
+        "minDelta": 0
+      },
+      "parametersUnchanged": true,
+      "errors": []
+    },
+    {
+      "assignment": "06-rings",
+      "defaultsVerified": {
+        "Training execution": "tensor",
+        "Training backend": "auto",
+        "Optimizer": "adam",
+        "Gradient norm limit": "1",
+        "Early stopping patience": "0",
+        "Minimum validation improvement": "0"
+      },
+      "savedTraining": {
+        "engine": "tensor",
+        "backend": "cpu",
+        "optimizer": "sgd",
+        "weightDecay": 0.01,
+        "clipNorm": 0,
+        "patience": 0,
+        "minDelta": 0
+      },
+      "parametersUnchanged": true,
+      "errors": []
+    }
+  ]
+}

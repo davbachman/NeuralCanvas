@@ -1,0 +1,1301 @@
+{
+  "appCommit": "417be2e78cbb87a82e6605925ad3cdae5fd67c25",
+  "appDirty": false,
+  "browser": "151.0.7922.173",
+  "tables": [
+    {
+      "folder": "07-word-counts",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "5",
+          "100"
+        ],
+        [
+          "Report loss every",
+          "1",
+          "10"
+        ],
+        [
+          "Examples per update",
+          "32",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.01",
+          "0.02"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "0",
+          "0"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "07-word-counts",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "07-word-counts",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Weight matrix",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vector",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "08-embeddings",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "10"
+        ],
+        [
+          "Report loss every",
+          "5"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.02"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "0"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "08-embeddings",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "08-embeddings",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word embedding table",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "09-positional-embeddings",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "5"
+        ],
+        [
+          "Report loss every",
+          "5"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "09-positional-embeddings",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "09-positional-embeddings",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word and position tables",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "10-attention",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "5"
+        ],
+        [
+          "Report loss every",
+          "5"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "10-attention",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "10-attention",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word and position tables",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "11-next-word",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "5"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "11-next-word",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "11-next-word",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word embedding table",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "12-sampling",
+      "panel": "text-generation",
+      "caption": "Optional generation controls",
+      "rows": [
+        [
+          "Prompt and generated text",
+          "Your chosen prompt; restore it before each comparison"
+        ],
+        [
+          "Decoding",
+          "Sample"
+        ],
+        [
+          "Temperature",
+          "The value being explored"
+        ],
+        [
+          "Top-k",
+          "25"
+        ]
+      ]
+    },
+    {
+      "folder": "13-context",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "5"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "13-context",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "13-context",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word embedding table",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "14-self-attention",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "5"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "14-self-attention",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "14-self-attention",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word and position tables",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "15-residuals",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "5"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "15-residuals",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "15-residuals",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word and position tables",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "16-normalization",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "10"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "16-normalization",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "16-normalization",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word and position tables",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ],
+        [
+          "Layer norm scales",
+          "ones"
+        ],
+        [
+          "Layer norm offsets",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "17-stacking",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "10"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "17-stacking",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "17-stacking",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word and position tables",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ],
+        [
+          "Layer norm scales",
+          "ones"
+        ],
+        [
+          "Layer norm offsets",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "18-multiple-heads",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "10"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "Tensor CPU"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "18-multiple-heads",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "18-multiple-heads",
+      "panel": "initializer",
+      "caption": "Param → Initialize choices",
+      "rows": [
+        [
+          "Word and position tables",
+          "uniform"
+        ],
+        [
+          "Other matrices",
+          "Xavier · matrices"
+        ],
+        [
+          "Bias vectors",
+          "zeros"
+        ],
+        [
+          "Layer norm scales",
+          "ones"
+        ],
+        [
+          "Layer norm offsets",
+          "zeros"
+        ]
+      ]
+    },
+    {
+      "folder": "19-qa-finetuning",
+      "panel": "train",
+      "caption": "Training settings — Train tab",
+      "rows": [
+        [
+          "Epochs per run",
+          "5"
+        ],
+        [
+          "Report loss every",
+          "5"
+        ],
+        [
+          "Examples per update",
+          "32"
+        ],
+        [
+          "Reshuffle training examples each epoch",
+          "Checked"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Training execution",
+          "Tensor engine · minibatches"
+        ],
+        [
+          "Backend",
+          "WebGL"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ],
+        [
+          "Gradient norm limit (0 = off)",
+          "1"
+        ],
+        [
+          "Early stopping patience (0 = off)",
+          "0"
+        ]
+      ]
+    },
+    {
+      "folder": "19-qa-finetuning",
+      "panel": "regularization",
+      "caption": "Loss block → Details → Parameter regularization",
+      "rows": [
+        [
+          "Penalty",
+          "None"
+        ]
+      ]
+    },
+    {
+      "folder": "19-qa-finetuning",
+      "panel": "train",
+      "caption": "Optional Adam comparison — changed Train controls",
+      "rows": [
+        [
+          "Epochs per run",
+          "10"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Optimizer",
+          "Adam"
+        ]
+      ]
+    },
+    {
+      "folder": "19-qa-finetuning",
+      "panel": "train",
+      "caption": "Optional AdamW experiment — changed Train controls",
+      "rows": [
+        [
+          "Epochs per run",
+          "10"
+        ],
+        [
+          "Report loss every",
+          "1"
+        ],
+        [
+          "Exact learning rate",
+          "0.003"
+        ],
+        [
+          "Optimizer",
+          "AdamW"
+        ],
+        [
+          "Weight decay",
+          "0.1"
+        ]
+      ]
+    },
+    {
+      "folder": "19-qa-finetuning",
+      "panel": "train",
+      "caption": "Optional AdamW variations — changed Train controls",
+      "rows": [
+        [
+          "Exact learning rate",
+          "0.003",
+          "0.001"
+        ],
+        [
+          "Weight decay",
+          "0.01",
+          "0.1"
+        ]
+      ]
+    }
+  ],
+  "properties": [
+    {
+      "folder": "07-word-counts",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries1000Text tokens used per exampleUp to 128Word-count output shape1 × 1000Answer classes2: negative and positiveTraining examples1200Held-out examples400",
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries16Text tokens used per example23Word-count output shape1 × 16Answer classes6 roomsTraining examples480Held-out examples240"
+      ]
+    },
+    {
+      "folder": "08-embeddings",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries17, including unknown and paddingToken IDs per example23Answer classes6 roomsTraining examples480Held-out examples240"
+      ]
+    },
+    {
+      "folder": "09-positional-embeddings",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingstory token IDs32question token IDs8story word mask32 × 1question word mask8 × 1answer1 class index; 9 answer classesTraining examples in either QA preset3840Held-out examples — Mixed-question classifier1920Held-out examples — Mixed training · football benchmark240"
+      ]
+    },
+    {
+      "folder": "10-attention",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingstory token IDs32question token IDs8story word mask32 × 1question word mask8 × 1answer1 class index; 9 answer classesTraining examples in either QA preset3840Held-out examples — Mixed-question classifier1920Held-out examples — Mixed training · football benchmark240"
+      ]
+    },
+    {
+      "folder": "11-next-word",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingInput token IDs32Position IDs32Next-token target IDs1Training windows1534Held-out windows765"
+      ]
+    },
+    {
+      "folder": "12-sampling",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingInput token IDs32Position IDs32Next-token target IDs1Training windows1534Held-out windows765"
+      ]
+    },
+    {
+      "folder": "13-context",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingInput token IDs32Position IDs32Next-token target IDs1Training windows1534Held-out windows765"
+      ]
+    },
+    {
+      "folder": "14-self-attention",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingInput token IDs32Position IDs32Next-token target IDs1Training windows1534Held-out windows765"
+      ]
+    },
+    {
+      "folder": "15-residuals",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingInput token IDs32Position IDs32Next-token target IDs1Training windows1534Held-out windows765"
+      ]
+    },
+    {
+      "folder": "16-normalization",
+      "tables": [
+        "Prepared dataset propertiesDataset propertyParts A and C: lastPart B: allVocabulary entries25, including unknown and padding25, including unknown and paddingInput token IDs3232Position IDs3232Next-token target IDs132Training windows15341534Held-out windows765765"
+      ]
+    },
+    {
+      "folder": "17-stacking",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingInput token IDs32Position IDs32Next-token target IDs32Training windows1534Held-out windows765"
+      ]
+    },
+    {
+      "folder": "18-multiple-heads",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingInput token IDs32Position IDs32Next-token target IDs32Training windows1534Held-out windows765"
+      ]
+    },
+    {
+      "folder": "19-qa-finetuning",
+      "tables": [
+        "Prepared dataset propertiesDataset propertySupplied valueVocabulary entries25, including unknown and paddingInput token IDs23: story followed by questionNext-token target IDs1: the answer, excluded from the inputTraining questions3840Held-out football questions240"
+      ]
+    }
+  ],
+  "imports": [
+    {
+      "folder": "07-word-counts",
+      "filename": "football-counts.json",
+      "task": "classification",
+      "representation": "counts",
+      "vocabulary": 16,
+      "documents": 720,
+      "libraryPreset": "football-counts",
+      "savedDataMatchesFixture": true,
+      "graderFullCredit": true,
+      "learnedParametersUnchanged": true
+    },
+    {
+      "folder": "07-word-counts",
+      "filename": "imdb.json",
+      "task": "sentiment",
+      "representation": "counts",
+      "vocabulary": 1000,
+      "documents": 1600,
+      "libraryPreset": "imdb",
+      "savedDataMatchesFixture": true,
+      "graderFullCredit": true,
+      "learnedParametersUnchanged": true
+    },
+    {
+      "folder": "08-embeddings",
+      "filename": "football-tokens.json",
+      "task": "classification",
+      "representation": "tokens",
+      "vocabulary": 17,
+      "documents": 720,
+      "libraryPreset": "football-tokens",
+      "savedDataMatchesFixture": true,
+      "graderFullCredit": true,
+      "learnedParametersUnchanged": true
+    },
+    {
+      "folder": "09-positional-embeddings",
+      "filename": "football-test.json",
+      "task": "classification",
+      "representation": "story-question",
+      "vocabulary": 25,
+      "documents": 4080,
+      "libraryPreset": "football-benchmark",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "09-positional-embeddings",
+      "filename": "stories.json",
+      "task": "classification",
+      "representation": "story-question",
+      "vocabulary": 25,
+      "documents": 5760,
+      "libraryPreset": "football-mixed",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "10-attention",
+      "filename": "football-test.json",
+      "task": "classification",
+      "representation": "story-question",
+      "vocabulary": 25,
+      "documents": 4080,
+      "libraryPreset": "football-benchmark",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "10-attention",
+      "filename": "stories.json",
+      "task": "classification",
+      "representation": "story-question",
+      "vocabulary": 25,
+      "documents": 5760,
+      "libraryPreset": "football-mixed",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "11-next-word",
+      "filename": "football-narratives-last.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-last",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "12-sampling",
+      "filename": "football-narratives-last.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-last",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "13-context",
+      "filename": "football-narratives-last.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-last",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "14-self-attention",
+      "filename": "football-narratives-last.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-last",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "15-residuals",
+      "filename": "football-narratives-last.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-last",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "16-normalization",
+      "filename": "football-narratives-all.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-all",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "16-normalization",
+      "filename": "football-narratives-last.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-last",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "17-stacking",
+      "filename": "football-narratives-all.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-all",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "18-multiple-heads",
+      "filename": "football-narratives-all.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 45,
+      "libraryPreset": "narrative-all",
+      "savedDataMatchesFixture": true
+    },
+    {
+      "folder": "19-qa-finetuning",
+      "filename": "story-questions.json",
+      "task": "language",
+      "representation": "tokens",
+      "vocabulary": 25,
+      "documents": 4080,
+      "libraryPreset": "football-qa",
+      "savedDataMatchesFixture": true
+    }
+  ],
+  "generationControls": [
+    "Prompt and generated text",
+    "Decoding",
+    "Temperature",
+    "Top-k"
+  ],
+  "trainingSettingsPreserveParametersAndEpoch": true,
+  "conditionalControlsVerified": true,
+  "errors": [],
+  "scope": "Rendered local app controls, every text dataset selected in the library and saved, early-model exports independently graded. No retraining or hosted Gradescope/deployed-site test."
+}

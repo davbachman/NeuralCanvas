@@ -1,0 +1,81 @@
+{
+  "source": "pilots/football/short-five-diverse/all.json",
+  "sourceSha256": "3be260f519fc5a0a8c38ccebf3baa1a23ae231be80cf0323c347e62b67e7e0bd",
+  "truthSource": "pilots/football/short-five-diverse/all-truth.json",
+  "windowCounts": {
+    "train": 1534,
+    "test": 765
+  },
+  "policy": "All-position file is byte-identical to the original football pretraining data; final-position file changes only targetMode. No assignment data or split is modified.",
+  "finalTargetCounts": {
+    "train": {
+      ".": 331,
+      "now": 58,
+      "football": 130,
+      "nora": 154,
+      "nobody": 12,
+      "end": 55,
+      "liam": 162,
+      "the": 70,
+      "took": 61,
+      "entered": 161,
+      "bathroom": 34,
+      "office": 38,
+      "has": 17,
+      "held": 26,
+      "kitchen": 42,
+      "hall": 33,
+      "in": 38,
+      "garden": 34,
+      "is": 27,
+      "bedroom": 27,
+      "dropped": 24
+    },
+    "test": {
+      ".": 163,
+      "now": 32,
+      "football": 79,
+      "end": 28,
+      "liam": 83,
+      "bathroom": 10,
+      "in": 15,
+      "entered": 76,
+      "hall": 17,
+      "nora": 71,
+      "garden": 12,
+      "bedroom": 21,
+      "kitchen": 20,
+      "the": 32,
+      "took": 31,
+      "dropped": 15,
+      "office": 22,
+      "is": 18,
+      "held": 13,
+      "has": 5,
+      "nobody": 2
+    }
+  },
+  "empiricalBigramTrainingLossLowerBound": 0.9214774711440534,
+  "type": "Course-generated synthetic football narratives; no external source",
+  "appCommit": "9d535a02b53bff5859e963d07cdf2d65df6cfacf",
+  "appDirty": false,
+  "historyTruth": "pilots/football/focused-location/truth.json",
+  "pilotSource": "pilots/football/progression-candidate; pilots/football/student-capstone",
+  "distributedFiles": {
+    "football-narratives-all.json": "5a2cfe35717add8fb12445e3e9cc5b3572989107e6e22c9decd63ec1401feaec",
+    "football-narratives-last.json": "627cdfb9b675ee7be42430156f5561f6142c2b31cfad0de23f79f88708a6cc1c"
+  },
+  "matchedEpochComparison": {
+    "epochsPerTrainedPart": 10,
+    "updatesPerTrainedPart": 480,
+    "sources": {
+      "transformer": "pilots/football/assignment15-matched-epochs/137",
+      "all_positions": "pilots/football/progression-candidate/native/all-position-137-cpu"
+    },
+    "appCommits": {
+      "transformer": "42708105d80c2c47fd2b90a26f5add201a4c2ce5",
+      "all_positions": "9d535a02b53bff5859e963d07cdf2d65df6cfacf"
+    },
+    "evidence": "pilots/football/assignment15-matched-epochs/README.md"
+  }
+}

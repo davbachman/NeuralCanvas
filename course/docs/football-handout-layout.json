@@ -1,0 +1,440 @@
+[
+  {
+    "assignment": "01-mpg",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Dataset columns and split",
+      "Full-credit performance thresholds"
+    ]
+  },
+  {
+    "assignment": "01-mpg",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Dataset columns and split",
+      "Full-credit performance thresholds"
+    ]
+  },
+  {
+    "assignment": "02-regularization",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Settings that worked in the instructor pilot",
+      "Full-credit fit criteria (inclusive)"
+    ]
+  },
+  {
+    "assignment": "02-regularization",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Settings that worked in the instructor pilot",
+      "Full-credit fit criteria (inclusive)"
+    ]
+  },
+  {
+    "assignment": "03-classification",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Full-credit performance criteria"
+    ]
+  },
+  {
+    "assignment": "03-classification",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Full-credit performance criteria"
+    ]
+  },
+  {
+    "assignment": "04-matrices",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": []
+  },
+  {
+    "assignment": "04-matrices",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": []
+  },
+  {
+    "assignment": "05-mlp",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": []
+  },
+  {
+    "assignment": "05-mlp",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": []
+  },
+  {
+    "assignment": "06-rings",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Full-credit performance thresholds"
+    ]
+  },
+  {
+    "assignment": "06-rings",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Full-credit performance thresholds"
+    ]
+  },
+  {
+    "assignment": "07-word-counts",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Prepared dataset properties",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "07-word-counts",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Prepared dataset properties",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "08-embeddings",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "08-embeddings",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "09-positional-embeddings",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "09-positional-embeddings",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "10-attention",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "10-attention",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "11-next-word",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "11-next-word",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "12-sampling",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Optional generation controls"
+    ]
+  },
+  {
+    "assignment": "12-sampling",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Optional generation controls"
+    ]
+  },
+  {
+    "assignment": "13-context",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "13-context",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "14-self-attention",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "14-self-attention",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "15-residuals",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "15-residuals",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "16-normalization",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "16-normalization",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "17-stacking",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "17-stacking",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Param → Initialize choices"
+    ]
+  },
+  {
+    "assignment": "19-qa-finetuning",
+    "width": 375,
+    "scrollWidth": 375,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Optional Adam comparison — changed Train controls",
+      "Optional AdamW experiment — changed Train controls",
+      "Optional AdamW variations — changed Train controls"
+    ]
+  },
+  {
+    "assignment": "19-qa-finetuning",
+    "width": 1280,
+    "scrollWidth": 1280,
+    "headings": 1,
+    "settingsTables": [
+      "Your starting point and handoff",
+      "Prepared dataset properties",
+      "Training settings — Train tab",
+      "Loss block → Details → Parameter regularization",
+      "Optional Adam comparison — changed Train controls",
+      "Optional AdamW experiment — changed Train controls",
+      "Optional AdamW variations — changed Train controls"
+    ]
+  }
+]

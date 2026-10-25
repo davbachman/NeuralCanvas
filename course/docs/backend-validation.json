@@ -1,0 +1,300 @@
+{
+  "trainingRuns": 30,
+  "productionUiRuns": 4,
+  "packagedAssignments": 14,
+  "earlyAssignmentSettingsChecks": 6,
+  "protectedFilesUnchanged": 215,
+  "renderer": "Chromium ANGLE/SwiftShader (software WebGL)",
+  "models": [
+    {
+      "assignment": "07-word-counts",
+      "part": "reviews",
+      "seeds": [
+        137,
+        211,
+        307
+      ],
+      "epochs": 5,
+      "train": [
+        0.219058105746905,
+        0.2248169767856598
+      ],
+      "validation": [
+        0.5150282740592956,
+        0.5252241241931915
+      ],
+      "accuracy": [
+        0.745,
+        0.755
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "07-word-counts",
+      "part": "stories",
+      "seeds": [
+        137,
+        211,
+        307
+      ],
+      "epochs": 100,
+      "train": [
+        0.7230587959289551,
+        0.723423715432485
+      ],
+      "validation": [
+        0.7244377533594767,
+        0.7248663465181987
+      ],
+      "accuracy": [
+        0.5,
+        0.5
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "08-embeddings",
+      "part": "onehot",
+      "seeds": [
+        137,
+        211,
+        307
+      ],
+      "epochs": 10,
+      "train": [
+        0.6874640067418416,
+        0.8857576449712118
+      ],
+      "validation": [
+        0.711301060517629,
+        0.9212664484977722
+      ],
+      "accuracy": [
+        0.45416666666666666,
+        0.6458333333333334
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "08-embeddings",
+      "part": "embedding",
+      "seeds": [
+        137,
+        211,
+        307
+      ],
+      "epochs": 10,
+      "train": [
+        0.00046280869234275696,
+        0.0008858569761893402
+      ],
+      "validation": [
+        0.0004788698667349915,
+        0.0009371837756286064
+      ],
+      "accuracy": [
+        1,
+        1
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "09-story-models",
+      "part": "baseline",
+      "seeds": [
+        137,
+        211,
+        307
+      ],
+      "epochs": 40,
+      "train": [
+        0.003266897348378946,
+        0.003761144469895944
+      ],
+      "validation": [
+        5.576348688135195,
+        5.9419463771072465
+      ],
+      "accuracy": [
+        0.3417085427135678,
+        0.4321608040201005
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "10-attention",
+      "part": "attention",
+      "seeds": [
+        137,
+        211,
+        307
+      ],
+      "epochs": 40,
+      "train": [
+        0.0001557273902935571,
+        0.00030212789405730173
+      ],
+      "validation": [
+        0.005530215936845131,
+        0.05554586120567579
+      ],
+      "accuracy": [
+        0.9798994974874372,
+        1
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "12-next-character",
+      "part": "bigram",
+      "seeds": [
+        137,
+        211,
+        307
+      ],
+      "epochs": 5,
+      "train": [
+        2.3533485817827247,
+        2.3545407605708717
+      ],
+      "validation": [
+        2.321932409058756,
+        2.3258282803777437
+      ],
+      "accuracy": [
+        0.32985074626865674,
+        0.3332089552238806
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "13-context",
+      "part": "context",
+      "seeds": [
+        137,
+        211,
+        307
+      ],
+      "epochs": 5,
+      "train": [
+        1.6956761378207004,
+        1.6973278700872647
+      ],
+      "validation": [
+        1.9737802562428943,
+        1.994746542688626
+      ],
+      "accuracy": [
+        0.4253731343283582,
+        0.43992537313432833
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "14-self-attention",
+      "part": "attention",
+      "seeds": [
+        137
+      ],
+      "epochs": 5,
+      "train": [
+        2.2535393550006955,
+        2.2535393550006955
+      ],
+      "validation": [
+        2.2314697920386473,
+        2.2314697920386473
+      ],
+      "accuracy": [
+        0.3675373134328358,
+        0.3675373134328358
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "15-residuals",
+      "part": "residual",
+      "seeds": [
+        137,
+        211
+      ],
+      "epochs": 5,
+      "train": [
+        2.0758745564091603,
+        2.086427862697947
+      ],
+      "validation": [
+        2.084803120057974,
+        2.098183400595366
+      ],
+      "accuracy": [
+        0.3958955223880597,
+        0.40559701492537314
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "16-normalization",
+      "part": "transformer",
+      "seeds": [
+        137
+      ],
+      "epochs": 5,
+      "train": [
+        2.126576439296648,
+        2.126576439296648
+      ],
+      "validation": [
+        2.136581058644537,
+        2.136581058644537
+      ],
+      "accuracy": [
+        0.39365671641791045,
+        0.39365671641791045
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "17-all-positions",
+      "part": "all_positions",
+      "seeds": [
+        137
+      ],
+      "epochs": 5,
+      "train": [
+        2.099890279514807,
+        2.099890279514807
+      ],
+      "validation": [
+        2.12213549258104,
+        2.12213549258104
+      ],
+      "accuracy": [
+        0.3840018656716418,
+        0.3840018656716418
+      ],
+      "fullCredit": true
+    },
+    {
+      "assignment": "18-multiple-heads",
+      "part": "multihead",
+      "seeds": [
+        137
+      ],
+      "epochs": 5,
+      "train": [
+        2.061392425461311,
+        2.061392425461311
+      ],
+      "validation": [
+        2.0980313998549733,
+        2.0980313998549733
+      ],
+      "accuracy": [
+        0.3923973880597015,
+        0.3923973880597015
+      ],
+      "fullCredit": true
+    }
+  ]
+}

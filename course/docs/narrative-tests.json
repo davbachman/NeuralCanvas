@@ -1,0 +1,92 @@
+[
+  {
+    "assignment": "11-next-word",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 19,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  },
+  {
+    "assignment": "12-sampling",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 19,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  },
+  {
+    "assignment": "13-context",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 19,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  },
+  {
+    "assignment": "14-self-attention",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 19,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  },
+  {
+    "assignment": "15-residuals",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 19,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  },
+  {
+    "assignment": "16-normalization",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 19,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  },
+  {
+    "assignment": "17-stacking",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 19,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 19,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  },
+  {
+    "assignment": "19-qa-finetuning",
+    "checks": "full grader suite including extracted upload ZIP",
+    "exitCode": 0,
+    "testsRun": 37,
+    "date": "2026-10-23",
+    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "handoutPresentation": "Sampling introduced after the bigram; current numbering and model handoffs checked. Prepared-file imports, 39 app settings tables and phone/desktop handout layouts verified.",
+    "handoutPresentationDate": "2026-10-23"
+  }
+]

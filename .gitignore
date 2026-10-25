@@ -14,10 +14,17 @@ dist-ssr
 .playwright-cli
 output
 
-# Coursework lives in the sibling private NeuralCanvas-Coursework repository.
-# Keep these exclusions to prevent accidental reintroduction.
-assignments/
-scripts/assignments/
+# Legacy assignment paths; current public teaching materials live in course/.
+/assignments/
+/scripts/assignments/
+
+# Local Python environments and private course artifacts.
+.venv/
+course/assignments/*/reference/models/
+course/assignments/*/reference/standardized-models/
+course/assignments/*/archive/
+course/pilots/
+course/exams/
 
 # Editor directories and files
 .vscode/*

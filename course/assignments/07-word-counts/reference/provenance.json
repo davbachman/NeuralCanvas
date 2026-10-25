@@ -1,0 +1,12 @@
+{
+  "seed": 20261017,
+  "source": "Stanford Large Movie Review Dataset (Maas et al., ACL 2011)",
+  "originalUrl": "https://ai.stanford.edu/~amaas/data/sentiment/",
+  "mirror": "https://github.com/Ankit152/IMDB-sentiment-analysis/blob/ea235137a4449a55f4eaf48daf1411dca3de777c/IMDB-Dataset.csv",
+  "sourceSha256": "dfc447764f82be365fa9c2beef4e8df89d3919e3da95f5088004797d79695aa2",
+  "selection": "Shuffle 50,000 mirror rows with Python Random(seed); deduplicate lowercase whitespace-normalized full reviews; take first 800 per label, first 600 train and next 200 validation.",
+  "splitNote": "The mirror does not preserve official train/test membership. These are newly assigned course splits, not the official IMDb benchmark. Held-out rows are validation during model selection.",
+  "train": 1200,
+  "validation": 400,
+  "csvSha256": "ee596c4b3a82f8c9fdf91f9b2b81cb536a925920fc62b7dced9f6c5a11f0b10d"
+}

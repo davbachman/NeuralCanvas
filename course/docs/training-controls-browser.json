@@ -1,0 +1,247 @@
+{
+  "appCommit": "d2a649d94ffb0d4dfab3f37ca248a08aa4b22bae",
+  "appDirty": false,
+  "browser": "151.0.7922.173",
+  "visibility": [
+    {
+      "engine": "tensor",
+      "optimizer": "adam",
+      "weightDecayVisible": false,
+      "minimumImprovementVisible": false
+    },
+    {
+      "engine": "tensor",
+      "optimizer": "sgd",
+      "weightDecayVisible": false,
+      "minimumImprovementVisible": false
+    },
+    {
+      "engine": "tensor",
+      "optimizer": "adamw",
+      "weightDecayVisible": true,
+      "minimumImprovementVisible": false
+    },
+    {
+      "engine": "trace",
+      "optimizer": "sgd",
+      "tensorControlsVisible": false
+    }
+  ],
+  "hiddenSettingsPreserved": true,
+  "patienceRevealsMinimumImprovement": true,
+  "optionalAdamwRecipeSaved": {
+    "learningRate": 0.003,
+    "training": {
+      "engine": "tensor",
+      "backend": "webgl",
+      "optimizer": "adamw",
+      "weightDecay": 0.1,
+      "clipNorm": 1,
+      "patience": 0,
+      "minDelta": 0.004
+    },
+    "runSettings": {
+      "epochsPerRun": "10",
+      "reportEvery": "1",
+      "examplesPerUpdate": "32"
+    }
+  },
+  "learnedParametersUnchanged": true,
+  "epochUnchanged": true,
+  "traceSaveUsesSgd": true,
+  "reshuffleEnabledInUi": true,
+  "handouts": [
+    {
+      "assignment": "01-mpg",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "01-mpg",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "02-regularization",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "02-regularization",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "03-classification",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "03-classification",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "04-matrices",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "04-matrices",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "05-mlp",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "05-mlp",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "06-rings",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "06-rings",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "07-word-counts",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "07-word-counts",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "08-embeddings",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "08-embeddings",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "09-story-models",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "09-story-models",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "10-attention",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "10-attention",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "11-next-word",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "11-next-word",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "12-context",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "12-context",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "13-self-attention",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "13-self-attention",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "14-residuals",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "14-residuals",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "15-normalization",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "15-normalization",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "16-stacking",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "16-stacking",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "17-multiple-heads",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "17-multiple-heads",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "18-sampling",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "18-sampling",
+      "width": 960,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "width": 390,
+      "noPageOverflow": true
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "width": 960,
+      "noPageOverflow": true
+    }
+  ],
+  "pageErrors": [],
+  "scope": "Local browser settings/save and responsive handouts. No new training, deployed-site or hosted Gradescope test."
+}

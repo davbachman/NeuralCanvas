@@ -1,0 +1,100 @@
+[
+  {
+    "assignment": "10-attention",
+    "score": 100,
+    "package": "assignments/10-attention/Gradescope/gradescope-10-attention-v3.zip",
+    "parts": [
+      "attention",
+      "question",
+      "irrelevant",
+      "relevant"
+    ]
+  },
+  {
+    "assignment": "11-next-character",
+    "score": 100,
+    "package": "assignments/11-next-character/Gradescope/gradescope-11-next-character-v3.zip",
+    "parts": [
+      "bigram"
+    ]
+  },
+  {
+    "assignment": "12-context",
+    "score": 100,
+    "package": "assignments/12-context/Gradescope/gradescope-12-context-v3.zip",
+    "parts": [
+      "context"
+    ]
+  },
+  {
+    "assignment": "13-self-attention",
+    "score": 100,
+    "package": "assignments/13-self-attention/Gradescope/gradescope-13-self-attention-v3.zip",
+    "parts": [
+      "attention"
+    ]
+  },
+  {
+    "assignment": "14-residuals",
+    "score": 100,
+    "package": "assignments/14-residuals/Gradescope/gradescope-14-residuals-v3.zip",
+    "parts": [
+      "residual"
+    ]
+  },
+  {
+    "assignment": "15-normalization",
+    "score": 100,
+    "package": "assignments/15-normalization/Gradescope/gradescope-15-normalization-v3.zip",
+    "parts": [
+      "transformer"
+    ]
+  },
+  {
+    "assignment": "16-all-positions",
+    "score": 100,
+    "package": "assignments/16-all-positions/Gradescope/gradescope-16-all-positions-v3.zip",
+    "parts": [
+      "all_positions",
+      "last_position"
+    ]
+  },
+  {
+    "assignment": "17-stacking",
+    "score": 100,
+    "package": "assignments/17-stacking/Gradescope/gradescope-17-stacking-v3.zip",
+    "parts": [
+      "one_block",
+      "stacked"
+    ]
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "score": 100,
+    "package": "assignments/18-multiple-heads/Gradescope/gradescope-18-multiple-heads-v3.zip",
+    "parts": [
+      "multihead"
+    ]
+  },
+  {
+    "assignment": "19-sampling",
+    "score": 100,
+    "package": "assignments/19-sampling/Gradescope/gradescope-19-sampling-v3.zip",
+    "parts": [
+      "base",
+      "sampling"
+    ]
+  },
+  {
+    "assignment": "20-synthesis",
+    "score": 100,
+    "package": "assignments/20-synthesis/Gradescope/gradescope-20-synthesis-v3.zip",
+    "parts": [
+      "bigram",
+      "context",
+      "stacked",
+      "multihead",
+      "multihead_last"
+    ]
+  }
+]

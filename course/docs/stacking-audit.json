@@ -1,0 +1,123 @@
+{
+  "publishedAssignments1to6Unchanged": true,
+  "protectedFiles": 276,
+  "singleCurrentAssignments7to20": [
+    "07-word-counts",
+    "08-embeddings",
+    "09-story-models",
+    "10-attention",
+    "11-next-character",
+    "12-context",
+    "13-self-attention",
+    "14-residuals",
+    "15-normalization",
+    "16-all-positions",
+    "17-stacking",
+    "18-multiple-heads",
+    "19-sampling",
+    "20-synthesis"
+  ],
+  "datasetsUnchanged": true,
+  "releases": [
+    {
+      "assignment": "10-attention",
+      "version": "10-attention",
+      "files": [
+        "attention",
+        "question",
+        "irrelevant",
+        "relevant"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "11-next-character",
+      "version": "11-next-character",
+      "files": [
+        "bigram"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "12-context",
+      "version": "12-context",
+      "files": [
+        "context"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "13-self-attention",
+      "version": "13-self-attention",
+      "files": [
+        "attention"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "14-residuals",
+      "version": "14-residuals",
+      "files": [
+        "residual"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "15-normalization",
+      "version": "15-normalization",
+      "files": [
+        "transformer"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "16-all-positions",
+      "version": "16-all-positions",
+      "files": [
+        "all_positions",
+        "last_position"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "17-stacking",
+      "version": "17-stacking",
+      "files": [
+        "one_block",
+        "stacked"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "18-multiple-heads",
+      "version": "18-multiple-heads",
+      "files": [
+        "multihead"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "19-sampling",
+      "version": "19-sampling",
+      "files": [
+        "base",
+        "sampling"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "20-synthesis",
+      "version": "20-synthesis",
+      "files": [
+        "bigram",
+        "context",
+        "stacked",
+        "multihead",
+        "multihead_last"
+      ],
+      "packagedReferenceScore": 100
+    }
+  ],
+  "browserWorkflowVerified": true,
+  "webglPilotsVerified": true
+}

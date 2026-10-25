@@ -1,0 +1,80 @@
+[
+  {
+    "file": "pilots/football/progression-ui/11-next-word-bigram.json",
+    "score": 100,
+    "maxScore": 100,
+    "bytes": 636170
+  },
+  {
+    "file": "pilots/football/progression-ui/12-context-context.json",
+    "score": 100,
+    "maxScore": 100,
+    "bytes": 7998770
+  },
+  {
+    "file": "pilots/football/progression-ui/13-self-attention-attention.json",
+    "score": 100,
+    "maxScore": 100,
+    "bytes": 2146004
+  },
+  {
+    "file": "pilots/football/progression-ui/14-residuals-residual.json",
+    "score": 100,
+    "maxScore": 100,
+    "bytes": 3243163
+  },
+  {
+    "file": "pilots/football/progression-ui/15-normalization-transformer.json",
+    "score": 40,
+    "maxScore": 40,
+    "bytes": 3436209
+  },
+  {
+    "file": "pilots/football/progression-ui/15-normalization-all_positions.json",
+    "score": 40,
+    "maxScore": 40,
+    "bytes": 3573405
+  },
+  {
+    "file": "pilots/football/progression-ui/15-normalization-last_position.json",
+    "score": 10,
+    "maxScore": 10,
+    "bytes": 3574444
+  },
+  {
+    "file": "pilots/football/progression-ui/16-stacking-one_block.json",
+    "score": 30,
+    "maxScore": 30,
+    "bytes": 3573405
+  },
+  {
+    "file": "pilots/football/progression-ui/16-stacking-stacked.json",
+    "score": 70,
+    "maxScore": 70,
+    "bytes": 5824837
+  },
+  {
+    "file": "pilots/football/progression-ui/17-multiple-heads-multihead.json",
+    "score": 100,
+    "maxScore": 100,
+    "bytes": 7380142
+  },
+  {
+    "file": "pilots/football/progression-ui/ui-one-epoch.json",
+    "score": 40,
+    "maxScore": 40,
+    "bytes": 9235579
+  },
+  {
+    "file": "assignments/12-sampling/reference/browser/base.json",
+    "score": 40,
+    "maxScore": 40,
+    "bytes": 636193
+  },
+  {
+    "file": "assignments/12-sampling/reference/browser/sampling.json",
+    "score": 50,
+    "maxScore": 50,
+    "bytes": 639605
+  }
+]

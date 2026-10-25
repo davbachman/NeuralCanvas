@@ -1,0 +1,138 @@
+{
+  "appCommit": "9d535a02b53bff5859e963d07cdf2d65df6cfacf",
+  "appDirty": false,
+  "browser": "151.0.7922.173",
+  "allModelsImported": true,
+  "imports": [
+    {
+      "folder": "11-next-word",
+      "part": "bigram",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "12-context",
+      "part": "context",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "13-self-attention",
+      "part": "attention",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "14-residuals",
+      "part": "residual",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "15-normalization",
+      "part": "transformer",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "15-normalization",
+      "part": "all_positions",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "15-normalization",
+      "part": "last_position",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "16-stacking",
+      "part": "one_block",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "16-stacking",
+      "part": "stacked",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "17-multiple-heads",
+      "part": "multihead",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "18-sampling",
+      "part": "base",
+      "parametersUnchanged": true
+    },
+    {
+      "folder": "18-sampling",
+      "part": "sampling",
+      "parametersUnchanged": true
+    }
+  ],
+  "generation": [
+    {
+      "folder": "11-next-word",
+      "part": "bigram",
+      "firstToken": "liam"
+    },
+    {
+      "folder": "12-context",
+      "part": "context",
+      "firstToken": "liam"
+    },
+    {
+      "folder": "13-self-attention",
+      "part": "attention",
+      "firstToken": "liam"
+    },
+    {
+      "folder": "14-residuals",
+      "part": "residual",
+      "firstToken": "liam"
+    },
+    {
+      "folder": "15-normalization",
+      "part": "transformer",
+      "firstToken": "liam"
+    },
+    {
+      "folder": "15-normalization",
+      "part": "all_positions",
+      "firstToken": "nora"
+    },
+    {
+      "folder": "15-normalization",
+      "part": "last_position",
+      "firstToken": "nora"
+    },
+    {
+      "folder": "16-stacking",
+      "part": "one_block",
+      "firstToken": "nora"
+    },
+    {
+      "folder": "16-stacking",
+      "part": "stacked",
+      "firstToken": "the"
+    },
+    {
+      "folder": "17-multiple-heads",
+      "part": "multihead",
+      "firstToken": "nora"
+    },
+    {
+      "folder": "18-sampling",
+      "part": "base",
+      "firstToken": "nora"
+    },
+    {
+      "folder": "18-sampling",
+      "part": "sampling",
+      "firstToken": "nora"
+    }
+  ],
+  "generationMatchesIndependent": true,
+  "cpuUiEpochCompleted": true,
+  "trainingStatus": [
+    "Completed after 1 epochs on cpu. Kept final parameters."
+  ],
+  "inference": "MODEL EVALUATION\n\nTest-set predictions\n765 held-out examples\n0.521 loss\n74.6% token accuracy\nPredictions\n765 outputs\nDataset row 1534\n✓\nActual\n.\nPredicted\n.\nDataset row 1535\n✓\nActual\nnow\nPredicted\nnow\nDataset row 1536\n✓\nActual\nfootball\nPredicted\nfootball\nDataset row 1537\n✓\nActual\nend\nPredicted\nend\nDataset row 1538\n✓\nActual\nliam\nPredicted\nliam\nDataset row 1539\n×\nActual\nbathroom\nPredicted\ngarden\nDataset row 1540\n✓\nActual\nin\nPredicted\nin\nDataset row 1541\n×\nActual\nliam\nPredicted\nnora\nDataset row 1542\n✓\nActual\nentered\nPredicted\nentered\nDataset row 1543\n×\nActual\nhall\nPredicted\ngarden\nDataset row 1544\n×\nActual\nnora\nPredicted\nliam\nDataset row 1545\n×\nActual\ngarden\nPredicted\noffice\nDataset row 1546\n×\nActual\nbedroom\nPredicted\ngarden\nDataset row 1547\n×\nActual\nkitchen\nPredicted\ngarden\nDataset row 1548\n✓\nActual\n.\nPredicted\n.\nDataset row 1549\n✓\nActual\nnora\nPredicted\nnora\nDataset row 1550\n✓\nActual\nthe\nPredicted\nthe\nDataset row 1551\n✓\nActual\nentered\nPredicted\nentered\nDataset row 1552\n✓\nActual\n.\nPredicted\n.\nDataset row 1553\n✓\nActual\nnow\nPredicted\nnow\nDataset row 1554\n✓\nActual\ntook\nPredicted\ntook\nDataset row 1555\n✓\nActual\n.\nPredicted\n.\nDataset row 1556\n✓\nActual\n.\nPredicted\n.\nDataset row 1557\n✓\nActual\nnora\nPredicted\nnora\nDataset row 1558\n×\nActual\nliam\nPredicted\nnora\nPrevious\nPage 1 of 31\nNext",
+  "handoutOverflow": [],
+  "pageErrors": []
+}

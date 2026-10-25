@@ -1,0 +1,15 @@
+{
+  "trainingCommit": "a0b69068c566c1fe372a7df4600d90073c6443ca",
+  "productionUiCommit": "51e00c7c64d6b68624a7d02a246479530c88b09c",
+  "unchangedNumericalModules": {
+    "src/domain/tensorTraining.ts": "8fbffa84e18699dea9887c61e76b96cd310952fa485c1263250a608da5a0d978",
+    "src/domain/authoring.ts": "d92cfb6db6d498ea218b1745934233f2a7e7ba958d21ff460c0412c382b5cfe9",
+    "src/domain/datasetTraining.ts": "7268a3a7c1d2b58d67504d3f849c077a7968f8bad7d8c02f1edb0c4aeda4b65d"
+  },
+  "defaultEngine": "tensor",
+  "optimizer": "adam",
+  "backend": "auto",
+  "patience": 0,
+  "minDelta": 0,
+  "clipNorm": 1
+}

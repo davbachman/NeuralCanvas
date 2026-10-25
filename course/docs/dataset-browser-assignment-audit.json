@@ -1,0 +1,266 @@
+{
+  "appCommit": "417be2e78cbb87a82e6605925ad3cdae5fd67c25",
+  "baselineCourseworkCommit": "3a4ee14",
+  "assignments": [
+    {
+      "assignment": "01-mpg",
+      "choices": [
+        {
+          "file": "mpg.csv",
+          "preset": "auto-mpg"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "02-regularization",
+      "choices": [
+        {
+          "file": "mpg-regularization.csv",
+          "preset": "auto-mpg-small"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "03-classification",
+      "choices": [
+        {
+          "file": "breast-cancer.csv",
+          "preset": "breast-cancer"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "04-matrices",
+      "choices": [
+        {
+          "file": "mpg.csv",
+          "preset": "auto-mpg"
+        },
+        {
+          "file": "iris.csv",
+          "preset": "iris"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "05-mlp",
+      "choices": [
+        {
+          "file": "concrete.csv",
+          "preset": "concrete"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "06-rings",
+      "choices": [
+        {
+          "file": "rings.csv",
+          "preset": "rings"
+        },
+        {
+          "file": "digits-8x8",
+          "preset": "digits-8x8"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "07-word-counts",
+      "choices": [
+        {
+          "file": "imdb.json",
+          "preset": "imdb"
+        },
+        {
+          "file": "football-counts.json",
+          "preset": "football-counts"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "08-embeddings",
+      "choices": [
+        {
+          "file": "football-tokens.json",
+          "preset": "football-tokens"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "09-positional-embeddings",
+      "choices": [
+        {
+          "file": "stories.json",
+          "preset": "football-mixed"
+        },
+        {
+          "file": "football-test.json",
+          "preset": "football-benchmark"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "10-attention",
+      "choices": [
+        {
+          "file": "stories.json",
+          "preset": "football-mixed"
+        },
+        {
+          "file": "football-test.json",
+          "preset": "football-benchmark"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "11-next-word",
+      "choices": [
+        {
+          "file": "football-narratives-last.json",
+          "preset": "narrative-last"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "12-sampling",
+      "choices": [
+        {
+          "file": "football-narratives-last.json",
+          "preset": "narrative-last"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "13-context",
+      "choices": [
+        {
+          "file": "football-narratives-last.json",
+          "preset": "narrative-last"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "14-self-attention",
+      "choices": [
+        {
+          "file": "football-narratives-last.json",
+          "preset": "narrative-last"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "15-residuals",
+      "choices": [
+        {
+          "file": "football-narratives-last.json",
+          "preset": "narrative-last"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "16-normalization",
+      "choices": [
+        {
+          "file": "football-narratives-last.json",
+          "preset": "narrative-last"
+        },
+        {
+          "file": "football-narratives-all.json",
+          "preset": "narrative-all"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "17-stacking",
+      "choices": [
+        {
+          "file": "football-narratives-all.json",
+          "preset": "narrative-all"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "18-multiple-heads",
+      "choices": [
+        {
+          "file": "football-narratives-all.json",
+          "preset": "narrative-all"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "choices": [
+        {
+          "file": "story-questions.json",
+          "preset": "football-qa"
+        }
+      ],
+      "canonicalDataUnchanged": true,
+      "gradingLogicAndTargetsUnchanged": true,
+      "packageMatchesSource": true
+    }
+  ],
+  "datasetCopiesChecked": 24,
+  "allCanonicalDataAndGradingLogicUnchanged": true,
+  "feedbackOnlyChanges": [
+    "01-mpg",
+    "05-mlp",
+    "06-rings"
+  ],
+  "archivesUnchanged": true
+}

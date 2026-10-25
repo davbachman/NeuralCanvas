@@ -1,0 +1,13 @@
+{
+  "disjointHistories": {
+    "train": 480,
+    "test": 240
+  },
+  "vocabularyPolicy": "Training-story words plus <unk>, <pad>, and explicitly reserved where/who; no held-out vocabulary fitting.",
+  "reservedTokens": [
+    "where",
+    "who"
+  ],
+  "identicalInputWindowsAcrossObjectives": 2299,
+  "canonicalTargetsAligned": true
+}

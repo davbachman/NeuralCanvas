@@ -1,0 +1,62 @@
+[
+  {
+    "assignment": "09-story-models",
+    "exitCode": 0,
+    "seconds": 1.26
+  },
+  {
+    "assignment": "10-attention",
+    "exitCode": 0,
+    "seconds": 1.36
+  },
+  {
+    "assignment": "11-interventions",
+    "exitCode": 0,
+    "seconds": 5.63
+  },
+  {
+    "assignment": "12-next-character",
+    "exitCode": 0,
+    "seconds": 2.49
+  },
+  {
+    "assignment": "13-context",
+    "exitCode": 0,
+    "seconds": 2.96
+  },
+  {
+    "assignment": "14-self-attention",
+    "exitCode": 0,
+    "seconds": 5.9
+  },
+  {
+    "assignment": "15-residuals",
+    "exitCode": 0,
+    "seconds": 11.69
+  },
+  {
+    "assignment": "16-normalization",
+    "exitCode": 0,
+    "seconds": 14.49
+  },
+  {
+    "assignment": "17-all-positions",
+    "exitCode": 0,
+    "seconds": 31.75
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "exitCode": 0,
+    "seconds": 21.79
+  },
+  {
+    "assignment": "19-sampling",
+    "exitCode": 0,
+    "seconds": 19.44
+  },
+  {
+    "assignment": "20-synthesis",
+    "exitCode": 0,
+    "seconds": 36.39
+  }
+]

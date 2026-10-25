@@ -1,0 +1,116 @@
+[
+  {
+    "assignment": "16-all-positions",
+    "part": "all_positions",
+    "seed": 211,
+    "score": 45,
+    "maxScore": 45,
+    "metrics": {
+      "train": 2.111494265872982,
+      "validation": 2.1289427611644647,
+      "accuracy": 0.3818563432835821,
+      "final_train": 2.070371708655686,
+      "final_validation": 2.0389299427757264
+    },
+    "appDifferences": {
+      "train": 4.440892098500626e-16,
+      "validation": 7.105427357601002e-15,
+      "accuracy": 0.0
+    }
+  },
+  {
+    "assignment": "16-all-positions",
+    "part": "all_positions",
+    "seed": 307,
+    "score": 45,
+    "maxScore": 45,
+    "metrics": {
+      "train": 2.090717860001087,
+      "validation": 2.1091963082938316,
+      "accuracy": 0.39155783582089554,
+      "final_train": 2.0487822439214796,
+      "final_validation": 2.0212993183489885
+    },
+    "appDifferences": {
+      "train": 1.1102230246251565e-14,
+      "validation": 4.440892098500626e-15,
+      "accuracy": 0.0
+    }
+  },
+  {
+    "assignment": "17-stacking",
+    "part": "stacked",
+    "seed": 211,
+    "score": 70,
+    "maxScore": 70,
+    "metrics": {
+      "train": 2.080711415136154,
+      "validation": 2.107850831073066,
+      "accuracy": 0.39071828358208954,
+      "final_train": 2.037366086763724,
+      "final_validation": 2.032809472141516
+    },
+    "appDifferences": {
+      "train": 3.1086244689504383e-15,
+      "validation": 0.0,
+      "accuracy": 0.0
+    }
+  },
+  {
+    "assignment": "17-stacking",
+    "part": "stacked",
+    "seed": 307,
+    "score": 70,
+    "maxScore": 70,
+    "metrics": {
+      "train": 2.0633661241458747,
+      "validation": 2.0891096766061756,
+      "accuracy": 0.40083955223880596,
+      "final_train": 2.026515337519504,
+      "final_validation": 1.9923633658326585
+    },
+    "appDifferences": {
+      "train": 5.329070518200751e-15,
+      "validation": 2.220446049250313e-15,
+      "accuracy": 0.0
+    }
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "part": "multihead",
+    "seed": 211,
+    "score": 100,
+    "maxScore": 100,
+    "metrics": {
+      "train": 2.011010191242418,
+      "validation": 2.04696427689081,
+      "accuracy": 0.4066231343283582,
+      "final_train": 1.9401562073172571,
+      "final_validation": 1.9424713796255255
+    },
+    "appDifferences": {
+      "train": 1.3322676295501878e-15,
+      "validation": 0.0,
+      "accuracy": 0.0
+    }
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "part": "multihead",
+    "seed": 307,
+    "score": 100,
+    "maxScore": 100,
+    "metrics": {
+      "train": 2.003002031544588,
+      "validation": 2.04745082440824,
+      "accuracy": 0.4033582089552239,
+      "final_train": 1.9434838419505234,
+      "final_validation": 1.9320951640880295
+    },
+    "appDifferences": {
+      "train": 3.1086244689504383e-15,
+      "validation": 3.1086244689504383e-15,
+      "accuracy": 0.0
+    }
+  }
+]

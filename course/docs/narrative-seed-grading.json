@@ -1,0 +1,1010 @@
+[
+  {
+    "assignment": "11-next-word",
+    "part": "bigram",
+    "seed": 137,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 1.3948799004737111e-08,
+      "validation": 1.2951077321687876e-08,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 1.0582832621389515,
+      "validation": 1.0736277491611212,
+      "accuracy": 0.5986928104575163,
+      "final_train": 1.0582832621389515,
+      "final_validation": 1.0736277491611212,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        }
+      ],
+      "parameters": 825
+    },
+    "trainingSeconds": 3.90789999999851,
+    "modelSha256": "cd8056fe4118c982c8cd849d3f538711a2123f68c0ea9c7ed81bfcb5410f0feb"
+  },
+  {
+    "assignment": "11-next-word",
+    "part": "bigram",
+    "seed": 211,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 1.1475768779689588e-08,
+      "validation": 1.497015023055326e-08,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 1.065379064919925,
+      "validation": 1.0803470541343623,
+      "accuracy": 0.5986928104575163,
+      "final_train": 1.065379064919925,
+      "final_validation": 1.0803470541343623,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        }
+      ],
+      "parameters": 825
+    },
+    "trainingSeconds": 7.23739999999851,
+    "modelSha256": "b47908b6eb32ced3f4988d088d0600d0fc9dd278cdc953b9a935a5a95ab0bc17"
+  },
+  {
+    "assignment": "11-next-word",
+    "part": "bigram",
+    "seed": 307,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 4.127712394108585e-09,
+      "validation": 4.129112607387242e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 1.0554923681047095,
+      "validation": 1.0730050899620451,
+      "accuracy": 0.5986928104575163,
+      "final_train": 1.0554923681047095,
+      "final_validation": 1.0730050899620451,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered office . liam entered office . liam entered office .",
+          "consistent": false
+        }
+      ],
+      "parameters": 825
+    },
+    "trainingSeconds": 7.957,
+    "modelSha256": "d629de18bb865b7c06a33f4c36d9a5cca645bce6bad457148375f56399ffaecf"
+  },
+  {
+    "assignment": "13-context",
+    "part": "context",
+    "seed": 137,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 7.722380512831251e-10,
+      "validation": 8.983133570339419e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.41059850472493586,
+      "validation": 0.5258624292117052,
+      "accuracy": 0.7607843137254902,
+      "final_train": 0.41059850472493586,
+      "final_validation": 0.5258624292117052,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.125,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 34857
+    },
+    "trainingSeconds": 27.3405,
+    "modelSha256": "c0ae44098ad6c0ee85a8bb9779f25fc19740c71c444f30c9bf60c7a2227d1378"
+  },
+  {
+    "assignment": "13-context",
+    "part": "context",
+    "seed": 211,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 1.9857385180621634e-09,
+      "validation": 3.8011754854849755e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.413307007898351,
+      "validation": 0.5330715103253466,
+      "accuracy": 0.7673202614379085,
+      "final_train": 0.413307007898351,
+      "final_validation": 0.5330715103253466,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.0625,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 34857
+    },
+    "trainingSeconds": 30.82160000000149,
+    "modelSha256": "9a703c9090af5e8f3ab9eca1e236f903c44eb0be832e4e59792eb088ad57f781"
+  },
+  {
+    "assignment": "13-context",
+    "part": "context",
+    "seed": 307,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 3.949128912772437e-09,
+      "validation": 3.617449673143369e-10,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.39206900173230486,
+      "validation": 0.5135316150362071,
+      "accuracy": 0.7738562091503268,
+      "final_train": 0.39206900173230486,
+      "final_validation": 0.5135316150362071,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.3125,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 34857
+    },
+    "trainingSeconds": 40.08410000000149,
+    "modelSha256": "c9fa5c0d0bd46b2fe45dd7ed6fb52034dc0f00b4e48dba74540c3b644bb0c056"
+  },
+  {
+    "assignment": "14-self-attention",
+    "part": "self-attention",
+    "seed": 137,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 6.342734337749789e-09,
+      "validation": 1.6302055261263604e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 1.1347269049538702,
+      "validation": 1.138386384885842,
+      "accuracy": 0.5581699346405229,
+      "final_train": 1.1347269049538702,
+      "final_validation": 1.138386384885842,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam entered garden . nora entered garden . nora entered garden .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered garden . nora entered garden . nora entered garden .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered garden . nora entered garden . nora entered garden .",
+          "consistent": false
+        }
+      ],
+      "parameters": 2105
+    },
+    "trainingSeconds": 62.44839999999851,
+    "modelSha256": "f772f8feef14f3915f67d7b8e7ccf6ea7aaefa6adf6637770be077837398d9b6"
+  },
+  {
+    "assignment": "14-self-attention",
+    "part": "self-attention",
+    "seed": 211,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 1.0875741196514355e-08,
+      "validation": 6.836797572518094e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 1.1614823913286993,
+      "validation": 1.1877212027122273,
+      "accuracy": 0.6143790849673203,
+      "final_train": 1.1614823913286993,
+      "final_validation": 1.1877212027122273,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam entered garden . . . . . football . . now",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered office . . . . . football . . now",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered office . . . . . football . . now",
+          "consistent": false
+        }
+      ],
+      "parameters": 2105
+    },
+    "trainingSeconds": 98.73339999999851,
+    "modelSha256": "4bb3f834837105c5126f5fbcf4eca22edc43ebf743b502ede8a9513042bab74a"
+  },
+  {
+    "assignment": "14-self-attention",
+    "part": "self-attention",
+    "seed": 307,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 4.138607900827651e-09,
+      "validation": 2.520516750870172e-08,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 1.23440768034423,
+      "validation": 1.246840388517949,
+      "accuracy": 0.5712418300653594,
+      "final_train": 1.23440768034423,
+      "final_validation": 1.246840388517949,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam entered the football . nora entered entered entered entered liam .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered the football . nora entered entered entered entered liam .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered entered entered entered entered entered entered entered entered liam .",
+          "consistent": false
+        }
+      ],
+      "parameters": 2105
+    },
+    "trainingSeconds": 111.5888999999985,
+    "modelSha256": "49d5a789db4da3da29007f2bc1200c8a85bcbebecdcbf0b37ad1a5e8640d9c7e"
+  },
+  {
+    "assignment": "15-residuals",
+    "part": "residual",
+    "seed": 137,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 3.1480493767332973e-09,
+      "validation": 4.740240866496492e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.8670790721952455,
+      "validation": 0.8921740567887566,
+      "accuracy": 0.6209150326797386,
+      "final_train": 0.8670790721952455,
+      "final_validation": 0.8921740567887566,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam entered garden . liam entered garden . liam entered garden .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered garden . liam entered garden . liam entered garden .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered garden . liam entered garden . liam entered garden .",
+          "consistent": false
+        }
+      ],
+      "parameters": 3433
+    },
+    "trainingSeconds": 139.92459999999403,
+    "modelSha256": "02d30e423fb9fdfdddf089ca026a8eda702a60942ac9361d707a61b21cc60f28"
+  },
+  {
+    "assignment": "15-residuals",
+    "part": "residual",
+    "seed": 211,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 1.4332338649225562e-09,
+      "validation": 4.024883648590105e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.7460885065353392,
+      "validation": 0.7728410925473771,
+      "accuracy": 0.6562091503267974,
+      "final_train": 0.7460885065353392,
+      "final_validation": 0.7728410925473771,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam entered garden . nora entered garden . nora entered garden .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered garden . nora entered garden . nora entered garden .",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered garden . nora entered garden . liam entered garden .",
+          "consistent": false
+        }
+      ],
+      "parameters": 3433
+    },
+    "trainingSeconds": 132.97969999999552,
+    "modelSha256": "0b928585bed1ef0576d07e97ed1aef077b51859a0def04d1475fda935d06931b"
+  },
+  {
+    "assignment": "15-residuals",
+    "part": "residual",
+    "seed": 307,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 9.57055079631175e-09,
+      "validation": 1.2186245124112816e-08,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.6049667851053783,
+      "validation": 0.6164737832628215,
+      "accuracy": 0.7058823529411765,
+      "final_train": 0.6049667851053783,
+      "final_validation": 0.6164737832628215,
+      "generation_count": 16,
+      "grammatical_fraction": 0.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nora entered garden . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam entered garden . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam entered garden . nora entered garden . nora entered garden .",
+          "consistent": false
+        }
+      ],
+      "parameters": 3433
+    },
+    "trainingSeconds": 124.21619999999552,
+    "modelSha256": "d586f22eee47d52cbcae661b8be484ca6233e8b37d63471bb3dba9410182809b"
+  },
+  {
+    "assignment": "16-normalization",
+    "part": "transformer",
+    "seed": 137,
+    "score": 40,
+    "maxScore": 40,
+    "nativeDifferences": {
+      "train": 3.5844612833457745e-09,
+      "validation": 7.849193628395312e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.5011820512711065,
+      "validation": 0.5247005575810404,
+      "accuracy": 0.7555555555555555,
+      "final_train": 0.5011820512711065,
+      "final_validation": 0.5247005575810404,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.4375,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nora is in the kitchen . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "nora is in the kitchen . end",
+          "consistent": true
+        }
+      ],
+      "parameters": 3529
+    },
+    "trainingSeconds": 297.2786999999881,
+    "modelSha256": "0e0d2a984fcd4478ca3d5e696bb83064463f97d3109973a42390fa71242e1c3b"
+  },
+  {
+    "assignment": "16-normalization",
+    "part": "transformer",
+    "seed": 211,
+    "score": 40,
+    "maxScore": 40,
+    "nativeDifferences": {
+      "train": 2.2259402099322756e-09,
+      "validation": 8.911653415211163e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.44419824901089705,
+      "validation": 0.49537427800330913,
+      "accuracy": 0.7581699346405228,
+      "final_train": 0.44419824901089705,
+      "final_validation": 0.49537427800330913,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 1.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nobody has the football . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "nobody has the football . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "nobody has the football . end",
+          "consistent": true
+        }
+      ],
+      "parameters": 3529
+    },
+    "trainingSeconds": 273.89189999999104,
+    "modelSha256": "ee0d6a37ef3a3920567776f4f210e4ee62ad79175851323e8ddb679be86bbbae"
+  },
+  {
+    "assignment": "16-normalization",
+    "part": "transformer",
+    "seed": 307,
+    "score": 40,
+    "maxScore": 40,
+    "nativeDifferences": {
+      "train": 3.5002134524120265e-10,
+      "validation": 2.0256862853784696e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.5019062309482637,
+      "validation": 0.5129923626097832,
+      "accuracy": 0.7450980392156863,
+      "final_train": 0.5019062309482637,
+      "final_validation": 0.5129923626097832,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.5,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nobody has the football . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "nobody has the football . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "nobody has the football . end",
+          "consistent": true
+        }
+      ],
+      "parameters": 3529
+    },
+    "trainingSeconds": 255.071799999997,
+    "modelSha256": "df4f39b40c2714b551bd1ae6ecb752d7ad0a4a4973d3002444b7d6ae79d7faeb"
+  },
+  {
+    "assignment": "16-normalization",
+    "part": "all_positions",
+    "seed": 137,
+    "score": 40,
+    "maxScore": 40,
+    "nativeDifferences": {
+      "train": 6.284479048268565e-10,
+      "validation": 1.8534764834043926e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.4778641855613307,
+      "validation": 0.4827370723313424,
+      "accuracy": 0.7699754901960785,
+      "final_train": 0.43668673281746934,
+      "final_validation": 0.43330207376403046,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.125,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "the football is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "the football is in the bathroom . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 3529
+    },
+    "trainingSeconds": 269.7055,
+    "modelSha256": "32cc46881a8b8ef51ae23a5af0a5539a32e5556892231e1333bbef0b9202e2aa"
+  },
+  {
+    "assignment": "16-normalization",
+    "part": "all_positions",
+    "seed": 211,
+    "score": 40,
+    "maxScore": 40,
+    "nativeDifferences": {
+      "train": 3.864110698081902e-09,
+      "validation": 3.7349157655519605e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.46636115170179027,
+      "validation": 0.47265737980518163,
+      "accuracy": 0.7720996732026144,
+      "final_train": 0.4100504465793033,
+      "final_validation": 0.4098754895847751,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nora is in the kitchen . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "nora is in the kitchen . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "nora is in the bedroom . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 3529
+    },
+    "trainingSeconds": 263.38229999999703,
+    "modelSha256": "27778a3a9afbcfa6f9aa93174eee9467425062c0b76ddfee3af74b77fe013652"
+  },
+  {
+    "assignment": "16-normalization",
+    "part": "all_positions",
+    "seed": 307,
+    "score": 40,
+    "maxScore": 40,
+    "nativeDifferences": {
+      "train": 1.259114479346124e-09,
+      "validation": 1.2547324290679285e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.46358894297029407,
+      "validation": 0.4697733626175588,
+      "accuracy": 0.7675653594771242,
+      "final_train": 0.4114252824073139,
+      "final_validation": 0.40999528561102777,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam is in the bathroom . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 3529
+    },
+    "trainingSeconds": 253.37679999999702,
+    "modelSha256": "04e8007b01096ed6f3471f2ac01a753fd68c831c1ad8e56d666ab8f73d267335"
+  },
+  {
+    "assignment": "17-stacking",
+    "part": "stacked",
+    "seed": 137,
+    "score": 70,
+    "maxScore": 70,
+    "nativeDifferences": {
+      "train": 1.864044363308892e-09,
+      "validation": 4.223345451137561e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.5250896678588501,
+      "validation": 0.5299242636896289,
+      "accuracy": 0.7252859477124183,
+      "final_train": 0.49309006829694085,
+      "final_validation": 0.4795369483027657,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.1875,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "the football is in the kitchen . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "the football is in the kitchen . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 5689
+    },
+    "trainingSeconds": 372.394900000006,
+    "modelSha256": "83d1b5de9c176f8ce73b9746c407bfdefec1db36070f32ec87bac14ef88139d5"
+  },
+  {
+    "assignment": "17-stacking",
+    "part": "stacked",
+    "seed": 211,
+    "score": 70,
+    "maxScore": 70,
+    "nativeDifferences": {
+      "train": 1.8969033011018155e-09,
+      "validation": 3.978594786957501e-09,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.4720945260041705,
+      "validation": 0.4784812800974975,
+      "accuracy": 0.7661764705882353,
+      "final_train": 0.4267569061493656,
+      "final_validation": 0.42270300681019796,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.25,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "the football is in the kitchen . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 5689
+    },
+    "trainingSeconds": 460.0973999999985,
+    "modelSha256": "5352a2ed4478c1c2beff6082e4c679dfef9de2c6adb7d99318509136255dda8b"
+  },
+  {
+    "assignment": "17-stacking",
+    "part": "stacked",
+    "seed": 307,
+    "score": 70,
+    "maxScore": 70,
+    "nativeDifferences": {
+      "train": 3.504805334841876e-09,
+      "validation": 1.9196849665448212e-10,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.4613024409855727,
+      "validation": 0.4698155751387148,
+      "accuracy": 0.7674019607843138,
+      "final_train": 0.41828425453910334,
+      "final_validation": 0.4099691598351543,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 5689
+    },
+    "trainingSeconds": 448.854,
+    "modelSha256": "48571b5473d41bcb377733c07da5123b94398a56337060067323140ffeb3b76e"
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "part": "multihead",
+    "seed": 137,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 1.2987682540543943e-08,
+      "validation": 1.6493491572511232e-08,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.479883359446277,
+      "validation": 0.48571166149254125,
+      "accuracy": 0.7594771241830065,
+      "final_train": 0.4434398646098122,
+      "final_validation": 0.4507378633739799,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "the football is in the office . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam is in the bathroom . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 5689
+    },
+    "trainingSeconds": 571.0332999999999,
+    "modelSha256": "85043b0510a8588fe753744e442b9a1ccaf955f9f7eb2ec06ccb7d6e8d2ba6d7"
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "part": "multihead",
+    "seed": 211,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 2.2982382663627732e-08,
+      "validation": 2.6270879804890512e-08,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.5016129499665943,
+      "validation": 0.508939146124814,
+      "accuracy": 0.7508169934640523,
+      "final_train": 0.4778802375341515,
+      "final_validation": 0.47193262607834574,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.4375,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "liam is in the kitchen . end",
+          "consistent": true
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "nora is in the kitchen . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "liam is in the bedroom . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 5689
+    },
+    "trainingSeconds": 549.7906999999999,
+    "modelSha256": "f25c69d95f477f1660b1e5d335ad0a96e02550fbd5ce194e88ea61f2f12f3f56"
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "part": "multihead",
+    "seed": 307,
+    "score": 100,
+    "maxScore": 100,
+    "nativeDifferences": {
+      "train": 1.2624967182794933e-08,
+      "validation": 1.5211749360144466e-08,
+      "accuracy": 0.0
+    },
+    "metrics": {
+      "train": 0.4766431431835873,
+      "validation": 0.483444105002127,
+      "accuracy": 0.7624591503267973,
+      "final_train": 0.44651131255102877,
+      "final_validation": 0.44081531952557684,
+      "generation_count": 16,
+      "grammatical_fraction": 1.0,
+      "consistent_fraction": 0.0,
+      "generated_examples": [
+        {
+          "prompt": "nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now the football is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora dropped football . nora entered hall . now",
+          "continuation": "nora is in the office . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now liam is in the hall . end nora entered bedroom . liam entered kitchen . nora took football . nora entered hall . nora dropped football . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        },
+        {
+          "prompt": "nora entered kitchen . liam entered bedroom . liam took football . liam entered hall . liam dropped football . now nobody has the football . end nora entered kitchen . liam entered bedroom . liam took football . liam dropped football . liam entered hall . now",
+          "continuation": "nora is in the bathroom . end",
+          "consistent": false
+        }
+      ],
+      "parameters": 5689
+    },
+    "trainingSeconds": 565.2843,
+    "modelSha256": "33a58f81aefe06a2d9e39ae0de1d30b95a74a57ed0623259fc8a69d2e0ff56f7"
+  }
+]

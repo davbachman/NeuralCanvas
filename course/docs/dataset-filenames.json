@@ -1,0 +1,137 @@
+{
+  "scope": "Current Canvas dataset files only; excludes archived releases and private fixtures.",
+  "assignmentsChecked": [
+    "01-mpg",
+    "02-regularization",
+    "03-classification",
+    "04-matrices",
+    "05-mlp",
+    "06-rings",
+    "07-word-counts",
+    "08-embeddings",
+    "09-positional-embeddings",
+    "10-attention",
+    "11-next-word",
+    "12-sampling",
+    "13-context",
+    "14-self-attention",
+    "15-residuals",
+    "16-normalization",
+    "17-stacking",
+    "18-multiple-heads",
+    "19-qa-finetuning"
+  ],
+  "filesChecked": 24,
+  "distinctFilenames": 14,
+  "conflictingFilenames": [],
+  "datasets": [
+    {
+      "filename": "breast-cancer.csv",
+      "sha256": "da04f1823ac15474be0f7978538e3dfcbc423ed2045cb7a3ac11ac50142a7ef8",
+      "assignments": [
+        "03-classification"
+      ]
+    },
+    {
+      "filename": "concrete.csv",
+      "sha256": "9db6f90a305b9ab79ae2d25ae63e26935123d7d478996b2f105a3ae162e7c6b5",
+      "assignments": [
+        "05-mlp"
+      ]
+    },
+    {
+      "filename": "football-counts.json",
+      "sha256": "c510903cc7ac6efb40a66290b0745e9a0bb205b2df2bce051ba425c620ae52f3",
+      "assignments": [
+        "07-word-counts"
+      ]
+    },
+    {
+      "filename": "football-narratives-all.json",
+      "sha256": "5a2cfe35717add8fb12445e3e9cc5b3572989107e6e22c9decd63ec1401feaec",
+      "assignments": [
+        "16-normalization",
+        "17-stacking",
+        "18-multiple-heads"
+      ]
+    },
+    {
+      "filename": "football-narratives-last.json",
+      "sha256": "627cdfb9b675ee7be42430156f5561f6142c2b31cfad0de23f79f88708a6cc1c",
+      "assignments": [
+        "11-next-word",
+        "12-sampling",
+        "13-context",
+        "14-self-attention",
+        "15-residuals",
+        "16-normalization"
+      ]
+    },
+    {
+      "filename": "football-test.json",
+      "sha256": "1faddcf1525876a0fb98aa4b9b01bd2b711f1f26db4293578e6934959296f626",
+      "assignments": [
+        "09-positional-embeddings",
+        "10-attention"
+      ]
+    },
+    {
+      "filename": "football-tokens.json",
+      "sha256": "0beeff26f5bada0e91340f246397c44f748d3282dfafcc338c374bd3eb85a5f7",
+      "assignments": [
+        "08-embeddings"
+      ]
+    },
+    {
+      "filename": "imdb.json",
+      "sha256": "e049d3a5a9876fa614bb0a6107f53af32380e48b83ce1158d3be4da99c0fe079",
+      "assignments": [
+        "07-word-counts"
+      ]
+    },
+    {
+      "filename": "iris.csv",
+      "sha256": "91fa34837beec0f1d8641969a1c784c59214e6ef6a3ce582d0a6bdf0b3d0e83d",
+      "assignments": [
+        "04-matrices"
+      ]
+    },
+    {
+      "filename": "mpg-regularization.csv",
+      "sha256": "687a2564b2d6244599637b4747f06d48925e62d176cb01c8609f5396e5974836",
+      "assignments": [
+        "02-regularization"
+      ]
+    },
+    {
+      "filename": "mpg.csv",
+      "sha256": "071580c80dadb5c2ce1f1e8d9253921f57df517ff019b57de70118436a346851",
+      "assignments": [
+        "01-mpg",
+        "04-matrices"
+      ]
+    },
+    {
+      "filename": "rings.csv",
+      "sha256": "1b89a85df24ffa1b6809388e607a40bfa7705a84c4065fb47b3c9a609d642c85",
+      "assignments": [
+        "06-rings"
+      ]
+    },
+    {
+      "filename": "stories.json",
+      "sha256": "0380ce7ffd8f26b9ffc580eaf3dc0b275bdde92fa03c43db8f33161d685fcd22",
+      "assignments": [
+        "09-positional-embeddings",
+        "10-attention"
+      ]
+    },
+    {
+      "filename": "story-questions.json",
+      "sha256": "3877e63c81f63ab51f814d3c7a5e578184b437d526950f82d88c6ca2d59b3708",
+      "assignments": [
+        "19-qa-finetuning"
+      ]
+    }
+  ]
+}

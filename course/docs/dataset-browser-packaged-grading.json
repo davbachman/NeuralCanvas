@@ -1,0 +1,178 @@
+[
+  {
+    "assignment": "01-mpg",
+    "score": 100,
+    "package": "assignments/01-mpg/Gradescope/gradescope-mpg-01-v3.zip",
+    "browserSavedParts": [
+      "one_feature"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "02-regularization",
+    "score": 100,
+    "package": "assignments/02-regularization/Gradescope/gradescope-regularization-02-v1.zip",
+    "browserSavedParts": [
+      "baseline"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "03-classification",
+    "score": 100,
+    "package": "assignments/03-classification/Gradescope/gradescope-classification-03-v1.zip",
+    "browserSavedParts": [
+      "one_feature"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "04-matrices",
+    "score": 100,
+    "package": "assignments/04-matrices/Gradescope/gradescope-matrices-04-v1.zip",
+    "browserSavedParts": [
+      "matrix_regression",
+      "iris"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "05-mlp",
+    "score": 100,
+    "package": "assignments/05-mlp/Gradescope/gradescope-mlp-05-v1.zip",
+    "browserSavedParts": [
+      "linear"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "06-rings",
+    "score": 100,
+    "package": "assignments/06-rings/Gradescope/gradescope-rings-06-v3.zip",
+    "browserSavedParts": [
+      "linear"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "07-word-counts",
+    "score": 100,
+    "package": "assignments/07-word-counts/Gradescope/gradescope-counts-07.zip",
+    "browserSavedParts": [
+      "reviews",
+      "stories"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "08-embeddings",
+    "score": 100,
+    "package": "assignments/08-embeddings/Gradescope/gradescope-embeddings-08.zip",
+    "browserSavedParts": [
+      "embedding"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "09-positional-embeddings",
+    "score": 100,
+    "package": "assignments/09-positional-embeddings/Gradescope/gradescope-09-positional-embeddings.zip",
+    "browserSavedParts": [
+      "baseline",
+      "football"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "10-attention",
+    "score": 100,
+    "package": "assignments/10-attention/Gradescope/gradescope-10-attention.zip",
+    "browserSavedParts": [
+      "attention",
+      "football"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "11-next-word",
+    "score": 100,
+    "package": "assignments/11-next-word/Gradescope/gradescope-11-next-word.zip",
+    "browserSavedParts": [
+      "bigram"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "12-sampling",
+    "score": 100,
+    "package": "assignments/12-sampling/Gradescope/gradescope-12-sampling.zip",
+    "browserSavedParts": [
+      "base"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "13-context",
+    "score": 100,
+    "package": "assignments/13-context/Gradescope/gradescope-13-context.zip",
+    "browserSavedParts": [
+      "context"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "14-self-attention",
+    "score": 100,
+    "package": "assignments/14-self-attention/Gradescope/gradescope-14-self-attention.zip",
+    "browserSavedParts": [
+      "self-attention"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "15-residuals",
+    "score": 100,
+    "package": "assignments/15-residuals/Gradescope/gradescope-15-residuals.zip",
+    "browserSavedParts": [
+      "residual"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "16-normalization",
+    "score": 100,
+    "package": "assignments/16-normalization/Gradescope/gradescope-16-normalization.zip",
+    "browserSavedParts": [
+      "transformer",
+      "all_positions"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "17-stacking",
+    "score": 100,
+    "package": "assignments/17-stacking/Gradescope/gradescope-17-stacking.zip",
+    "browserSavedParts": [
+      "stacked"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "score": 100,
+    "package": "assignments/18-multiple-heads/Gradescope/gradescope-18-multiple-heads.zip",
+    "browserSavedParts": [
+      "multihead"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  },
+  {
+    "assignment": "19-qa-finetuning",
+    "score": 100,
+    "package": "assignments/19-qa-finetuning/Gradescope/gradescope-19-qa-finetuning.zip",
+    "browserSavedParts": [
+      "after"
+    ],
+    "allOtherPartsFromUnchangedReferences": true
+  }
+]

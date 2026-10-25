@@ -1,0 +1,98 @@
+[
+  {
+    "assignment": "11-next-word",
+    "kind": "bigram",
+    "backend": "webgl",
+    "epochs": 1,
+    "seconds": 15.579799999982118,
+    "independentDifferences": {
+      "train": 4.5752423183387236e-08,
+      "validation": 4.1436916120574097e-08
+    },
+    "scope": "One-epoch compatibility and numerical checks, not full-budget convergence; SwiftShader software WebGL."
+  },
+  {
+    "assignment": "12-context",
+    "kind": "mlp",
+    "backend": "webgl",
+    "epochs": 1,
+    "seconds": 21.5565,
+    "independentDifferences": {
+      "train": 1.100319063640498e-08,
+      "validation": 3.367024437039845e-09
+    },
+    "scope": "One-epoch compatibility and numerical checks, not full-budget convergence; SwiftShader software WebGL."
+  },
+  {
+    "assignment": "13-self-attention",
+    "kind": "attention",
+    "backend": "webgl",
+    "epochs": 1,
+    "seconds": 41.02590000000596,
+    "independentDifferences": {
+      "train": 4.0393704381358475e-08,
+      "validation": 5.952810555598376e-08
+    },
+    "scope": "One-epoch compatibility and numerical checks, not full-budget convergence; SwiftShader software WebGL."
+  },
+  {
+    "assignment": "14-residuals",
+    "kind": "residual",
+    "backend": "webgl",
+    "epochs": 1,
+    "seconds": 37.42380000001192,
+    "independentDifferences": {
+      "train": 4.009023357731678e-08,
+      "validation": 3.1075975348571205e-08
+    },
+    "scope": "One-epoch compatibility and numerical checks, not full-budget convergence; SwiftShader software WebGL."
+  },
+  {
+    "assignment": "15-normalization",
+    "kind": "transformer",
+    "backend": "webgl",
+    "epochs": 1,
+    "seconds": 47.72559999999404,
+    "independentDifferences": {
+      "train": 1.9673204842973746e-08,
+      "validation": 2.415923006093834e-08
+    },
+    "scope": "One-epoch compatibility and numerical checks, not full-budget convergence; SwiftShader software WebGL."
+  },
+  {
+    "assignment": "15-normalization",
+    "kind": "all-position",
+    "backend": "webgl",
+    "epochs": 1,
+    "seconds": 303.68819999998806,
+    "independentDifferences": {
+      "train": 1.77125590861138e-08,
+      "validation": 2.0627107244486353e-08
+    },
+    "scope": "One-epoch compatibility and numerical checks, not full-budget convergence; SwiftShader software WebGL."
+  },
+  {
+    "assignment": "16-stacking",
+    "kind": "stacked-all",
+    "backend": "webgl",
+    "epochs": 1,
+    "seconds": 354.92989999997616,
+    "independentDifferences": {
+      "train": 3.3334048299416e-08,
+      "validation": 3.6458604468769806e-08
+    },
+    "scope": "One-epoch compatibility and numerical checks, not full-budget convergence; SwiftShader software WebGL."
+  },
+  {
+    "assignment": "17-multiple-heads",
+    "kind": "stacked-two-heads",
+    "backend": "webgl",
+    "epochs": 1,
+    "seconds": 190.15439999997616,
+    "independentDifferences": {
+      "train": 3.5458924907416645e-08,
+      "validation": 3.677078797004185e-08
+    },
+    "scope": "One-epoch compatibility and numerical checks, not full-budget convergence; SwiftShader software WebGL."
+  }
+]

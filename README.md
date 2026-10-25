@@ -57,6 +57,8 @@ See the [dataset guide](docs/DATASETS.md) for controls and the [dataset sources]
 
 These 19 assignments progress from regression to a transformer question-answering capstone. Students build editable models, select datasets from the browser, and save their work as JSON. Many assignments extend the preceding solution, so keep trained models for later comparisons and fine-tuning. Each link opens the student instructions.
 
+**Teaching the course:** [Instructor guides, Canvas handouts, Gradescope autograders, sources, and curriculum notes](course/README.md) are included in this repository. Trained solutions and exams remain private.
+
 ### Regression and classification
 
 | Assignment | What students explore |

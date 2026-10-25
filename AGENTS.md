@@ -9,3 +9,11 @@ a separate request or confirmation to commit or push.
 
 Use a descriptive commit message. If checks, committing, or pushing fail,
 report the failure and preserve the work. Never force-push to resolve a failure.
+
+# Course materials
+
+Public teaching materials live in `course/`; read `course/AGENTS.md` before
+changing them. Assignments, autograders, wiring/templates, instructor guides,
+rubrics, and validation summaries belong here. Trained solutions, answer keys,
+solution-producing pilots, and exams belong in the private sibling
+`NeuralCanvas-Coursework` repository. Ask the user when the boundary is unclear.

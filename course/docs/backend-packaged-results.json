@@ -1,0 +1,124 @@
+[
+  {
+    "assignment": "07-word-counts",
+    "score": 100,
+    "package": "assignments/07-word-counts/Gradescope/gradescope-counts-07-v2.zip",
+    "parts": [
+      "reviews",
+      "stories"
+    ]
+  },
+  {
+    "assignment": "08-embeddings",
+    "score": 100,
+    "package": "assignments/08-embeddings/Gradescope/gradescope-embeddings-08-v4.zip",
+    "parts": [
+      "onehot",
+      "embedding"
+    ]
+  },
+  {
+    "assignment": "09-story-models",
+    "score": 100,
+    "package": "assignments/09-story-models/Gradescope/gradescope-09-story-models-v2.zip",
+    "parts": [
+      "baseline"
+    ]
+  },
+  {
+    "assignment": "10-attention",
+    "score": 100,
+    "package": "assignments/10-attention/Gradescope/gradescope-10-attention-v2.zip",
+    "parts": [
+      "attention"
+    ]
+  },
+  {
+    "assignment": "11-interventions",
+    "score": 100,
+    "package": "assignments/11-interventions/Gradescope/gradescope-11-interventions-v2.zip",
+    "parts": [
+      "question",
+      "irrelevant",
+      "relevant"
+    ]
+  },
+  {
+    "assignment": "12-next-character",
+    "score": 100,
+    "package": "assignments/12-next-character/Gradescope/gradescope-12-next-character-v2.zip",
+    "parts": [
+      "bigram"
+    ]
+  },
+  {
+    "assignment": "13-context",
+    "score": 100,
+    "package": "assignments/13-context/Gradescope/gradescope-13-context-v2.zip",
+    "parts": [
+      "context"
+    ]
+  },
+  {
+    "assignment": "14-self-attention",
+    "score": 100,
+    "package": "assignments/14-self-attention/Gradescope/gradescope-14-self-attention-v2.zip",
+    "parts": [
+      "attention"
+    ]
+  },
+  {
+    "assignment": "15-residuals",
+    "score": 100,
+    "package": "assignments/15-residuals/Gradescope/gradescope-15-residuals-v2.zip",
+    "parts": [
+      "residual"
+    ]
+  },
+  {
+    "assignment": "16-normalization",
+    "score": 100,
+    "package": "assignments/16-normalization/Gradescope/gradescope-16-normalization-v2.zip",
+    "parts": [
+      "transformer"
+    ]
+  },
+  {
+    "assignment": "17-all-positions",
+    "score": 100,
+    "package": "assignments/17-all-positions/Gradescope/gradescope-17-all-positions-v2.zip",
+    "parts": [
+      "all_positions",
+      "last_position"
+    ]
+  },
+  {
+    "assignment": "18-multiple-heads",
+    "score": 100,
+    "package": "assignments/18-multiple-heads/Gradescope/gradescope-18-multiple-heads-v2.zip",
+    "parts": [
+      "multihead"
+    ]
+  },
+  {
+    "assignment": "19-sampling",
+    "score": 100,
+    "package": "assignments/19-sampling/Gradescope/gradescope-19-sampling-v2.zip",
+    "parts": [
+      "base",
+      "sampling"
+    ]
+  },
+  {
+    "assignment": "20-synthesis",
+    "score": 100,
+    "package": "assignments/20-synthesis/Gradescope/gradescope-20-synthesis-v2.zip",
+    "parts": [
+      "bigram",
+      "context",
+      "transformer",
+      "multihead",
+      "multihead_last"
+    ]
+  }
+]

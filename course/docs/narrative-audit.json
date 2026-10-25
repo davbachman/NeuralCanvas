@@ -1,0 +1,116 @@
+{
+  "singleCurrentAssignments7to19": [
+    "07-word-counts",
+    "08-embeddings",
+    "09-positional-embeddings",
+    "10-attention",
+    "11-next-word",
+    "12-sampling",
+    "13-context",
+    "14-self-attention",
+    "15-residuals",
+    "16-normalization",
+    "17-stacking",
+    "18-multiple-heads",
+    "19-qa-finetuning"
+  ],
+  "issuedAssignments1to6DataRubricsAndGradingLogicUnchanged": true,
+  "issuedFeedbackOnlyUpdates": [
+    "01-mpg",
+    "05-mlp",
+    "06-rings"
+  ],
+  "issuedHandoutWordingOnlyChanges": [
+    "assignments/01-mpg/Canvas/description.html",
+    "assignments/02-regularization/Canvas/description.html",
+    "assignments/03-classification/Canvas/description.html",
+    "assignments/04-matrices/Canvas/description.html",
+    "assignments/05-mlp/Canvas/description.html",
+    "assignments/06-rings/Canvas/description.html"
+  ],
+  "releases": [
+    {
+      "assignment": "11-next-word",
+      "files": [
+        "bigram"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "12-sampling",
+      "files": [
+        "base",
+        "sampling"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "13-context",
+      "files": [
+        "context"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "14-self-attention",
+      "files": [
+        "self-attention"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "15-residuals",
+      "files": [
+        "residual"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "16-normalization",
+      "files": [
+        "transformer",
+        "all_positions",
+        "last_position"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "17-stacking",
+      "files": [
+        "one_block",
+        "stacked"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "18-multiple-heads",
+      "files": [
+        "multihead"
+      ],
+      "packagedReferenceScore": 100
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "files": [
+        "earlier",
+        "pretrained",
+        "before",
+        "after"
+      ],
+      "packagedReferenceScore": 100
+    }
+  ],
+  "nativeFullBudgetSeeds": 24,
+  "freshNativeCpuRuns": 21,
+  "reusedFinalArchitectureRuns": 3,
+  "pretrainingAssignment": 18,
+  "qaAssignment": 19,
+  "exactAssignment18Handoff": true,
+  "samplingAssignment": 12,
+  "exactAssignment11SamplingHandoff": true,
+  "noNewSamplingTraining": true,
+  "currentNarrativeBrowserWorkflowVerified": true,
+  "retainedQaBrowserWorkflowIndependentlyRegraded": true,
+  "currentTrainingControlsAndHandoutLayoutsVerified": true,
+  "scope": "Local engine, grader, extracted ZIP and browser checks. No hosted Gradescope, deployed-site or physical GPU benchmark."
+}

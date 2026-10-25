@@ -1,0 +1,761 @@
+{
+  "version": "regularization-02-v1",
+  "sourceSha256": "5fc1507522b73b8050d3aa45df51eefe1b666ae5f428a5f1347b6483339f1003",
+  "selectionSeed": 20261001,
+  "trainingSourceIndices": [
+    16,
+    31,
+    40,
+    51,
+    59,
+    82,
+    115,
+    120,
+    143,
+    151,
+    156,
+    162,
+    175,
+    203,
+    230,
+    238,
+    241,
+    274,
+    299,
+    312,
+    337,
+    339,
+    345,
+    394
+  ],
+  "rows": [
+    {
+      "sourceIndex": 4,
+      "weight": 3449.0,
+      "year": 1970.0,
+      "mpg": 17.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 7,
+      "weight": 4312.0,
+      "year": 1970.0,
+      "mpg": 14.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 10,
+      "weight": 3563.0,
+      "year": 1970.0,
+      "mpg": 15.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 16,
+      "weight": 2774.0,
+      "year": 1970.0,
+      "mpg": 18.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 22,
+      "weight": 2375.0,
+      "year": 1970.0,
+      "mpg": 25.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 28,
+      "weight": 4732.0,
+      "year": 1970.0,
+      "mpg": 9.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 30,
+      "weight": 2264.0,
+      "year": 1971.0,
+      "mpg": 28.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 31,
+      "weight": 2228.0,
+      "year": 1971.0,
+      "mpg": 25.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 34,
+      "weight": 3439.0,
+      "year": 1971.0,
+      "mpg": 16.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 37,
+      "weight": 3288.0,
+      "year": 1971.0,
+      "mpg": 18.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 40,
+      "weight": 4154.0,
+      "year": 1971.0,
+      "mpg": 14.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 46,
+      "weight": 2408.0,
+      "year": 1971.0,
+      "mpg": 22.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 51,
+      "weight": 2074.0,
+      "year": 1971.0,
+      "mpg": 30.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 59,
+      "weight": 2254.0,
+      "year": 1972.0,
+      "mpg": 23.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 61,
+      "weight": 2226.0,
+      "year": 1972.0,
+      "mpg": 21.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 64,
+      "weight": 4135.0,
+      "year": 1972.0,
+      "mpg": 15.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 66,
+      "weight": 3672.0,
+      "year": 1972.0,
+      "mpg": 17.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 67,
+      "weight": 4633.0,
+      "year": 1972.0,
+      "mpg": 11.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 69,
+      "weight": 4456.0,
+      "year": 1972.0,
+      "mpg": 12.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 74,
+      "weight": 4294.0,
+      "year": 1972.0,
+      "mpg": 13.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 75,
+      "weight": 4077.0,
+      "year": 1972.0,
+      "mpg": 14.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 82,
+      "weight": 2506.0,
+      "year": 1972.0,
+      "mpg": 23.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 83,
+      "weight": 2164.0,
+      "year": 1972.0,
+      "mpg": 28.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 85,
+      "weight": 4100.0,
+      "year": 1973.0,
+      "mpg": 13.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 92,
+      "weight": 4363.0,
+      "year": 1973.0,
+      "mpg": 13.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 94,
+      "weight": 4735.0,
+      "year": 1973.0,
+      "mpg": 13.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 95,
+      "weight": 4951.0,
+      "year": 1973.0,
+      "mpg": 12.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 96,
+      "weight": 3821.0,
+      "year": 1973.0,
+      "mpg": 13.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 102,
+      "weight": 1950.0,
+      "year": 1973.0,
+      "mpg": 26.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 103,
+      "weight": 4997.0,
+      "year": 1973.0,
+      "mpg": 11.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 115,
+      "weight": 4082.0,
+      "year": 1973.0,
+      "mpg": 15.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 120,
+      "weight": 2868.0,
+      "year": 1973.0,
+      "mpg": 19.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 121,
+      "weight": 3399.0,
+      "year": 1973.0,
+      "mpg": 15.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 124,
+      "weight": 3664.0,
+      "year": 1973.0,
+      "mpg": 11.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 130,
+      "weight": 2451.0,
+      "year": 1974.0,
+      "mpg": 26.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 131,
+      "weight": 1836.0,
+      "year": 1974.0,
+      "mpg": 32.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 143,
+      "weight": 2300.0,
+      "year": 1974.0,
+      "mpg": 26.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 148,
+      "weight": 2246.0,
+      "year": 1974.0,
+      "mpg": 26.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 150,
+      "weight": 2391.0,
+      "year": 1974.0,
+      "mpg": 26.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 151,
+      "weight": 2000.0,
+      "year": 1974.0,
+      "mpg": 31.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 156,
+      "weight": 4668.0,
+      "year": 1975.0,
+      "mpg": 16.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 159,
+      "weight": 4657.0,
+      "year": 1975.0,
+      "mpg": 14.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 161,
+      "weight": 3897.0,
+      "year": 1975.0,
+      "mpg": 16.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 162,
+      "weight": 3730.0,
+      "year": 1975.0,
+      "mpg": 15.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 170,
+      "weight": 2592.0,
+      "year": 1975.0,
+      "mpg": 23.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 175,
+      "weight": 1937.0,
+      "year": 1975.0,
+      "mpg": 29.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 187,
+      "weight": 4215.0,
+      "year": 1976.0,
+      "mpg": 17.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 190,
+      "weight": 4215.0,
+      "year": 1976.0,
+      "mpg": 14.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 191,
+      "weight": 3233.0,
+      "year": 1976.0,
+      "mpg": 22.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 195,
+      "weight": 2035.0,
+      "year": 1976.0,
+      "mpg": 29.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 203,
+      "weight": 1825.0,
+      "year": 1976.0,
+      "mpg": 29.5,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 213,
+      "weight": 4055.0,
+      "year": 1976.0,
+      "mpg": 13.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 216,
+      "weight": 2045.0,
+      "year": 1977.0,
+      "mpg": 31.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 221,
+      "weight": 3880.0,
+      "year": 1977.0,
+      "mpg": 17.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 222,
+      "weight": 4060.0,
+      "year": 1977.0,
+      "mpg": 17.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 223,
+      "weight": 4140.0,
+      "year": 1977.0,
+      "mpg": 15.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 225,
+      "weight": 3520.0,
+      "year": 1977.0,
+      "mpg": 17.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 226,
+      "weight": 3425.0,
+      "year": 1977.0,
+      "mpg": 20.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 227,
+      "weight": 3630.0,
+      "year": 1977.0,
+      "mpg": 19.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 229,
+      "weight": 4220.0,
+      "year": 1977.0,
+      "mpg": 16.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 230,
+      "weight": 4165.0,
+      "year": 1977.0,
+      "mpg": 15.5,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 233,
+      "weight": 1940.0,
+      "year": 1977.0,
+      "mpg": 29.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 235,
+      "weight": 2265.0,
+      "year": 1977.0,
+      "mpg": 26.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 237,
+      "weight": 2051.0,
+      "year": 1977.0,
+      "mpg": 30.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 238,
+      "weight": 2075.0,
+      "year": 1977.0,
+      "mpg": 33.5,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 241,
+      "weight": 2815.0,
+      "year": 1977.0,
+      "mpg": 22.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 246,
+      "weight": 1985.0,
+      "year": 1978.0,
+      "mpg": 32.8,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 248,
+      "weight": 1800.0,
+      "year": 1978.0,
+      "mpg": 36.1,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 250,
+      "weight": 3735.0,
+      "year": 1978.0,
+      "mpg": 19.4,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 252,
+      "weight": 3535.0,
+      "year": 1978.0,
+      "mpg": 19.2,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 256,
+      "weight": 3430.0,
+      "year": 1978.0,
+      "mpg": 20.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 257,
+      "weight": 3210.0,
+      "year": 1978.0,
+      "mpg": 19.4,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 259,
+      "weight": 3070.0,
+      "year": 1978.0,
+      "mpg": 20.8,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 265,
+      "weight": 4080.0,
+      "year": 1978.0,
+      "mpg": 17.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 267,
+      "weight": 2560.0,
+      "year": 1978.0,
+      "mpg": 27.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 274,
+      "weight": 2830.0,
+      "year": 1978.0,
+      "mpg": 20.3,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 278,
+      "weight": 1990.0,
+      "year": 1978.0,
+      "mpg": 31.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 288,
+      "weight": 3830.0,
+      "year": 1979.0,
+      "mpg": 18.2,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 294,
+      "weight": 1975.0,
+      "year": 1979.0,
+      "mpg": 34.1,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 295,
+      "weight": 1915.0,
+      "year": 1979.0,
+      "mpg": 35.7,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 298,
+      "weight": 3900.0,
+      "year": 1979.0,
+      "mpg": 23.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 299,
+      "weight": 3190.0,
+      "year": 1979.0,
+      "mpg": 27.2,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 303,
+      "weight": 2020.0,
+      "year": 1979.0,
+      "mpg": 31.8,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 307,
+      "weight": 2700.0,
+      "year": 1979.0,
+      "mpg": 26.8,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 312,
+      "weight": 2019.0,
+      "year": 1980.0,
+      "mpg": 37.2,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 317,
+      "weight": 2188.0,
+      "year": 1980.0,
+      "mpg": 34.3,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 321,
+      "weight": 2265.0,
+      "year": 1980.0,
+      "mpg": 32.2,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 325,
+      "weight": 2085.0,
+      "year": 1980.0,
+      "mpg": 44.3,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 337,
+      "weight": 2290.0,
+      "year": 1980.0,
+      "mpg": 32.4,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 339,
+      "weight": 2635.0,
+      "year": 1981.0,
+      "mpg": 26.6,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 340,
+      "weight": 2620.0,
+      "year": 1981.0,
+      "mpg": 25.8,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 341,
+      "weight": 2725.0,
+      "year": 1981.0,
+      "mpg": 23.5,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 344,
+      "weight": 1875.0,
+      "year": 1981.0,
+      "mpg": 39.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 345,
+      "weight": 1760.0,
+      "year": 1981.0,
+      "mpg": 35.1,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 357,
+      "weight": 2615.0,
+      "year": 1981.0,
+      "mpg": 32.9,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 367,
+      "weight": 2605.0,
+      "year": 1982.0,
+      "mpg": 28.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 368,
+      "weight": 2640.0,
+      "year": 1982.0,
+      "mpg": 27.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 369,
+      "weight": 2395.0,
+      "year": 1982.0,
+      "mpg": 34.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 373,
+      "weight": 2865.0,
+      "year": 1982.0,
+      "mpg": 24.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 376,
+      "weight": 2025.0,
+      "year": 1982.0,
+      "mpg": 37.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 381,
+      "weight": 2205.0,
+      "year": 1982.0,
+      "mpg": 36.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 383,
+      "weight": 1965.0,
+      "year": 1982.0,
+      "mpg": 38.0,
+      "split": "test"
+    },
+    {
+      "sourceIndex": 394,
+      "weight": 2130.0,
+      "year": 1982.0,
+      "mpg": 44.0,
+      "split": "train"
+    },
+    {
+      "sourceIndex": 395,
+      "weight": 2295.0,
+      "year": 1982.0,
+      "mpg": 32.0,
+      "split": "test"
+    }
+  ]
+}

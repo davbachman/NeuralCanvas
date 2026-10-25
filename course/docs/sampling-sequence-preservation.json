@@ -1,0 +1,31 @@
+{
+  "previousCourseworkCommit": "ae34e37",
+  "unchangedReferenceModelFiles": [
+    "assignments/13-context/reference/models/context.json",
+    "assignments/14-self-attention/reference/models/self-attention.json",
+    "assignments/15-residuals/reference/models/residual.json",
+    "assignments/16-normalization/reference/models/last_position.json",
+    "assignments/16-normalization/reference/models/all_positions.json",
+    "assignments/16-normalization/reference/models/transformer.json",
+    "assignments/17-stacking/reference/models/one_block.json",
+    "assignments/17-stacking/reference/models/stacked.json",
+    "assignments/18-multiple-heads/reference/models/multihead.json",
+    "assignments/19-qa-finetuning/reference/models/earlier.json",
+    "assignments/19-qa-finetuning/reference/models/pretrained.json",
+    "assignments/19-qa-finetuning/reference/models/before.json",
+    "assignments/19-qa-finetuning/reference/models/after.json"
+  ],
+  "learnedValuesAndEpochsPreserved": true,
+  "otherRubricsAndRecipesUnchanged": true,
+  "scope": "Full model file byte comparison, excluding the intentionally replaced sampling exercise.",
+  "unchangedConfigurationsApartFromVersion": [
+    "13-context",
+    "14-self-attention",
+    "15-residuals",
+    "16-normalization",
+    "17-stacking",
+    "18-multiple-heads",
+    "11-next-word",
+    "19-qa-finetuning"
+  ]
+}

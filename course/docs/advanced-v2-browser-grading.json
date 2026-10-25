@@ -1,0 +1,78 @@
+[
+  {
+    "assignment": "11-interventions",
+    "part": "question",
+    "score": 30,
+    "maxScore": 30,
+    "unchangedParameters": true,
+    "metrics": {
+      "train": 0.00014636573691481205,
+      "validation": 0.030784642426515095,
+      "accuracy": 0.9949748743718593,
+      "final_train": 0.00014636573691481205,
+      "final_validation": 0.030784642426515095,
+      "experiment_prediction": "garden",
+      "experiment_answer": "garden"
+    }
+  },
+  {
+    "assignment": "11-interventions",
+    "part": "irrelevant",
+    "score": 30,
+    "maxScore": 30,
+    "unchangedParameters": true,
+    "metrics": {
+      "train": 0.00014636573691481205,
+      "validation": 0.030784642426515095,
+      "accuracy": 0.9949748743718593,
+      "final_train": 0.00014636573691481205,
+      "final_validation": 0.030784642426515095,
+      "experiment_prediction": "kitchen",
+      "experiment_answer": "kitchen"
+    }
+  },
+  {
+    "assignment": "11-interventions",
+    "part": "relevant",
+    "score": 30,
+    "maxScore": 30,
+    "unchangedParameters": true,
+    "metrics": {
+      "train": 0.00014636573691481205,
+      "validation": 0.030784642426515095,
+      "accuracy": 0.9949748743718593,
+      "final_train": 0.00014636573691481205,
+      "final_validation": 0.030784642426515095,
+      "experiment_prediction": "hallway",
+      "experiment_answer": "hallway"
+    }
+  },
+  {
+    "assignment": "19-sampling",
+    "part": "sampling",
+    "score": 50,
+    "maxScore": 50,
+    "unchangedParameters": true,
+    "metrics": {
+      "train": 2.0613521877898195,
+      "validation": 2.097698956698909,
+      "accuracy": 0.39155783582089554,
+      "final_train": 2.001498433095981,
+      "final_validation": 1.9968133239953008
+    }
+  },
+  {
+    "assignment": "20-synthesis",
+    "part": "multihead_last",
+    "score": 20,
+    "maxScore": 20,
+    "unchangedParameters": true,
+    "metrics": {
+      "train": 2.001498433095981,
+      "validation": 1.9968133239953008,
+      "accuracy": 0.4291044776119403,
+      "final_train": 2.001498433095981,
+      "final_validation": 1.9968133239953008
+    }
+  }
+]

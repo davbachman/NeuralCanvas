@@ -1,0 +1,280 @@
+{
+  "records": [
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "earlier",
+      "kind": "canonical",
+      "metrics": {
+        "train": 0.6545819246725373,
+        "validation": 0.9862451549857133,
+        "accuracy": 0.5833333333333334,
+        "final_train": 0.6545819246725373,
+        "final_validation": 0.9862451549857133,
+        "parameters": 6441,
+        "groups": {
+          "drop_before_moving": 0.18333333333333332,
+          "move_before_dropping": 0.9833333333333333,
+          "ball": 0.5833333333333334
+        },
+        "attention_architecture": "concatenation"
+      }
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "pretrained",
+      "kind": "canonical",
+      "metrics": {
+        "train": 0.479883359446277,
+        "validation": 0.48571166149254125,
+        "accuracy": 0.7594771241830065,
+        "final_train": 0.4434398646098122,
+        "final_validation": 0.4507378633739799,
+        "parameters": 5689
+      }
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "before",
+      "kind": "canonical",
+      "metrics": {
+        "train": 8.1135749505703,
+        "validation": 5.360857521346247,
+        "accuracy": 0.0,
+        "final_train": 8.1135749505703,
+        "final_validation": 5.360857521346247,
+        "parameters": 5689,
+        "groups": {
+          "drop_before_moving": 0.0,
+          "move_before_dropping": 0.0,
+          "ball": 0.0
+        }
+      }
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "after",
+      "kind": "canonical",
+      "metrics": {
+        "train": 0.5923190741802369,
+        "validation": 0.6745386831112548,
+        "accuracy": 0.7333333333333333,
+        "final_train": 0.5923190741802369,
+        "final_validation": 0.6745386831112548,
+        "parameters": 5689,
+        "groups": {
+          "drop_before_moving": 0.4666666666666667,
+          "move_before_dropping": 1.0,
+          "ball": 0.7333333333333333
+        }
+      }
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "pretrained",
+      "kind": "native",
+      "metrics": {
+        "train": 0.479883359446277,
+        "validation": 0.48571166149254125,
+        "accuracy": 0.7594771241830065,
+        "final_train": 0.4434398646098122,
+        "final_validation": 0.4507378633739799,
+        "parameters": 5689
+      },
+      "seed": 137
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "after",
+      "kind": "native",
+      "metrics": {
+        "train": 0.5923190741802369,
+        "validation": 0.6745386831112548,
+        "accuracy": 0.7333333333333333,
+        "final_train": 0.5923190741802369,
+        "final_validation": 0.6745386831112548,
+        "parameters": 5689,
+        "groups": {
+          "drop_before_moving": 0.4666666666666667,
+          "move_before_dropping": 1.0,
+          "ball": 0.7333333333333333
+        }
+      },
+      "seed": 137
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "pretrained",
+      "kind": "native",
+      "metrics": {
+        "train": 0.5016129499665943,
+        "validation": 0.508939146124814,
+        "accuracy": 0.7508169934640523,
+        "final_train": 0.4778802375341515,
+        "final_validation": 0.47193262607834574,
+        "parameters": 5689
+      },
+      "seed": 211
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "after",
+      "kind": "native",
+      "metrics": {
+        "train": 0.5852417782860094,
+        "validation": 0.6002019975116738,
+        "accuracy": 0.7708333333333334,
+        "final_train": 0.5852417782860094,
+        "final_validation": 0.6002019975116738,
+        "parameters": 5689,
+        "groups": {
+          "drop_before_moving": 0.5416666666666666,
+          "move_before_dropping": 1.0,
+          "ball": 0.7708333333333334
+        }
+      },
+      "seed": 211
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "pretrained",
+      "kind": "native",
+      "metrics": {
+        "train": 0.4766431431835873,
+        "validation": 0.483444105002127,
+        "accuracy": 0.7624591503267973,
+        "final_train": 0.44651131255102877,
+        "final_validation": 0.44081531952557684,
+        "parameters": 5689
+      },
+      "seed": 307
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "after",
+      "kind": "native",
+      "metrics": {
+        "train": 0.2041861454439023,
+        "validation": 0.453047697679334,
+        "accuracy": 0.7833333333333333,
+        "final_train": 0.2041861454439023,
+        "final_validation": 0.453047697679334,
+        "parameters": 5689,
+        "groups": {
+          "drop_before_moving": 0.5666666666666667,
+          "move_before_dropping": 1.0,
+          "ball": 0.7833333333333333
+        }
+      },
+      "seed": 307
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "pretrained",
+      "kind": "ui",
+      "metrics": {
+        "train": 0.46672813995897705,
+        "validation": 0.47299987662335896,
+        "accuracy": 0.7718545751633987,
+        "final_train": 0.42076969070735,
+        "final_validation": 0.4120366466531591,
+        "parameters": 5689
+      }
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "before",
+      "kind": "ui",
+      "metrics": {
+        "train": 10.214844648238461,
+        "validation": 10.45474410004004,
+        "accuracy": 0.0,
+        "final_train": 10.214844648238461,
+        "final_validation": 10.45474410004004,
+        "parameters": 5689,
+        "groups": {
+          "drop_before_moving": 0.0,
+          "move_before_dropping": 0.0,
+          "ball": 0.0
+        }
+      }
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "after",
+      "kind": "ui",
+      "metrics": {
+        "train": 0.1260986780385119,
+        "validation": 0.49670551430265764,
+        "accuracy": 0.8,
+        "final_train": 0.1260986780385119,
+        "final_validation": 0.49670551430265764,
+        "parameters": 5689,
+        "groups": {
+          "drop_before_moving": 0.6,
+          "move_before_dropping": 1.0,
+          "ball": 0.8
+        }
+      }
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "part": "pretrained",
+      "kind": "assignment18-handoff",
+      "metrics": {
+        "train": 0.479883359446277,
+        "validation": 0.48571166149254125,
+        "accuracy": 0.7594771241830065,
+        "final_train": 0.4434398646098122,
+        "final_validation": 0.4507378633739799,
+        "parameters": 5689
+      }
+    }
+  ],
+  "comparison": {
+    "assignment10Accuracy": [
+      0.5833333333333334,
+      0.6041666666666666,
+      0.6875
+    ],
+    "studentCapstoneAccuracy": [
+      0.7333333333333333,
+      0.7708333333333334,
+      0.7833333333333333,
+      0.8
+    ],
+    "minimumObservedGapPercentagePoints": 4.583333333333329,
+    "interpretation": "Same questions and split; complete workflows include different architectures and pretraining. Validation used for task selection; no claim of necessity or benefit over scratch training."
+  },
+  "workflow": {
+    "pretraining": {
+      "seconds": 889.827,
+      "status": [
+        "Completed after 10 epochs on webgl. Kept final parameters."
+      ]
+    },
+    "finetuning": {
+      "seconds": 487.568,
+      "status": [
+        "Completed after 5 epochs on webgl. Kept final parameters."
+      ]
+    },
+    "inference": "MODEL EVALUATION\n\nTest-set predictions\n240 held-out examples\n0.497 loss\n80.0% token accuracy\nPredictions\n240 outputs\nDataset row 3840\n\u2713\nActual\nbedroom\nPredicted\nbedroom\nDataset row 3841\n\u2713\nActual\nhall\nPredicted\nhall\nDataset row 3842\n\u2713\nActual\nbedroom\nPredicted\nbedroom\nDataset row 3843\n\u2713\nActual\nhall\nPredicted\nhall\nDataset row 3844\n\u2713\nActual\noffice\nPredicted\noffice\nDataset row 3845\n\u2713\nActual\nhall\nPredicted\nhall\nDataset row 3846\n\u2713\nActual\noffice\nPredicted\noffice\nDataset row 3847\n\u2713\nActual\nhall\nPredicted\nhall\nDataset row 3848\n\u2713\nActual\nbathroom\nPredicted\nbathroom\nDataset row 3849\n\u2713\nActual\nbedroom\nPredicted\nbedroom\nDataset row 3850\n\u2713\nActual\nbathroom\nPredicted\nbathroom\nDataset row 3851\n\u2713\nActual\nbedroom\nPredicted\nbedroom\nDataset row 3852\n\u2713\nActual\nbedroom\nPredicted\nbedroom\nDataset row 3853\n\u2713\nActual\nhall\nPredicted\nhall\nDataset row 3854\n\u00d7\nActual\nbedroom\nPredicted\nhall\nDataset row 3855\n\u2713\nActual\nhall\nPredicted\nhall\nDataset row 3856\n\u00d7\nActual\nbathroom\nPredicted\nbedroom\nDataset row 3857\n\u2713\nActual\nbedroom\nPredicted\nbedroom\nDataset row 3858\n\u00d7\nActual\nbathroom\nPredicted\nbedroom\nDataset row 3859\n\u2713\nActual\nbedroom\nPredicted\nbedroom\nDataset row 3860\n\u00d7\nActual\nbathroom\nPredicted\noffice\nDataset row 3861\n\u2713\nActual\nhall\nPredicted\nhall\nDataset row 3862\n\u00d7\nActual\nbathroom\nPredicted\noffice\nDataset row 3863\n\u2713\nActual\nhall\nPredicted\nhall\nDataset row 3864\n\u2713\nActual\nbedroom\nPredicted\nbedroom\nPrevious\nPage 1 of 10\nNext",
+    "errors": [],
+    "pretrainedParametersPreserved": true,
+    "epochStart": 0,
+    "epochPretrained": 10,
+    "epochEnd": 15,
+    "randomizedInUi": true,
+    "sliceSetInUi": true,
+    "datasetImportedInUi": true,
+    "appCommit": "9d535a02b53bff5859e963d07cdf2d65df6cfacf",
+    "appDirty": false,
+    "browser": "151.0.7922.173",
+    "backend": "webgl",
+    "timingConditions": "SwiftShader software rendering; inspect run conditions, not a physical GPU benchmark.",
+    "scope": "Assignment 17 construction with independent head matrices. Real UI randomization, pretraining, data import, Slice fields, fine-tuning, inference and File Save; harness prepares block wiring."
+  },
+  "pretrainingAssignment": 18,
+  "qaAssignment": 19,
+  "exactAssignment18Handoff": true
+}

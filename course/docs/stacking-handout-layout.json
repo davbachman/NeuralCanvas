@@ -1,0 +1,20 @@
+{
+  "widths": [
+    390,
+    960
+  ],
+  "assignments": [
+    "10-attention",
+    "11-next-character",
+    "12-context",
+    "13-self-attention",
+    "14-residuals",
+    "15-normalization",
+    "16-all-positions",
+    "17-stacking",
+    "18-multiple-heads",
+    "19-sampling",
+    "20-synthesis"
+  ],
+  "overflow": false
+}

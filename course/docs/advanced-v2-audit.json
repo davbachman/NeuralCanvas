@@ -1,0 +1,149 @@
+{
+  "protectedAssignments1to8Unchanged": true,
+  "protectedFileCount": 475,
+  "archivedFileCount": 295,
+  "assignments": [
+    {
+      "assignment": "09-story-models",
+      "version": "09-story-models-v2",
+      "files": [
+        "baseline"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "10-attention",
+      "version": "10-attention-v2",
+      "files": [
+        "attention"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "11-interventions",
+      "version": "11-interventions-v2",
+      "files": [
+        "question",
+        "irrelevant",
+        "relevant"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "12-next-character",
+      "version": "12-next-character-v2",
+      "files": [
+        "bigram"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "13-context",
+      "version": "13-context-v2",
+      "files": [
+        "context"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "14-self-attention",
+      "version": "14-self-attention-v2",
+      "files": [
+        "attention"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "15-residuals",
+      "version": "15-residuals-v2",
+      "files": [
+        "residual"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "16-normalization",
+      "version": "16-normalization-v2",
+      "files": [
+        "transformer"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "17-all-positions",
+      "version": "17-all-positions-v2",
+      "files": [
+        "all_positions",
+        "last_position"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "18-multiple-heads",
+      "version": "18-multiple-heads-v2",
+      "files": [
+        "multihead"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "19-sampling",
+      "version": "19-sampling-v2",
+      "files": [
+        "base",
+        "sampling"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    },
+    {
+      "assignment": "20-synthesis",
+      "version": "20-synthesis-v2",
+      "files": [
+        "bigram",
+        "context",
+        "transformer",
+        "multihead",
+        "multihead_last"
+      ],
+      "points": 100,
+      "archiveVerified": true,
+      "studentDataUnchanged": true,
+      "packageVerified": true
+    }
+  ],
+  "newBrowserArtifactsPassIndependentGrading": true,
+  "handoutsFitPhoneAndDesktop": true
+}

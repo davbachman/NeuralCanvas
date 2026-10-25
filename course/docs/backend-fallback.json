@@ -1,0 +1,44 @@
+{
+  "selection": {
+    "backend": "cpu",
+    "fallback": "webgl: Backend name 'webgl' not found in registry"
+  },
+  "completed": 1,
+  "stopped": false,
+  "reports": [
+    {
+      "epoch": 0,
+      "train": {
+        "loss": 0.8236420273780822,
+        "objective": 0.8236420273780822,
+        "accuracy": 0.5058333333333334,
+        "examples": 1200
+      },
+      "validation": {
+        "loss": 0.8394152617454529,
+        "objective": 0.8394152617454529,
+        "accuracy": 0.5075,
+        "examples": 400
+      },
+      "improved": true
+    },
+    {
+      "epoch": 1,
+      "train": {
+        "loss": 0.4529300312201182,
+        "objective": 0.4529300312201182,
+        "accuracy": 0.8116666666666666,
+        "examples": 1200
+      },
+      "validation": {
+        "loss": 0.558411717414856,
+        "objective": 0.558411717414856,
+        "accuracy": 0.725,
+        "examples": 400
+      },
+      "improved": true
+    }
+  ],
+  "appCommit": "a0b69068c566c1fe372a7df4600d90073c6443ca",
+  "scope": "One-epoch CPU fallback check with WebGL registration deliberately removed in the test browser; not an assignment performance pilot."
+}

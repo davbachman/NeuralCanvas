@@ -1,0 +1,96 @@
+[
+  {
+    "assignment": "09-story-models",
+    "part": "baseline",
+    "score": 100,
+    "metrics": {
+      "train": 0.003271301765929912,
+      "validation": 5.941974255512501,
+      "accuracy": 0.38190954773869346,
+      "final_train": 0.003271301765929912,
+      "final_validation": 5.941974255512501
+    },
+    "parametersUnchanged": true
+  },
+  {
+    "assignment": "11-interventions",
+    "part": "question",
+    "score": 30,
+    "metrics": {
+      "train": 0.00014636573691481205,
+      "validation": 0.030784642426515095,
+      "accuracy": 0.9949748743718593,
+      "final_train": 0.00014636573691481205,
+      "final_validation": 0.030784642426515095,
+      "experiment_prediction": "garden"
+    },
+    "parametersUnchanged": true
+  },
+  {
+    "assignment": "11-interventions",
+    "part": "irrelevant",
+    "score": 30,
+    "metrics": {
+      "train": 0.00014636573691481205,
+      "validation": 0.030784642426515095,
+      "accuracy": 0.9949748743718593,
+      "final_train": 0.00014636573691481205,
+      "final_validation": 0.030784642426515095,
+      "experiment_prediction": "kitchen"
+    },
+    "parametersUnchanged": true
+  },
+  {
+    "assignment": "11-interventions",
+    "part": "relevant",
+    "score": 30,
+    "metrics": {
+      "train": 0.00014636573691481205,
+      "validation": 0.030784642426515095,
+      "accuracy": 0.9949748743718593,
+      "final_train": 0.00014636573691481205,
+      "final_validation": 0.030784642426515095,
+      "experiment_prediction": "bedroom"
+    },
+    "parametersUnchanged": true
+  },
+  {
+    "assignment": "12-next-character",
+    "part": "bigram",
+    "score": 100,
+    "metrics": {
+      "train": 2.346912277967025,
+      "validation": 2.3175150656613366,
+      "accuracy": 0.3332089552238806,
+      "final_train": 2.346912277967025,
+      "final_validation": 2.3175150656613366
+    },
+    "parametersUnchanged": false
+  },
+  {
+    "assignment": "17-all-positions",
+    "part": "last_position",
+    "score": 45,
+    "metrics": {
+      "train": 2.053169762301629,
+      "validation": 2.0303112271847077,
+      "accuracy": 0.4212686567164179,
+      "final_train": 2.053169762301629,
+      "final_validation": 2.0303112271847077
+    },
+    "parametersUnchanged": true
+  },
+  {
+    "assignment": "19-sampling",
+    "part": "sampling",
+    "score": 100,
+    "metrics": {
+      "train": 2.0613521877898195,
+      "validation": 2.097698956698909,
+      "accuracy": 0.39155783582089554,
+      "final_train": 2.001498433095981,
+      "final_validation": 1.9968133239953008
+    },
+    "parametersUnchanged": true
+  }
+]

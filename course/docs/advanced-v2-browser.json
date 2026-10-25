@@ -1,0 +1,53 @@
+{
+  "appCommit": "813e34ad8876ef2b2233fb8e9f2b7f954435e9d8",
+  "appDirty": false,
+  "reports": [
+    {
+      "assignment": 11,
+      "part": "question",
+      "facts": "Mary moved to the kitchen.\nJohn moved to the garden.",
+      "question": "Where is John?",
+      "result": "Experimental answer: unknown. Any loss shown uses the original answer as a reference only.\n\nExperimental prediction: garden\n\nbathroom: 0.00%\nbedroom: 0.00%\ngarden: 100.00%\nhallway: 0.00%\nkitchen: 0.00%\noffice: 0.00%\n\nSelect a Softmax or attention block and open Data to inspect its full output.\n\nattention · Softmax: 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000\n\nClass probabilities · Softmax: 0.000001, 0.000001, 0.999998, 0.000000, 0.000000, 0.000000",
+      "unchangedParameters": true
+    },
+    {
+      "assignment": 11,
+      "part": "irrelevant",
+      "facts": "Mary moved to the kitchen.\nJohn moved to the bathroom.",
+      "question": "Where is Mary?",
+      "result": "Experimental answer: unknown. Any loss shown uses the original answer as a reference only.\n\nExperimental prediction: kitchen\n\nbathroom: 0.00%\nbedroom: 0.00%\ngarden: 0.00%\nhallway: 0.00%\nkitchen: 100.00%\noffice: 0.00%\n\nSelect a Softmax or attention block and open Data to inspect its full output.\n\nattention · Softmax: 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000\n\nClass probabilities · Softmax: 0.000009, 0.000008, 0.000000, 0.000000, 0.999982, 0.000000",
+      "unchangedParameters": true
+    },
+    {
+      "assignment": 11,
+      "part": "relevant",
+      "facts": "Mary moved to the hallway.\nJohn moved to the garden.",
+      "question": "Where is Mary?",
+      "result": "Experimental answer: unknown. Any loss shown uses the original answer as a reference only.\n\nExperimental prediction: hallway\n\nbathroom: 0.00%\nbedroom: 0.00%\ngarden: 0.00%\nhallway: 100.00%\nkitchen: 0.00%\noffice: 0.00%\n\nSelect a Softmax or attention block and open Data to inspect its full output.\n\nattention · Softmax: 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000\n\nClass probabilities · Softmax: 0.000021, 0.000000, 0.000000, 0.999979, 0.000000, 0.000000",
+      "unchangedParameters": true
+    },
+    {
+      "assignment": 16,
+      "savedInitializerPreferences": true,
+      "scaleAndOffsetCorrect": true
+    },
+    {
+      "assignment": 19,
+      "equivalentScaling": "x1 * 0.5",
+      "unchangedParameters": true,
+      "inference": "MODEL EVALUATION\n\nTest-set predictions\n2680 held-out examples\n2.098 loss\n39.2% token accuracy\nPredictions\n21440 outputs\nDataset row 13085 · output 1\n×\nActual\nw\nPredicted\ni\nDataset row 13085 · output 2\n×\nActual\ne\nPredicted\nh\nDataset row 13085 · output"
+    },
+    {
+      "assignment": 20,
+      "preparedDatasetImported": "alice-last.json",
+      "sliceApplied": true,
+      "unchangedParameters": true,
+      "inference": "MODEL EVALUATION\n\nTest-set predictions\n2680 held-out examples\n1.997 loss\n42.9% token accuracy\nPredictions\n2680 outputs\nDataset row 13085\n✓\nActual\nPredicted\nDataset row 13086\n✓\nActual\ne\nPredicted\ne\nDataset row 13087\n×\nActual\nb\nPredicted\nt\nDataset row "
+    }
+  ],
+  "handoutWidths": [
+    390,
+    960
+  ],
+  "errors": []
+}

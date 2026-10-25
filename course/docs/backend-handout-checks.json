@@ -1,0 +1,285 @@
+{
+  "scope": "Standalone HTML fragments rendered in Chromium at phone and desktop widths; no new horizontal overflow relative to previous handouts.",
+  "reports": [
+    {
+      "assignment": "01-mpg",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "01-mpg",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "02-regularization",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "02-regularization",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "03-classification",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "03-classification",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "04-matrices",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "04-matrices",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "05-mlp",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "05-mlp",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "06-rings",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "06-rings",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "07-word-counts",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "07-word-counts",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "08-embeddings",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "08-embeddings",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "09-story-models",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "09-story-models",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "10-attention",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "10-attention",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "11-interventions",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "11-interventions",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "12-next-character",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "12-next-character",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "13-context",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "13-context",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "14-self-attention",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "14-self-attention",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "15-residuals",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "15-residuals",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "16-normalization",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "16-normalization",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "17-all-positions",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "17-all-positions",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "18-multiple-heads",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "18-multiple-heads",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "19-sampling",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "19-sampling",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "20-synthesis",
+      "viewport": 390,
+      "beforeScrollWidth": 390,
+      "afterScrollWidth": 390,
+      "noNewOverflow": true
+    },
+    {
+      "assignment": "20-synthesis",
+      "viewport": 960,
+      "beforeScrollWidth": 960,
+      "afterScrollWidth": 960,
+      "noNewOverflow": true
+    }
+  ]
+}

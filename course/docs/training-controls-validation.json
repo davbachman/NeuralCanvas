@@ -1,0 +1,120 @@
+{
+  "baseCommit": "0fba5b5526bb269855f98885ca15436309cb552a",
+  "graderSourcesDataModelsAndArchivesUnchanged": true,
+  "allCurrentZipBytesPreserved": true,
+  "packages": [
+    {
+      "path": "assignments/01-mpg/Gradescope/gradescope-mpg-01-v3.zip",
+      "sha256": "866c68748aa37154fd6110b1b2f288068fd00ae21fb2c89c94a75d69ab5f51d2",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/02-regularization/Gradescope/gradescope-regularization-02-v1.zip",
+      "sha256": "0d49060252c405bda368b35999a1954e917e860cab53699ac7b301c483fe4ede",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/03-classification/Gradescope/gradescope-classification-03-v1.zip",
+      "sha256": "e181928c75d7d898f3f2c29e7857a72fd75ef18c8ab6ab2e692ea93a4837d13c",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/04-matrices/Gradescope/gradescope-matrices-04-v1.zip",
+      "sha256": "e6778d0bbb6452f6074cee80e39e7f5601fc585884c0caa354c59c4bfff70713",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/05-mlp/Gradescope/gradescope-mlp-05-v1.zip",
+      "sha256": "20a1ad98a74017ca165aeed9d911ffb28338cb33d17b294325f22c188e233134",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/06-rings/Gradescope/gradescope-rings-06-v3.zip",
+      "sha256": "93256fd7fc205254203101a48416d0d0d69d9cd41eb7ffc3ce9be02be186e56e",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/07-word-counts/Gradescope/gradescope-counts-07.zip",
+      "sha256": "c18b64faf37ff2398cf21eb0eb02424c716188c8e866b9ebc959c435e0272eca",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/08-embeddings/Gradescope/gradescope-embeddings-08.zip",
+      "sha256": "5deb752422cfc16fa9483c621f3de4d5cae8e3efc2a4d71c53bd78da21341ae6",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/09-story-models/Gradescope/gradescope-09-story-models.zip",
+      "sha256": "668283412dd957d048ae0a8f61dbb9823c0dd1cb8b3ad88e39e7c8c1d2381115",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/10-attention/Gradescope/gradescope-10-attention.zip",
+      "sha256": "7254d650df04355ff143e322a75640fcbf1208d243b152d0aab086b15d76ced3",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/11-next-word/Gradescope/gradescope-11-next-word.zip",
+      "sha256": "aac5605fbfd528869d8a16417989ba398d51b9c4a20666e7ff81c54ae90dc32f",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/12-context/Gradescope/gradescope-12-context.zip",
+      "sha256": "652d309cb84c9e60838d036b68d66ea62611814abba5588321e61074bf5c67a2",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/13-self-attention/Gradescope/gradescope-13-self-attention.zip",
+      "sha256": "186bfbf0701b7d6f46181a5db4f95815f231f192c366f18cd2e5a58a6bef2589",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/14-residuals/Gradescope/gradescope-14-residuals.zip",
+      "sha256": "836f6281ec70c4bbcfbc117614f883c89f2e0313464ab1dc27fcd88aac3274e4",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/15-normalization/Gradescope/gradescope-15-normalization.zip",
+      "sha256": "70088676e441da776e2a4d9467f3715ce03269c0c1fcb00f3848abc414df68b3",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/16-stacking/Gradescope/gradescope-16-stacking.zip",
+      "sha256": "36dd0d6473fb3c7e92ab5dff87667ea77f78b2b4f77e1fd608198f85edffdafa",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/17-multiple-heads/Gradescope/gradescope-17-multiple-heads.zip",
+      "sha256": "3107052fe64bd52944659def69f8e66bb564130847dffe4b122651ea743d6c0f",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/18-sampling/Gradescope/gradescope-18-sampling.zip",
+      "sha256": "200f43a7cb629f770ef2de837d284cdb2432ae269924aed4d01951b0f67bba10",
+      "unchanged": true
+    },
+    {
+      "path": "assignments/19-qa-finetuning/Gradescope/gradescope-19-qa-finetuning.zip",
+      "sha256": "d82c6e5d1a06329e4da5a0d8b30b591ea76c09077b57902f8b18aa8e838c96e5",
+      "unchanged": true
+    }
+  ],
+  "qaGraderSuite": {
+    "command": "OPENBLAS_NUM_THREADS=1 .venv/bin/python -m unittest discover -s assignments/19-qa-finetuning/source -p test_grader.py -v",
+    "tests": 27,
+    "seconds": 186.209,
+    "passed": true
+  },
+  "adamwCheckpointGrading": {
+    "path": "pilots/football/qa-adamw-10/137-adamw-01/model.json",
+    "part": "after",
+    "score": 35,
+    "maxScore": 35,
+    "heldOutAccuracy": 1.0,
+    "heldOutLoss": 0.006799485374243278
+  },
+  "browserEvidence": "docs/training-controls-browser.json",
+  "narrativeGeneratorHandoutsMatched": 8,
+  "releaseAuditPassed": true,
+  "scope": "Local settings/save, responsive handouts, independent QA grading and package audit. No new training, deployed app or hosted Gradescope check."
+}

@@ -1,0 +1,57 @@
+{
+  "appCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+  "appDirty": false,
+  "records": [
+    {
+      "assignment": "09-positional-embeddings",
+      "encodedExamplesCompared": 5760,
+      "featureShapes": [
+        [
+          32
+        ],
+        [
+          8
+        ],
+        [
+          32,
+          1
+        ],
+        [
+          8,
+          1
+        ]
+      ],
+      "batchSize": 32,
+      "predictionDifference": 0,
+      "gradientDifference": 0,
+      "oneAdamUpdateDifference": 0,
+      "parameters": 37417
+    },
+    {
+      "assignment": "10-attention",
+      "encodedExamplesCompared": 5760,
+      "featureShapes": [
+        [
+          32
+        ],
+        [
+          8
+        ],
+        [
+          32,
+          1
+        ],
+        [
+          8,
+          1
+        ]
+      ],
+      "batchSize": 32,
+      "predictionDifference": 0,
+      "gradientDifference": 0,
+      "oneAdamUpdateDifference": 0,
+      "parameters": 6441
+    }
+  ],
+  "scope": "Actual app prepared-data validation and encoding for every mixed example; Tensor CPU full-size graphs, 32-example predictions, gradients and one Adam update against the original input adapters. No full-budget retraining or hardware timing claim."
+}

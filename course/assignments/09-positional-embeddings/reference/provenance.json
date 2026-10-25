@@ -1,0 +1,112 @@
+{
+  "appCommit": "42708105d80c2c47fd2b90a26f5add201a4c2ce5",
+  "appDirty": false,
+  "source": "pilots/football/paragraph-qa",
+  "representation": "One whole story token sequence and a separate question; no individual fact rows.",
+  "transport": "Direct story-question inputs: story IDs [32], question IDs [8], word masks [32,1] and [8,1]; answer at output 4.",
+  "trainingEpochs": 5,
+  "updates": 600,
+  "seeds": [
+    137,
+    211,
+    307
+  ],
+  "nativeReports": [
+    {
+      "seed": 137,
+      "train": {
+        "loss": 0.5875782849888007,
+        "objective": 0.5875782849888007,
+        "accuracy": 0.7372395833333333,
+        "examples": 3840
+      },
+      "validation": {
+        "loss": 0.6688029659291108,
+        "objective": 0.6688029659291108,
+        "accuracy": 0.7265625,
+        "examples": 1920
+      },
+      "secondsAtEpoch5": 233.50880000001192,
+      "appCommit": "42708105d80c2c47fd2b90a26f5add201a4c2ce5"
+    },
+    {
+      "seed": 211,
+      "train": {
+        "loss": 0.5891781865308682,
+        "objective": 0.5891781865308682,
+        "accuracy": 0.74453125,
+        "examples": 3840
+      },
+      "validation": {
+        "loss": 0.6605083418389162,
+        "objective": 0.6605083418389162,
+        "accuracy": 0.7322916666666667,
+        "examples": 1920
+      },
+      "secondsAtEpoch5": 215.08079999999703,
+      "appCommit": "42708105d80c2c47fd2b90a26f5add201a4c2ce5"
+    },
+    {
+      "seed": 307,
+      "train": {
+        "loss": 0.6341371543705463,
+        "objective": 0.6341371543705463,
+        "accuracy": 0.7213541666666666,
+        "examples": 3840
+      },
+      "validation": {
+        "loss": 0.6888335031767686,
+        "objective": 0.6888335031767686,
+        "accuracy": 0.7140625,
+        "examples": 1920
+      },
+      "secondsAtEpoch5": 242.15740000000596,
+      "appCommit": "42708105d80c2c47fd2b90a26f5add201a4c2ce5"
+    }
+  ],
+  "checkpointPolicy": "Epoch-five snapshots from continuous ten-epoch runs. Same first five epochs, shuffle, updates and reports; no restart, best-epoch or seed selection.",
+  "originalProvenance": {
+    "sourceSha256": {
+      "assignments/09-positional-embeddings/Canvas/stories.json": "ad8c1971d050791a9640b815efd0afb07bf55ff85ad497ac52a791976102f01d",
+      "assignments/10-attention/Canvas/football-test.json": "a0fe7d98548e63e73bc4d422841723c2c28347e94789a3f111984c53d7955cc1"
+    },
+    "capstoneQaSha256": "3877e63c81f63ab51f814d3c7a5e578184b437d526950f82d88c6ca2d59b3708",
+    "capstoneQaSameQuestionsAnswersOrderAndSplits": true,
+    "examples": {
+      "stories": {
+        "train": 3840,
+        "test": 1920
+      },
+      "football": {
+        "train": 3840,
+        "test": 240
+      }
+    },
+    "storySlots": 32,
+    "questionSlots": 8,
+    "embeddingWidth": 16,
+    "hiddenWidth": 64,
+    "trainingPlan": {
+      "epochs": 10,
+      "trainExamples": 3840,
+      "batchSize": 32,
+      "updatesPerEpoch": 120,
+      "updates": 1200,
+      "optimizer": "adam",
+      "learningRate": 0.003,
+      "reportEvery": 5
+    },
+    "transport": "Existing app Facts and question format, maxFacts=1, factWords=32. The graph reshapes the paragraph to a token sequence and uses its word mask; fact positions and fact mask are unused.",
+    "policy": "Same vocabulary, answers, complete story/question texts, document order and splits. Only sentence segmentation is removed. No release or app changes."
+  },
+  "validationUsedForTaskSelection": true,
+  "limitations": "Concurrent cloud Tensor CPU observations; no physical GPU, isolated laptop or hosted Gradescope benchmark.",
+  "inputConversion": {
+    "appCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
+    "appDirty": false,
+    "nontrainableAdaptersRemoved": 6,
+    "source": "scripts/assignments/football/direct_story_inputs.py",
+    "parametersAndExamplesPreserved": true,
+    "nativeCheck": "docs/direct-story-inputs-native.json"
+  }
+}

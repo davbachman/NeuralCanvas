@@ -1,0 +1,140 @@
+{
+  "vocabularySize": 21,
+  "reservedToken": "where",
+  "orderedHistoriesDisjoint": true,
+  "strictNovelStateQuestions": 114,
+  "seeds": [
+    {
+      "seed": 137,
+      "metrics": {
+        "generative": {
+          "train": 0.48295396599419277,
+          "validation": 0.4951712133891398,
+          "accuracy": 0.7635121855345912,
+          "final_train": 0.43998552174260736,
+          "final_validation": 0.44418891842757763,
+          "parameters": 5557
+        },
+        "before": {
+          "train": 11.943191152944102,
+          "validation": 12.018062695208453,
+          "accuracy": 0.0,
+          "final_train": 11.943191152944102,
+          "final_validation": 12.018062695208453,
+          "parameters": 5557,
+          "both_questions_correct": 0.0,
+          "asked_fact_1": 0.0,
+          "asked_fact_2": 0.0,
+          "unseen_state_accuracy": 0.0
+        },
+        "after": {
+          "train": 0.00022893366703005357,
+          "validation": 0.07100446093060074,
+          "accuracy": 0.984375,
+          "final_train": 0.00022893366703005357,
+          "final_validation": 0.07100446093060074,
+          "parameters": 5557,
+          "both_questions_correct": 0.96875,
+          "asked_fact_1": 1.0,
+          "asked_fact_2": 0.96875,
+          "unseen_state_accuracy": 0.9736842105263158
+        }
+      },
+      "nativeDifferences": {
+        "train": 1.1742582229387448e-10,
+        "validation": 2.307828052272587e-08,
+        "accuracy": 0.0
+      },
+      "trainingSeconds": 730.143400000006,
+      "modelSha256": "e63bbe56b179fbb38548ff032c627c5b740cf5a96933c3b006c1c11e826cab77"
+    },
+    {
+      "seed": 211,
+      "metrics": {
+        "generative": {
+          "train": 0.48950197902719594,
+          "validation": 0.5028522648680538,
+          "accuracy": 0.76655856918239,
+          "final_train": 0.43548724737870315,
+          "final_validation": 0.45099124421832004,
+          "parameters": 5557
+        },
+        "before": {
+          "train": 12.523114754569557,
+          "validation": 12.599341526777721,
+          "accuracy": 0.0,
+          "final_train": 12.523114754569557,
+          "final_validation": 12.599341526777721,
+          "parameters": 5557,
+          "both_questions_correct": 0.0,
+          "asked_fact_1": 0.0,
+          "asked_fact_2": 0.0,
+          "unseen_state_accuracy": 0.0
+        },
+        "after": {
+          "train": 0.0002093784147399887,
+          "validation": 0.003929475202205871,
+          "accuracy": 0.99609375,
+          "final_train": 0.0002093784147399887,
+          "final_validation": 0.003929475202205871,
+          "parameters": 5557,
+          "both_questions_correct": 0.9921875,
+          "asked_fact_1": 1.0,
+          "asked_fact_2": 0.9921875,
+          "unseen_state_accuracy": 0.9912280701754386
+        }
+      },
+      "nativeDifferences": {
+        "train": 1.6321900360677204e-09,
+        "validation": 6.260854937788218e-09,
+        "accuracy": 0.0
+      },
+      "trainingSeconds": 408.678400000006,
+      "modelSha256": "30e613acf7ab3f7a48a3f4138fbce441704cdb3e2bb9b271afb6808d741b3982"
+    },
+    {
+      "seed": 307,
+      "metrics": {
+        "generative": {
+          "train": 0.4849942665303982,
+          "validation": 0.4971280353526107,
+          "accuracy": 0.7669025157232704,
+          "final_train": 0.4392026486461535,
+          "final_validation": 0.45701318749832326,
+          "parameters": 5557
+        },
+        "before": {
+          "train": 9.466352360521158,
+          "validation": 9.313781348096239,
+          "accuracy": 0.0,
+          "final_train": 9.466352360521158,
+          "final_validation": 9.313781348096239,
+          "parameters": 5557,
+          "both_questions_correct": 0.0,
+          "asked_fact_1": 0.0,
+          "asked_fact_2": 0.0,
+          "unseen_state_accuracy": 0.0
+        },
+        "after": {
+          "train": 0.00010206972570535222,
+          "validation": 0.00011540643439634967,
+          "accuracy": 1.0,
+          "final_train": 0.00010206972570535222,
+          "final_validation": 0.00011540643439634967,
+          "parameters": 5557,
+          "both_questions_correct": 1.0,
+          "asked_fact_1": 1.0,
+          "asked_fact_2": 1.0,
+          "unseen_state_accuracy": 1.0
+        }
+      },
+      "nativeDifferences": {
+        "train": 5.550128283663639e-10,
+        "validation": 3.424666870536575e-09,
+        "accuracy": 0.0
+      },
+      "trainingSeconds": 366.8001999999881,
+      "modelSha256": "aa568d38b9891e6515f43e60411c636c82c5b56cbaba1dd60a765540da6cf4c9"
+    }
+  ]
+}
