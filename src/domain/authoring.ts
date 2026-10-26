@@ -27,6 +27,8 @@ export const operationHelp: Partial<Record<NodeType, string>> = {
   slice: 'Choose an axis and a start-inclusive, end-exclusive range. Slice Q, K and V on axis 1 to build attention heads.',
   concat: 'Axis 1 treats vectors as single columns: four [112] inputs become [112, 4]. Vectors can join matrices with the same row count. Axis 0 joins vectors end to end; higher-rank tensors keep their original shape rules.',
   softmax: 'Normalizes the last axis into probabilities. For classification training, wire logits directly to Cross-entropy.',
+  argsort: 'Returns integer indices ordered by value along the last axis. Ties keep the lower original index first; excluded entries come last. Slice the indices to select a subset. Integer ranks have no gradient.',
+  'index-mask': 'Port 1: values [..., width]. Port 2: integer IDs [k] shared across rows or [..., k] for matching rows. Keep selected or Exclude selected IDs. Shape and original positions stay unchanged; Softmax assigns excluded entries exactly zero probability.',
   'causal-mask': 'Masks positions above the diagonal of a square [tokens, tokens] score matrix before softmax.',
   standardize: 'Fit column means and population standard deviations on training rows in Details. Fixed statistics are reused for prediction; constant columns use scale 1. Place before trainable layers.',
   dropout: 'During training, independently drop each activation with probability p and scale survivors by 1/(1−p). Evaluation passes inputs unchanged. Backward reuses the forward mask.',

@@ -17,6 +17,8 @@ export type NodeType =
   | 'slice'
   | 'concat'
   | 'softmax'
+  | 'argsort'
+  | 'index-mask'
   | 'causal-mask'
   | 'layer-norm'
   | 'standardize'
@@ -138,6 +140,8 @@ export interface NodeParams {
   dropoutRate?: number
   epsilon?: number
   keepDims?: boolean
+  descending?: boolean
+  indexMaskMode?: 'keep' | 'exclude'
 }
 
 export interface NodeDimensions {

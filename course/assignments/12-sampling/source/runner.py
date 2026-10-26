@@ -14,7 +14,7 @@ try:
         try:
             run=subprocess.run([sys.executable,str(source/'grader.py'),part,str(root/'submission'/(part+'.json')),str(source/'data.json')],capture_output=True,text=True,timeout=60,check=True,preexec_fn=limits)
             report=json.loads(run.stdout);tests.extend(report['tests']);fingerprints[part]=report.get('fingerprint')
-        except Exception:tests.append(dict(name=part+' — evaluation',score=0,max_score=sum(config['points']),output='Unable to evaluate within the limits. Check the saved graph and tensor sizes.',visibility='visible'))
+        except Exception:tests.append(dict(name=part+' — evaluation',score=0,max_score=sum(config['points'])+sum(c['points'] for c in config.get('samplingChecks',[])),output='Unable to evaluate within the limits. Check the saved graph and tensor sizes.',visibility='visible'))
     if reference.get('sameParameters'):
         rule=reference['sameParameters'];values=[fingerprints.get(part) for part in rule['parts']];ok=all(values) and len(set(values))==1
         tests.append(dict(name='Unchanged parameters across comparison files',score=rule['points'] if ok else 0,max_score=rule['points'],output='Comparison files must use the same learned model parameters.',visibility='visible'))

@@ -19,17 +19,19 @@ throughout the remaining architecture sequence.
 ## Student workflow and grading
 
 Assignment 12 starts with Assignment 11's trained bigram.json. Students save an
-unchanged base.json and independently add Softmax(logits / T) branches for T=0.5
-and T=2 in sampling.json. The original logits, loss and output Softmax remain.
-Both files have 825 parameters and use the identical prepared
-football-narratives-last.json. Their loss limits match Assignment 11: training
-1.15 and held-out 1.20. No training or randomization is required. The existing
-100-point rubric is retained, including 10 points for matching learned values.
+unchanged base.json and construct six probability branches in sampling.json:
+full-vocabulary T=0.5/2, top-1/top-5 at T=1, and top-5 at T=0.5/2. Argsort, Slice,
+and Index mask expose candidate selection while preserving vocabulary indices.
+Padding is excluded before ranking. Original logits, loss and output Softmax
+remain intact. Both files retain 825 parameters, the identical dataset, and
+training/held-out loss limits 1.15/1.20. No training or randomization is required.
+The revised rubric awards 20 points per original model, 50 independent
+construction points, and 10 points for matching parameters. See
+[the top-k expansion](TOP-K-SAMPLING.md).
 
-Optional generation compares Most likely and Sample with the same prompt,
-temperatures 0.5/1/2 and Top-k 25. The handout distinguishes generation controls
-from inspection branches and explains that sampling cannot add context to a
-bigram model. Generation clicks and stochastic continuations are not graded.
+Optional generation compares Most likely and Sample on a common prompt with
+T=0.5/1/2 and k=1/5. The canvas branches are the graded artifacts; generation
+clicks and random continuations are not graded.
 
 Assignment 13 starts with base.json, preserving the previous-model workflow
 without carrying unnecessary temperature branches into the architecture work.
@@ -50,7 +52,7 @@ older evidence; no new full-budget architecture training is claimed.
 
 The early sampling validator checks all three retained five-epoch bigram starts:
 losses, unchanged predictions/parameters, exact Assignment 11 handoff, matching
-datasets in 11/12/13, and both temperature branches. Full grader suites exercise
+datasets in 11/12/13, and all six temperature/top-k constructions. Full grader suites exercise
 model form, incorrect branches, data/weight tampering and the extracted upload
 ZIPs. Existing native evidence is independently regraded under the new numbers,
 and the capstone validator checks the exact Assignment 18 → 19 handoff.

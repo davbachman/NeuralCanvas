@@ -163,6 +163,23 @@ describe('PyTorch export', () => {
     expect(actual[1]).toBeCloseTo(evaluateDataset(graph, source.id, 'test').loss, 9)
   }, 30_000)
 
+  it.skipIf(!python)('matches stable ranking and exact indexed masks in exported Python', () => {
+    const graph=customArithmeticGraph()
+    const scores={...createNode('input',101),params:{value:{shape:[1,5],data:[2,100,1,2,-3]}}}
+    const order=createNode('argsort',102),selected=createNode('index-mask',103)
+    graph.nodes.push(scores,order,selected)
+    graph.edges.push({id:'export-sort',source:scores.id,target:order.id,inputSlot:0},
+      {id:'export-mask-values',source:scores.id,target:selected.id,inputSlot:0},
+      {id:'export-mask-indices',source:order.id,target:selected.id,inputSlot:1})
+    const exported=generatePyTorchExport(graph,{epochs:0})
+    expect(exported.script).toContain(' = sort_indices(')
+    expect(exported.script).toContain(' = index_mask(')
+    const harness="import sys,json,torch\nns={}\nexec(sys.stdin.read(),ns)\nx=torch.tensor([[2.,100.,1.,2.,-3.]],requires_grad=True)\neligible=ns['index_mask'](x,torch.tensor([1.]),exclude=True)\nids=ns['sort_indices'](eligible)[:,:2]\ny=ns['index_mask'](x,ids)\np=torch.softmax(y,dim=-1)\nassert p.tolist()==[[0.5,0.,0.,0.5,0.]]\ny[0,0].backward()\nassert x.grad.tolist()==[[1.,0.,0.,0.,0.]]\nassert ns['sort_indices'](eligible,descending=False).tolist()==[[4,2,0,3,1]]\nprint('INDEXED_SAMPLING_OK')\n"
+    const run=runWithDataset(exported,exported.script,harness)
+    expect(run.status,run.stderr).toBe(0)
+    expect(run.stdout).toContain('INDEXED_SAMPLING_OK')
+  },30_000)
+
   it.skipIf(!python).each([0, 1, 2])('reloads the original CSV with an explicit split in column %s', splitColumn => {
     const rows = [['answer', 'feature'], ['2', '1'], ['4', '2'], ['6', '3'], ['8', '4']]
     const splits = ['split', 'train', 'test', 'train', 'test']

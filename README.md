@@ -85,7 +85,7 @@ These 19 assignments progress from regression to a transformer question-answerin
 | Assignment | What students explore |
 | --- | --- |
 | [11. Predict the next word](https://davbachman.github.io/NeuralCanvas/course/11-next-word.html) | Turn classification into generation with a football-narrative bigram model that predicts the next token from the preceding token. |
-| [12. Control how the model chooses words](https://davbachman.github.io/NeuralCanvas/course/12-sampling.html) | Explore temperature and probabilistic sampling while preserving the trained bigram model's parameters. Apply these generation choices to later language models. |
+| [12. Control how the model chooses words](https://davbachman.github.io/NeuralCanvas/course/12-sampling.html) | Construct temperature, top-k, and combined sampling distributions while preserving the trained bigram model's parameters. Apply these generation choices to later language models. |
 | [13. Give the generator a longer memory](https://davbachman.github.io/NeuralCanvas/course/13-context.html) | Extend the bigram generator into a fixed-context MLP that uses an ordered sequence of embedded tokens to predict the next token. |
 | [14. Share attention across word positions](https://davbachman.github.io/NeuralCanvas/course/14-self-attention.html) | Replace the context MLP with self-attention, learned positions, and a causal mask so each token can attend to its available context. |
 | [15. Preserve and transform the representation](https://davbachman.github.io/NeuralCanvas/course/15-residuals.html) | Add an attention output projection, residual connections, and a shared feed-forward MLP to preserve and transform token representations. |

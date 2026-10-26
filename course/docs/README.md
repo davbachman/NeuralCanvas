@@ -3,7 +3,8 @@
 Start with [the current semester schedule](REMAINING-SEMESTER-SCHEDULE.md),
 [assignment design](ASSIGNMENT-DESIGN.md), and each assignment's instructor guide.
 [The dataset browser update](DATASET-BROWSER-ASSIGNMENTS.md) documents the current
-dataset-selection workflow.
+dataset-selection workflow. [The top-k sampling lab](TOP-K-SAMPLING.md) documents
+the current decoding construction assignment and new app operations.
 
 The other reports preserve the evidence, limitations, app revisions, and earlier
 numbering under which they were written. They are public summaries; their paths

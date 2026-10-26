@@ -22,6 +22,16 @@ function InspectorHarness({initial}: {initial:GraphNode}) {
 }
 
 describe('scratch model authoring controls',()=>{
+  it('exposes sort order and index selection mode in Details',()=>{
+    const first=render(<InspectorHarness initial={createNode('argsort',1)}/>)
+    expect(screen.getByLabelText('Argsort order')).toHaveValue('descending')
+    fireEvent.change(screen.getByLabelText('Argsort order'),{target:{value:'ascending'}})
+    expect(screen.getByLabelText('Argsort order')).toHaveValue('ascending')
+    first.unmount()
+    render(<InspectorHarness initial={createNode('index-mask',2)}/>)
+    fireEvent.change(screen.getByLabelText('Index mask mode'),{target:{value:'exclude'}})
+    expect(screen.getByLabelText('Index mask mode')).toHaveValue('exclude')
+  })
   it('builds both scratch architectures using only blocks in the current palette',()=>{
     const available = new Set(blockPalette.map(item => item.type))
     for (const kind of ['cnn', 'transformer'] as const) {

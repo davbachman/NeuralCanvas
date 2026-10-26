@@ -48,3 +48,18 @@ Choose **Handwritten digits · 8 × 8** on a Dataset block. Its image output is 
 4. Connect logits and the dataset digit target to **Loss → Cross entropy (logits)**. The target shape is `[1]`, containing an integer class ID.
 
 Inspect the Convolution block in Details to see and edit filters and feature maps. Use **Test → Run inference** for held-out digit predictions and accuracy. The [CNN example](../public/models/cnn.json) contains a trained small classifier and a filter visualizer; the [dataset note](CNN-DATA.md) identifies its UCI source.
+
+## Construct temperature and top-k probabilities
+
+Keep unscaled logits connected to the original loss. In parallel, divide logits
+by a positive temperature and pass the result to Softmax. For top-k selection,
+use Argsort (Descending), then Tensor transform / Slice to retain the first k
+indices. Index mask / Keep selected applies those IDs to logits without changing
+vocabulary positions. Softmax then renormalizes over the selected entries.
+
+Exclude padding before ranking: Index mask / Exclude selected accepts an Input
+vector containing its vocabulary ID. The same ranked indices work for every
+positive temperature; apply the final selection to each scaled logits tensor.
+For [1,V] logits, Argsort returns [1,V] and the index Slice uses axis 1. The
+selected tensor still has [1,V] shape, with exact exclusions displayed as -infinity.
+These canvas calculations do not set the separate Continue the text controls.

@@ -24,6 +24,8 @@ const icons: Record<NodeType, LucideIcon> = {
   slice: Scissors,
   concat: Combine,
   softmax: ChartNoAxesColumn,
+  argsort: ListOrdered,
+  'index-mask': ListFilter,
   'causal-mask': Triangle,
   'layer-norm': Layers,
   standardize: Blend,

@@ -117,7 +117,15 @@ class Graph:
             if kind in ('weight','bias'):
                 require(not args,'Params have no inputs.');out=self.params[key];used.add(key);sig=('param',out.shape) + ((hashlib.sha256(out.tobytes()).hexdigest(),) if with_values else ())
             elif kind in ('input','target'):
-                require(len(args)==1,'Connect alias blocks.');out,sig=args[0]
+                if args:
+                    require(len(args)==1,'Connect alias blocks.');out,sig=args[0]
+                else:
+                    require(kind=='input','Connect the target.')
+                    value=p.get('value');require(isinstance(value,dict),'Use a fixed Input tensor.')
+                    shape=value.get('shape');numbers=value.get('data')
+                    require(isinstance(shape,list) and 1<=len(shape)<=3 and all(type(d) is int and 1<=d<=8192 for d in shape) and math.prod(shape)<=262144,'Invalid Input shape.')
+                    require(isinstance(numbers,list) and len(numbers)==math.prod(shape) and all(type(v) in (int,float) and math.isfinite(v) for v in numbers),'Invalid Input values.')
+                    out=np.array(numbers,dtype=float).reshape(shape);sig=('constant',tuple(shape),tuple(numbers))
             elif kind=='matmul':
                 out=xs[0]@xs[1];sig=('matmul',*ss)
                 if ss[0][0]=='one-hot':sig=('embedding',ss[1],ss[0][2])
@@ -144,14 +152,34 @@ class Graph:
             elif kind=='activation':
                 require(p.get('activation')=='relu','Use the assigned ReLU activation.');out=np.maximum(xs[0],0);sig=('relu',ss[0])
             elif kind=='softmax':
-                require(p.get('axis',-1) in (-1,xs[0].ndim-1),'Softmax must operate across each row.');z=xs[0]-xs[0].max(axis=-1,keepdims=True);out=np.exp(z);out/=out.sum(axis=-1,keepdims=True);sig=('softmax',ss[0])
+                require(p.get('axis',-1) in (-1,xs[0].ndim-1),'Softmax must operate across each row.')
+                scores=np.where(np.ma.getmaskarray(xs[0]),-np.inf,np.asarray(xs[0]))
+                require(np.isfinite(scores.max(axis=-1)).all(),'Softmax needs at least one allowed entry per row.')
+                z=scores-scores.max(axis=-1,keepdims=True);out=np.exp(z);out/=out.sum(axis=-1,keepdims=True);sig=('softmax',ss[0])
+            elif kind=='argsort':
+                require(len(args)==1 and xs[0].ndim>=1,'Argsort needs a final axis.')
+                descending=p.get('descending',True);require(type(descending) is bool,'Invalid sort order.')
+                scores=np.asarray(xs[0])*(-1 if descending else 1)
+                scores=np.where(np.ma.getmaskarray(xs[0]),np.inf,scores)
+                out=np.argsort(scores,axis=-1,kind='stable');sig=('argsort',descending,ss[0])
+            elif kind=='index-mask':
+                require(len(args)==2 and xs[0].ndim>=1 and xs[1].ndim>=1,'Index mask needs values and indices.')
+                values,ids=xs;mode=p.get('indexMaskMode','keep');width=values.shape[-1]
+                require(mode in ('keep','exclude'),'Invalid index mask mode.')
+                require(ids.ndim==1 or (ids.ndim==values.ndim and ids.shape[:-1]==values.shape[:-1]),'Index mask rows do not match.')
+                require(np.equal(ids,np.floor(ids)).all() and (ids>=0).all() and (ids<width).all(),'Index mask needs integer IDs within the final axis.')
+                selected=np.zeros(values.shape,dtype=bool)
+                indices=np.broadcast_to(np.asarray(ids,dtype=int),(*values.shape[:-1],ids.shape[-1]))
+                np.put_along_axis(selected,indices,True,axis=-1)
+                excluded=np.ma.getmaskarray(values) | (selected if mode=='exclude' else ~selected)
+                out=np.ma.array(np.asarray(values),mask=excluded);sig=('index-mask',mode,*ss)
             elif kind=='causal-mask':
                 out=np.where(np.triu(np.ones(xs[0].shape,dtype=bool),1),-1e9,xs[0]);sig=('causal-mask',ss[0])
             elif kind=='layer-norm':
                 eps=p.get('epsilon',1e-5);require(type(eps) in (int,float) and 0<eps<=.1,'Invalid normalization epsilon.')
                 out=(xs[0]-xs[0].mean(axis=-1,keepdims=True))/np.sqrt(xs[0].var(axis=-1,keepdims=True)+eps)*xs[1]+xs[2];sig=('layer-norm',eps,*ss)
             else:raise ValueError('Unsupported block in assigned model: '+kind)
-            out=np.asarray(out);require(out.size<=262144 and np.isfinite(out).all(),'Invalid or oversized intermediate tensor.')
+            out=np.ma.asarray(out) if np.ma.isMaskedArray(out) else np.asarray(out);require(out.size<=262144 and np.isfinite(out).all(),'Invalid or oversized intermediate tensor.')
             if not with_values:self._structural_cache[key]=sig
             active.remove(key);cache[key]=(out,sig);return cache[key]
         pred,sig=edge(self.inputs[self.loss['id']][0]);_,target_sig=edge(self.inputs[self.loss['id']][1])

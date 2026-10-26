@@ -119,8 +119,75 @@ def model_result(path,part,reference):
                          output=f"Parameters: {metrics['parameters']}. On {metrics['generation_count']} fixed held-out football-story openings, greedy continuations had the expected consequence grammar in {metrics['grammatical_fraction']:.1%} and stated a fact consistent with the events in {metrics['consistent_fraction']:.1%}. These are informational diagnostics, not extra thresholds.\n"+'\n'.join('Generated: '+row['continuation'] for row in metrics['generated_examples'])))
     return dict(tests=tests,metrics=metrics,fingerprint=parameter_fingerprint(model,data))
 
+"""Independently verify saved temperature/top-k constructions and award partial credit."""
+_without_sampling_checks = model_result
+
+
+def verify_sampling_branch(model, data, temperature, top_k=None):
+    width=len(data['vocabulary']);pad=data['vocabulary'].index('<pad>')
+    for token in range(width):
+        ids=np.full(data['maxLength'],pad,dtype=int);ids[-1]=token
+        logits,original,_,cache=model.execute([ids,np.arange(len(ids))],np.zeros(1,dtype=int),with_values=True)
+        matches=[]
+        for values,signature in cache.values():
+            if signature[0]!='softmax':continue
+            branch=signature[1]
+            outer_factor=1
+            if top_k is not None:
+                if branch[0]!='index-mask':
+                    pending=[branch];found=None
+                    while pending:
+                        candidate=pending.pop()
+                        if not isinstance(candidate,tuple):continue
+                        if candidate[:2]==('index-mask','keep'):
+                            factor=scalar_multiple(branch,candidate)
+                            if factor is not None and factor>0:found=(candidate,factor);break
+                        pending.extend(x for x in candidate[1:] if isinstance(x,tuple))
+                    if found is None:continue
+                    branch,outer_factor=found
+                if branch[0]!='index-mask' or branch[1]!='keep':continue
+                scaled,selection=branch[2:]
+                if selection[:4]!=('slice',logits.ndim-1,0,top_k):continue
+                order=selection[4]
+                if order[:2]!=('argsort',True):continue
+                eligible=order[2]
+                if eligible[:2]!=('index-mask','exclude'):continue
+                sort_factor=scalar_multiple(eligible[2],original)
+                if sort_factor is None or sort_factor<=0:continue
+                excluded=eligible[3]
+                if excluded!=('constant',(1,),(pad,)):continue
+                branch=scaled
+            factor=scalar_multiple(branch,original)
+            if factor is not None and abs(factor*outer_factor-1/temperature)<1e-10:matches.append(values)
+        require(matches,f'Construct the required probability branch at T={temperature}'+('' if top_k is None else f', k={top_k}, using descending Argsort, Slice, and Index mask with padding excluded before ranking.'))
+        scores=logits/temperature
+        if top_k is not None:
+            eligible=logits.copy();eligible[:,pad]=-np.inf
+            chosen=np.argsort(-eligible,axis=-1,kind='stable')[:,:top_k]
+            selected=np.zeros(logits.shape,dtype=bool);np.put_along_axis(selected,chosen,True,axis=-1)
+            scores=np.where(selected,scores,-np.inf)
+        scores-=scores.max(axis=-1,keepdims=True)
+        expected=np.exp(scores);expected/=expected.sum(axis=-1,keepdims=True)
+        require(any(v.shape==expected.shape and np.allclose(v,expected,rtol=1e-10,atol=1e-12) for v in matches),'Sampling probabilities differ from the independent distribution.')
+
+
+def model_result(path,part,reference):
+    result=_without_sampling_checks(path,part,reference)
+    spec=reference['parts'][part]
+    for check in spec.get('samplingChecks',[]):
+        label=f"T={check['temperature']}"+(f", k={check['topK']}" if 'topK' in check else ', full vocabulary')
+        points=check['points'];ok=False
+        try:
+            require(bool(result.get('fingerprint')),'Restore the original trained bigram model form before adding sampling branches.')
+            model=load(path,reference['datasets'][spec['dataset']])
+            verify_sampling_branch(model,reference['datasets'][spec['dataset']],check['temperature'],check.get('topK'))
+            ok=True;message='Distribution and construction verified for all vocabulary-token contexts.'
+        except Exception as error:message=str(error)
+        result['tests'].append(dict(name=part+' — '+label,score=points if ok else 0,max_score=points,output=message,visibility='visible'))
+    return result
+
 if __name__=='__main__':
     part,path,reference_path=sys.argv[1:];reference=json.loads(Path(reference_path).read_text())
     try:result=model_result(path,part,reference)
-    except Exception:result={'tests':[dict(name=part+' — evaluation',score=0,max_score=sum(reference['parts'][part]['points']),output='Unable to evaluate this saved model.',visibility='visible')]}
+    except Exception:result={'tests':[dict(name=part+' — evaluation',score=0,max_score=sum(reference['parts'][part]['points'])+sum(c['points'] for c in reference['parts'][part].get('samplingChecks',[])),output='Unable to evaluate this saved model.',visibility='visible')]}
     print(json.dumps(result,allow_nan=False))

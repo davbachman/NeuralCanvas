@@ -65,15 +65,17 @@
   },
   {
     "assignment": "12-sampling",
-    "checks": "full grader suite including extracted upload ZIP",
+    "checks": "Expanded temperature/top-k grader suite, partial and malformed uploads, three retained starts, exact app/NumPy/Tensor CPU parity and real browser File Save/reimport.",
     "exitCode": 0,
-    "testsRun": 19,
-    "date": "2026-10-23",
-    "validationAppCommit": "871a4a8a7dc733e6296e4c1d6c017abb18eef297",
-    "handoutPresentation": "Dataset browser family/configuration instructions; vocabulary, lengths/shapes and split properties retained. Required and optional library choices checked in the real app; unchanged trained values/epochs and phone/desktop layout verified.",
-    "handoutPresentationDate": "2026-10-24",
+    "testsRun": 28,
+    "date": "2026-10-26",
+    "validationAppCommit": "729e508a29697689ebafe15a4a47828cca7eea8e",
+    "handoutPresentation": "Six saved probability constructions: temperatures, top-1/top-5 and combined top-5 distributions; padding excluded before ranking. Phone/desktop rendering verified.",
+    "handoutPresentationDate": "2026-10-26",
     "datasetBrowserAppCommit": "417be2e78cbb87a82e6605925ad3cdae5fd67c25",
-    "datasetBrowserEvidence": "dataset-browser-assignment-ui.json; dataset-browser-packaged-grading.json"
+    "datasetBrowserEvidence": "dataset-browser-assignment-ui.json; dataset-browser-packaged-grading.json",
+    "validationAppDirty": true,
+    "samplingReport": "TOP-K-SAMPLING.md"
   },
   {
     "assignment": "13-context",

@@ -1,62 +1,106 @@
 # Assignment 12 — Control how the model chooses words
 
-Public teaching release: see [the course guide](../../README.md) for standalone setup, packaging, and validation. Wiring, templates, grader sources, and these notes are public. Trained reference models, browser model exports, solution-based tests, and pilot/reproduction tools mentioned below remain in the private NeuralCanvas-Coursework checkout; their paths are historical development references, not required teaching files. Test your own saved models when configuring Gradescope.
+Public teaching release: [course setup and packaging](../../README.md). Wiring,
+zeroed templates, grader sources, and this guide are public. Trained references,
+solution-based tests, and browser model exports remain in NeuralCanvas-Coursework.
 
 ## Teaching purpose
 
-Temperature controls the concentration of a probability distribution without retraining.
+Separate two choices in decoding: temperature changes relative probabilities;
+top-k restricts eligible tokens. Students construct ranking and selection on
+canvas, preserve token identities, and combine both controls without training.
+The trained bigram still sees only the final token; decoding cannot add memory.
 
-Assignments 11–18 build and sample football-narrative generators. Assignment 18's trained model supplies pretraining for Assignment 19 QA; no separate pretraining assignment or vocabulary resize remains. See [STUDENT-CAPSTONE.md](../../docs/STUDENT-CAPSTONE.md) and [NARRATIVE-REVISION.md](../../docs/NARRATIVE-REVISION.md).
+## Publish and handoff
 
-## Publish
+Paste Canvas/description.html into Canvas and upload the current
+Gradescope/gradescope-12-sampling.zip to a 100-point Programming Assignment.
+Use Ubuntu 22.04 or 24.04, at least 1 GB RAM, and a grading timeout of at least
+180 seconds. Setup pins NumPy 1.26.4. Hosted Gradescope has not been exercised.
+Require base.json and sampling.json. No dataset attachment, starter model,
+written answer, or screenshot is required. A Git push does not upload to either
+course service.
 
-Paste `Canvas/description.html` into Canvas. Dataset attachments are unnecessary; students use the dataset browser. Upload `Gradescope/gradescope-12-sampling.zip`. Require `base.json`, `sampling.json`. Keep trained reference models private. A Git push does not publish to course sites.
+Students import their own trained bigram.json, save an unchanged base.json, and
+construct six parallel probability branches in sampling.json. Keep every
+learned value, the original loss input, and the original output Softmax intact.
+No randomization or additional training is required. The next assignment starts
+from base.json; its architecture and training recipe remain unchanged.
 
-## Dataset and training
+## Required constructions and rubric
 
-The exact football corpus used in the pretraining pilots has 25 vocabulary tokens, including reserved `where` and `who`, two people, six rooms, five-event pickup/carry/drop histories and consequence statements. Context length is 32, stride 17: 1,534 training windows and 765 validation windows. Room-layout groups, actor variants and event-order variants stay in one split, aligned with Assignment 19 QA. Final-position and all-position fixtures differ only in targetMode. Repeated or overlapping windows are not independent observations. Held-out data is validation during development.
+| Artifact or construction | Points |
+| --- | ---: |
+| base.json: canonical data, original model form, training loss, held-out loss | 5 + 5 + 5 + 5 |
+| sampling.json: same four original-model checks | 5 + 5 + 5 + 5 |
+| Full-vocabulary Softmax at T = 0.5 and T = 2 | 5 each |
+| Top-k at T = 1, with k = 1 and k = 5 | 10 each |
+| Combined top-5 distributions at T = 0.5 and T = 2 | 10 each |
+| Identical learned parameters across both files | 10 |
+| Total | 100 |
 
-No new training: preserve the trained models and fixed-weight copies.
+Both files retain 825 trainable values and the existing loss limits: training
+cross-entropy <= 1.15 and held-out cross-entropy <= 1.20. Only the unscaled,
+unmasked logits enter Loss. Construction points are awarded independently; a
+missing branch loses its own points while valid original models retain theirs.
+The original 40/50/10 split is superseded by this rubric.
 
-Initialize embedding tables Uniform, matrices Xavier, biases Zeros. Use a supported WebGL GPU if helpful; Tensor CPU is the tested baseline and fallback. Cloud/browser timing is not a physical laptop GPU benchmark. Epoch counts and runtime are not graded.
+## Construction details and expected observations
 
-## Grading
+Argsort returns original final-axis indices, descending by default. Equal scores
+prefer the lower original index. Slice must keep the first k indices along the
+vocabulary axis. Index mask keeps the original logits shape, excluding every
+unselected coordinate before Softmax. Its second input is integer IDs, not a
+list of scores or probabilities. It supports a shared [k] index vector or
+per-row indices with matching leading dimensions.
 
-| File | Data / form / train / held-out / accuracy points | Train loss ≤ | Held-out loss ≤ | Parameters |
-|---|---|---|---|---|
-| base.json | 5 / 15 / 10 / 10 / 0 | 1.15 | 1.2 | 825 |
-| sampling.json | 5 / 25 / 10 / 10 / 0 | 1.15 | 1.2 | 825 |
+Use an Input tensor [1] containing padding ID 1 and Index mask / Exclude selected
+before ranking. Excluded entries sort last. A single ranking can be shared by
+all positive temperatures because positive scaling does not change rank. Use
+separate slices for k = 1 and k = 5; the latter selection can serve the three
+required top-5 distributions. Apply each selection to the appropriately scaled
+original logits. All outputs retain 25 vocabulary coordinates. The grader
+accepts equivalent constant Arithmetic scaling and ignores node names/layout.
 
-An additional 10 points verify unchanged parameters in base, sampling.
+At k = 1 the result is a point mass, independent of positive temperature. At
+k = 5 the support is unchanged by temperature, while relative probabilities
+change. Removing candidates requires renormalization; setting their logits to
+zero is incorrect. Padding must be excluded before choosing k so it cannot take
+one of the eligible places. The two plain temperature branches retain the full
+25-entry vocabulary as a mathematical comparison; actual generation excludes
+padding. The four top-k branches match the app's generation distributions.
 
-The bounded NumPy evaluator verifies canonical data, semantic graph operations, parameter shapes/counts and causal masks. It recomputes predictions; cached scores and epoch counts are ignored. Informational generation diagnostics use 16 fixed held-out football openings ending in `now`, generate up to 12 tokens without feeding future words, and distinguish consequence syntax from factual consistency. There are no written submissions or extra generation thresholds.
+The saved constructions are the required experiments. UI generation remains
+optional: reset a common prompt, select Sample, and compare k = 1/5 at
+T = 0.5/1/2. Canvas branches do not change those dialog settings, which are not
+persisted in the saved project. Random continuations and claimed button clicks
+are not grading evidence.
 
-## Validation and reproduction
+## Data, verification, and reproduction
 
-Clean app `9d535a02b53bff5859e963d07cdf2d65df6cfacf`. Three seeds per architecture: 21 new Tensor CPU runs plus three retained exact two-block/two-head football pretraining runs on software WebGL. Objective and common final-position metrics were independently recomputed. See `pilots/football/progression-candidate/audit.json` and `docs/narrative-seed-grading.json`. Early bigram/attention/residual cutoffs were recalibrated; final multihead targets match the QA pretraining requirements; sampling uses the bigram targets. This does not promise an accuracy gain at every architecture change. Local package/browser checks do not establish hosted Gradescope or deployed-site behavior.
+Canonical data, vocabulary, history split, and prepared dataset bytes are
+unchanged: Football stories / Narrative generation / Final position only,
+25 vocabulary tokens, context length 32, 1,534 train windows and 765 validation
+windows. The original five-epoch bigram pilots and their app revisions remain
+valid because the trained values and original predictions are preserved.
+
+The independent NumPy grader verifies the original model/data, then verifies
+construction signatures and recomputed probability vectors for all 25 possible
+final-token contexts. It rejects fixed favorite-token lists, ascending ranking,
+incorrect k or temperature, missing padding exclusion, malformed/unsafe inputs,
+and tampered model values. Separate checks preserve partial credit. Private
+three-seed validation uses the retained starts 137, 211 and 307 with no training.
+
+From the private Coursework root:
 
 ```sh
-RELEASE_ASSIGNMENTS=12-sampling .venv/bin/python scripts/assignments/advanced/configure-narratives.py
+.venv/bin/python scripts/assignments/advanced/rebuild-sampling.py
 RELEASE_ASSIGNMENTS=12-sampling .venv/bin/python scripts/assignments/package-advanced.py
+OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/advanced/validate-early-sampling.py
 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m unittest discover -s assignments/12-sampling/source -p test_grader.py -v
 ```
 
-The generator rebuilds this unpublished release in place. Update it before regenerating the handout. Retained pilot evidence keeps its original paths and numbering.
-
-## Early sampling revision
-
-Use Assignment 11's trained bigram model, not a transformer. Both files have 825
-parameters, one final-position target, and the same 1.15/1.20 loss limits as the
-bigram. The two extra probability branches do not affect the original loss.
-No new training or randomization is required. Students use base.json for Assignment
-13; later generation reminders reuse the same controls. See
-[the sequence update](../../docs/SAMPLING-SEQUENCE.md) for current validation.
-
-## Dataset browser workflow
-
-Students open **Dataset → Details → Browse datasets…** and click **Use this dataset** after selecting the following choices. Dataset files retained beside the handout are canonical provenance/compatibility copies; they do not need to be attached in Canvas. Model JSON submissions and grading targets are unchanged.
-
-- **Text and sequences → Football stories**; preset: **Narrative generation**; Training targets: **Final position only**.
-
-
-Browser/grader compatibility is checked with app 417be2e and the original canonical data. See [the dataset browser update](../../docs/DATASET-BROWSER-ASSIGNMENTS.md).
+Public packaging needs only the public checkout. See the
+[expanded sampling report](../../docs/TOP-K-SAMPLING.md) for validation scope,
+app revision information, and browser coverage. Current trained models and
+browser File Save exports remain private under reference/.

@@ -23,11 +23,14 @@ releases and original datasets remain intact. See
 
 ## Current lesson order (2026-10-23)
 
-Sampling now immediately follows the bigram model: 11 bigram, 12 sampling,
+Sampling now immediately follows the bigram model: 11 bigram, 12 temperature and top-k sampling,
 13 context MLP, 14 causal self-attention, 15 residuals/FFN, 16 normalization and
 all-position training, 17 stacking, 18 multiple heads, 19 QA fine-tuning.
 Assignment 12 uses the unchanged Assignment 11 bigram weights and final-position
-dataset; it does not retrain. Assignment 13 starts with that saved base.json.
+dataset; it does not retrain. Its six graded canvas branches cover two full-vocabulary
+temperatures, top-1/top-5 selection, and two combined top-5 temperatures. Students
+use Argsort, Slice and Index mask, excluding padding before ranking. Each required
+construction has independent automatic credit; see TOP-K-SAMPLING.md. Assignment 13 starts with that saved base.json.
 Generation controls apply throughout the sequence; later handouts include optional
 reminders. Assignment 18 now hands multihead.json directly to Assignment 19.
 See [SAMPLING-SEQUENCE.md](SAMPLING-SEQUENCE.md) for the numbering map and checks.

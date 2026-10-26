@@ -17,6 +17,8 @@ export const blockPalette: Array<{ type: NodeType; label: string }> = [
   { type: 'tensor-transform', label: 'Tensor transform' },
   { type: 'concat', label: 'Concatenate' },
   { type: 'softmax', label: 'Softmax' },
+  { type: 'argsort', label: 'Argsort' },
+  { type: 'index-mask', label: 'Index mask' },
   { type: 'causal-mask', label: 'Causal mask' },
   { type: 'layer-norm', label: 'Layer norm' },
   { type: 'conv2d', label: 'Convolution' },
@@ -25,7 +27,7 @@ export const blockPalette: Array<{ type: NodeType; label: string }> = [
 
 export const blockCategories: Array<{ id: string; label: string; types: NodeType[] }> = [
   { id: 'core', label: 'Core model', types: ['dataset', 'input', 'weight', 'arithmetic', 'matmul', 'target', 'loss'] },
-  { id: 'features', label: 'Features and tensors', types: ['standardize', 'tensor-transform', 'concat', 'one-hot'] },
+  { id: 'features', label: 'Features and tensors', types: ['standardize', 'tensor-transform', 'concat', 'one-hot', 'argsort', 'index-mask'] },
   { id: 'neural', label: 'Neural networks', types: ['activation', 'softmax', 'dropout', 'layer-norm'] },
   { id: 'sequences', label: 'Sequences and attention', types: ['embedding', 'causal-mask'] },
   { id: 'images', label: 'Images', types: ['conv2d', 'avgpool2d'] },

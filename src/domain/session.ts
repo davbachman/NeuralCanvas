@@ -43,6 +43,7 @@ const NODE_TYPES = new Set([
   'target',
   'loss',
   'one-hot', 'conv2d', 'avgpool2d',
+  'argsort', 'index-mask',
   'standardize', 'dropout', 'embedding', 'transpose', 'slice', 'concat', 'softmax', 'causal-mask', 'layer-norm', 'reshape', 'mean', 'cross-entropy',
 ])
 const ACTIVATION_KINDS = new Set<ActivationKind>(['identity', 'relu', 'sigmoid', 'tanh'])
@@ -274,7 +275,9 @@ function isNodeParams(value: unknown): value is NodeParams {
     (value.standardization === undefined || isStandardizationStats(value.standardization)) &&
     (value.dropoutRate === undefined || (isFiniteNumber(value.dropoutRate) && value.dropoutRate >= 0 && value.dropoutRate < 1)) &&
     (value.epsilon === undefined || (isFiniteNumber(value.epsilon) && value.epsilon > 0)) &&
-    (value.keepDims === undefined || typeof value.keepDims === 'boolean')
+    (value.keepDims === undefined || typeof value.keepDims === 'boolean') &&
+    (value.descending === undefined || typeof value.descending === 'boolean') &&
+    (value.indexMaskMode === undefined || value.indexMaskMode === 'keep' || value.indexMaskMode === 'exclude')
   )
 }
 

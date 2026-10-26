@@ -81,6 +81,8 @@ function operationCode(node: GraphNode, args: string[], graph: GraphModel): stri
     case 'standardize': return `(${a} - ${tensorCode({shape:node.params.standardization!.mean.length===1?[]:[node.params.standardization!.mean.length],data:node.params.standardization!.mean})}) / ${tensorCode({shape:node.params.standardization!.scale.length===1?[]:[node.params.standardization!.scale.length],data:node.params.standardization!.scale})}`
     case 'dropout': return `F.dropout(${a}, p=${node.params.dropoutRate ?? 0.1}, training=self.training)`
     case 'softmax': return `torch.softmax(${a}, dim=-1)`
+    case 'argsort': return `sort_indices(${a}, descending=${node.params.descending === false ? 'False' : 'True'})`
+    case 'index-mask': return `index_mask(${a}, ${b}, exclude=${node.params.indexMaskMode === 'exclude' ? 'True' : 'False'})`
     case 'causal-mask': return `${a}.masked_fill(torch.triu(torch.ones_like(${a}, dtype=torch.bool), diagonal=1), float('-inf'))`
     case 'layer-norm': return `F.layer_norm(${a}, (${a}.shape[-1],), weight=${b}, bias=${c}, eps=${node.params.epsilon ?? 1e-5})`
     case 'reshape': return `${a}.reshape(${node.params.shape ? json(node.params.shape) : `${a}.shape`})`
@@ -252,6 +254,20 @@ export function generatePyTorchExport(graph: GraphModel, options: PyTorchExportO
 `DATASET_DIR = Path(__file__).resolve().parent if '__file__' in globals() else Path.cwd()\n` +
 datasetLoader +
 `DATASET = load_dataset()\n\n` +
+`def sort_indices(values, descending=True):\n` +
+`    scores = values if descending else values.masked_fill(torch.isneginf(values), float('inf'))\n` +
+`    return torch.argsort(scores, dim=-1, descending=descending, stable=True)\n\n` +
+`def index_mask(values, indices, exclude=False):\n` +
+`    if not torch.isfinite(indices).all() or not (indices == indices.floor()).all() or not ((indices >= 0) & (indices < values.shape[-1])).all():\n` +
+`        raise ValueError('Index mask needs integer IDs within the final axis')\n` +
+`    indices = indices.long()\n` +
+`    if indices.ndim == 1:\n` +
+`        indices = indices.expand(*values.shape[:-1], indices.shape[-1])\n` +
+`    if indices.ndim != values.ndim or indices.shape[:-1] != values.shape[:-1]:\n` +
+`        raise ValueError('Index mask needs IDs [k] or matching rows [..., k]')\n` +
+`    selected = torch.zeros_like(values, dtype=torch.bool).scatter(-1, indices, True)\n` +
+`    allowed = (~selected if exclude else selected) & torch.isfinite(values)\n` +
+`    return values.masked_fill(~allowed, float('-inf'))\n\n` +
 `def binary_cross_entropy(prediction, target):\n` +
 `    # Match the builder's probability clipping while retaining its derivative.\n` +
 `    clipped = prediction.clamp(1e-7, 1 - 1e-7)\n` +

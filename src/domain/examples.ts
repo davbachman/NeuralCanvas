@@ -78,6 +78,8 @@ export function createNode(type: NodeType, index: number): GraphNode {
   if (type === 'standardize') return opNode('standardize-' + index, type, 'Standardize features', baseX, baseY)
   if (type === 'dropout') return { ...opNode('dropout-' + index, type, 'Dropout', baseX, baseY), params: { dropoutRate: 0.1 } }
   if (type === 'one-hot') return { ...opNode('one-hot-' + index, type, 'One-hot', baseX, baseY), params: { numClasses: 2 } }
+  if (type === 'argsort') return { ...opNode('argsort-' + index, type, 'Argsort', baseX, baseY), params: { descending: true } }
+  if (type === 'index-mask') return { ...opNode('index-mask-' + index, type, 'Index mask', baseX, baseY), params: { indexMaskMode: 'keep' } }
   if (type === 'arithmetic') return { ...opNode(`arithmetic-${index}`, type, 'Arithmetic', baseX, baseY), params: { expression: 'x1 * x2' } }
   if (type === 'tensor-transform') return { ...opNode(`tensor-transform-${index}`, type, 'Tensor transform', baseX, baseY), params: { transform: 'reshape' } }
   return opNode(`${type}-${index}`, type, type, baseX, baseY)

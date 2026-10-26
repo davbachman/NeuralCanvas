@@ -46,6 +46,7 @@ export function tensorAxisLabels(graph: GraphModel, id: string, slot = 0, visite
     return [labels(0)[0], dataset?.params.textData?.vocabulary]
   }
   if (kind === 'matmul') return [labels(0)[0], labels(1)[1]]
+  if (kind === 'argsort') { const input = [...labels(0)]; if (input.length) input[input.length - 1] = undefined; return input }
   if (kind === 'transpose') { const input = labels(0); return (node.params.axes ?? [1, 0]).map(axis => input[axis]) }
   if (kind === 'mean') {
     const input = [...labels(0)]
@@ -55,6 +56,6 @@ export function tensorAxisLabels(graph: GraphModel, id: string, slot = 0, visite
     return input
   }
   if (kind === 'slice') { const input = [...labels(0)]; const axis = node.params.axis ?? 0; input[axis] = input[axis]?.slice(node.params.start ?? 0, node.params.end); return input }
-  if (['standardize', 'dropout', 'softmax', 'causal-mask', 'layer-norm', 'activation', 'input', 'arithmetic', 'add', 'multiply'].includes(kind ?? '')) return labels(0)
+  if (['index-mask', 'standardize', 'dropout', 'softmax', 'causal-mask', 'layer-norm', 'activation', 'input', 'arithmetic', 'add', 'multiply'].includes(kind ?? '')) return labels(0)
   return []
 }

@@ -102,10 +102,13 @@ export function elementwiseTensors(
     throw new Error(`Incompatible tensor shapes: ${values.map((value) => formatShape(value.shape)).join(', ')}.`)
   }
   const size = tensorSize(shape)
-  return tensorValue(
+  const result = tensorValue(
     shape,
     Array.from({ length: size }, (_, index) => operation(values.map((value) => valueAtBroadcastIndex(value, index, shape)))),
   )
+  if (values.some(value => value.excluded)) result.excluded = Array.from({length: size}, (_, index) =>
+    values.some(value => !!value.excluded?.[broadcastIndex(index, shape, value.shape)]))
+  return result
 }
 
 export function addTensorsExact(first: TensorValue, second: TensorValue): TensorValue {

@@ -63,7 +63,7 @@ export {
 const SOURCE_TYPES = new Set<NodeType>(['dataset', 'input', 'weight', 'bias', 'target'])
 const OPTIONAL_PASSTHROUGH_TYPES = new Set<NodeType>(['input', 'target'])
 const FLEXIBLE_INPUT_TYPES = new Set<NodeType>(['multiply', 'add', 'concat'])
-const TENSOR_OPERATION_TYPES = new Set<NodeType>(['conv2d', 'avgpool2d', 'embedding', 'transpose', 'slice', 'concat', 'softmax', 'causal-mask', 'layer-norm', 'reshape', 'mean', 'cross-entropy', 'tensor-transform'])
+const TENSOR_OPERATION_TYPES = new Set<NodeType>(['argsort', 'index-mask', 'conv2d', 'avgpool2d', 'embedding', 'transpose', 'slice', 'concat', 'softmax', 'causal-mask', 'layer-norm', 'reshape', 'mean', 'cross-entropy', 'tensor-transform'])
 
 export function isLossNode(node: GraphNode): boolean { return node.type === 'loss' || node.type === 'cross-entropy' }
 
@@ -115,6 +115,8 @@ export const inputArityByType: Record<NodeType, number> = {
   slice: 1,
   concat: 2,
   softmax: 1,
+  argsort: 1,
+  'index-mask': 2,
   'causal-mask': 1,
   'layer-norm': 3,
   reshape: 1,
@@ -209,6 +211,8 @@ export function formulaForNode(node: GraphNode, graph?: GraphModel, valueFormatt
       ? `${outputLabel} = column_stack(${inputLabels.join(', ')})`
       : `${outputLabel} = concat(${inputLabels.join(', ')}, axis=${node.params.axis})`
     case 'softmax': return `${outputLabel} = softmax(${inputLabels[0]})`
+    case 'argsort': return `${outputLabel} = argsort(${inputLabels[0]}, descending=${node.params.descending !== false})`
+    case 'index-mask': return `${outputLabel} = index_mask(${inputLabels.join(', ')}, mode=${node.params.indexMaskMode ?? 'keep'})`
     case 'standardize': return `${outputLabel} = (${inputLabels[0]} − μ_train) / s_train`
     case 'dropout': return `${outputLabel} = training ? mask · ${inputLabels[0]} / (1 − ${node.params.dropoutRate ?? 0.1}) : ${inputLabels[0]}`
     case 'causal-mask': return `${outputLabel}[i,j] = ${inputLabels[0]}[i,j] if j ≤ i; otherwise −∞`
@@ -704,6 +708,9 @@ function outputShapeForNode(node: GraphNode, inputShapes: number[][]): number[] 
     return baseline.map((d, index) => index === axis ? shapes.reduce((sum, shape) => sum + shape[axis], 0) : d)
   }
   if (node.type === 'softmax') return first.length && first.at(-1)! > 0 ? [...first] : undefined
+  if (node.type === 'argsort') return first.length && first.at(-1)! > 0 ? [...first] : undefined
+  if (node.type === 'index-mask') return first.length && second.length && second.at(-1)! > 0 &&
+    (second.length === 1 || second.length === first.length && second.slice(0, -1).every((d, i) => d === first[i])) ? [...first] : undefined
   if (node.type === 'causal-mask') return first.length === 2 && first[0] === first[1] ? [...first] : undefined
   if (node.type === 'layer-norm') return first.length > 0 && second.length === 1 && third.length === 1 && second[0] === first.at(-1) && third[0] === first.at(-1) && (node.params.epsilon === undefined || (Number.isFinite(node.params.epsilon) && node.params.epsilon > 0)) ? [...first] : undefined
   if (operation === 'reshape') {
@@ -1645,6 +1652,8 @@ function tensorOperation(node: GraphNode, values: TensorValue[], requiresGrad = 
       break
     }
     case 'softmax': output = autograd.softmax(first); break
+    case 'argsort': output = autograd.argsort(first, node.params.descending !== false); break
+    case 'index-mask': output = autograd.indexMask(first, second, node.params.indexMaskMode); break
     case 'causal-mask': output = autograd.causalMask(first); break
     case 'layer-norm': output = autograd.layerNorm(first, second, third, node.params.epsilon ?? 1e-5); break
     case 'reshape': output = autograd.reshape(first, resolveReshape(node.params.shape ?? first.shape, first.data.length)); break
@@ -1663,6 +1672,8 @@ const TENSOR_DERIVATIVE_FORMULAS: Partial<Record<NodeType, string>> = {
   slice: 'dInput[slice] += gradient; all other entries receive zero',
   concat: 'dInput_i = slice(gradient, the region belonging to input i)',
   softmax: 'dInput = probabilities · (gradient − sum(gradient · probabilities))',
+  argsort: 'Rank indices are discrete; no gradient through Argsort',
+  'index-mask': 'Selected values receive their gradient; excluded values and integer IDs receive zero',
   'causal-mask': 'dInput[i,j] = gradient[i,j] if j ≤ i; otherwise 0',
   'layer-norm': 'dInput = inverse_std · (scaled_gradient − mean(scaled_gradient) − normalized · mean(scaled_gradient · normalized))',
   reshape: 'dInput = reshape(gradient, original shape)',

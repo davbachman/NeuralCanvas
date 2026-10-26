@@ -57,7 +57,8 @@ export function tensorDatasetProvenance(graph: GraphModel, id: string, slot = 0)
     } else if (node.type !== 'weight' && node.type !== 'bias' && shape) {
       const kind = node.type === 'tensor-transform' ? node.params.transform ?? 'reshape' : node.type
       const first = inputs[0]
-      if (['input', 'target', 'standardize', 'dropout', 'activation', 'softmax', 'causal-mask', 'layer-norm'].includes(kind)) keep(first?.identity)
+      if (['index-mask', 'input', 'target', 'standardize', 'dropout', 'activation', 'softmax', 'causal-mask', 'layer-norm'].includes(kind)) keep(first?.identity)
+      else if (kind === 'argsort' && first?.identity && first.identity.axis !== shape.length - 1) keep(first.identity)
       else if (kind === 'matmul' && first?.shape?.length === 2 && first.identity?.axis === 0) keep(first.identity)
       else if (kind === 'one-hot' || kind === 'embedding') keep(inputs[kind === 'embedding' ? 1 : 0]?.identity)
       else if (kind === 'transpose' && first?.shape && first.identity && first.identity.axis >= 0) {

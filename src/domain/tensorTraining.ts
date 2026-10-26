@@ -15,7 +15,7 @@ type Signal = {value:tf.Tensor; axes:Axis[]}
 type PredictionKind = 'regression' | 'binary' | 'categorical'
 export interface TensorMetrics {loss:number; objective?:number; accuracy:number; examples:number}
 export interface TensorReport {epoch:number; train:TensorMetrics; validation:TensorMetrics; improved:boolean}
-const SUPPORTED = new Set(['standardize','dropout','dataset','weight','bias','input','target','matmul','arithmetic','multiply','add','activation','embedding','one-hot','transpose','tensor-transform','mean','softmax','causal-mask','layer-norm','loss','cross-entropy','concat','reshape','slice'])
+const SUPPORTED = new Set(['argsort','index-mask','standardize','dropout','dataset','weight','bias','input','target','matmul','arithmetic','multiply','add','activation','embedding','one-hot','transpose','tensor-transform','mean','softmax','causal-mask','layer-norm','loss','cross-entropy','concat','reshape','slice'])
 
 /** Probe actual forward AND gradient kernels; merely initializing a backend is insufficient. */
 export async function selectTensorBackend(graph:GraphModel, requested:TrainingSettings['backend'], settings:TrainingSettings=DEFAULT_TRAINING) {
@@ -57,6 +57,29 @@ function arithmetic(expr:ParsedArithmetic['expression'], inputs:tf.Tensor[]):tf.
   switch(expr.op) {case '+':return tf.add(a,b);case '-':return tf.sub(a,b);case '*':return tf.mul(a,b);case '/':return tf.div(a,b);case '^':return tf.pow(a,b)}
 }
 const clipProbability=tf.customGrad((input)=>({value:tf.clipByValue(input as tf.Tensor,1e-7,1-1e-7),gradFunc:(dy:tf.Tensor)=>dy}))
+
+function sortedIndices(input:tf.Tensor, descending:boolean) {
+  return tf.customGrad((raw)=> {
+    const a=raw as tf.Tensor
+    const scores=descending?a:tf.where(tf.isInf(a),tf.fill(a.shape,-Infinity),tf.neg(a))
+    return {value:tf.topk(scores,a.shape.at(-1)!,true).indices,gradFunc:()=>tf.zerosLike(a)}
+  })(input)
+}
+
+function maskedIndices(input:tf.Tensor, indices:tf.Tensor, mode:'keep'|'exclude') {
+  const width=input.shape.at(-1)!
+  if(indices.rank!==1 && (indices.rank!==input.rank || indices.shape.slice(0,-1).some((n,i)=>n!==input.shape[i]))) throw Error('Index mask needs IDs [k] or matching rows [..., k].')
+  if(Array.from(indices.dataSync()).some(id=>!Number.isInteger(id)||id<0||id>=width)) throw Error('Index mask needs integer IDs within the final axis.')
+  return tf.customGrad((raw,rawIds,save)=> {
+    const a=raw as tf.Tensor, ids=rawIds as tf.Tensor
+    const selected=tf.greater(tf.sum(tf.oneHot(ids.toInt(),width),-2),0)
+    const allowed=tf.logicalAnd(mode==='exclude'?tf.logicalNot(selected):selected,tf.isFinite(a))
+    ;(save as (tensors:tf.Tensor[])=>void)([allowed])
+    return {value:tf.where(allowed,a,tf.fill(a.shape,-Infinity)),gradFunc:(dy:tf.Tensor,saved:tf.Tensor[])=>[
+      tf.where(saved[0],dy,tf.zerosLike(dy)),tf.zerosLike(ids).toFloat(),
+    ]}
+  })(input,indices)
+}
 
 /** Broadcast each example independently; the leading batch axis must never
  * align with a parameter's feature axis, even when their sizes happen to match. */
@@ -209,8 +232,10 @@ export class TensorGraph {
         }
         case 'causal-mask': {
           const n=a.shape.at(-1)!, triangle=tf.tensor2d(Array.from({length:n*n},(_,i)=>Number(i%n<=Math.floor(i/n))),[n,n])
-          value=tf.add(a,tf.mul(tf.sub(1,triangle),-1e9));break
+          value=tf.where(triangle.cast('bool'),a,tf.fill(a.shape,-Infinity));break
         }
+        case 'argsort':value=sortedIndices(a,node.params.descending!==false);break
+        case 'index-mask':value=maskedIndices(a,b,node.params.indexMaskMode??'keep');break
         case 'softmax': {
           const scores=args[0].axes.at(-1)==='token'?tf.add(a,tf.mul(tf.sub(1,mask.expandDims(1)),-1e9)):a
           value=tf.softmax(scores);break
@@ -280,7 +305,11 @@ export class TensorGraph {
     const capture:{id:string;slot:number;signal?:Signal}={id,slot}
     const value=tf.tidy(()=>{this.execute(rows,false,capture);return capture.signal ? tf.clone(capture.signal.value) : undefined})
     if(!value || !capture.signal) return undefined
-    try {return {value:{shape:[...value.shape],data:Array.from(await value.data())},axes:capture.signal.axes}}
+    try {
+      const data=Array.from(await value.data()), excluded=data.map(n=>n===-Infinity)
+      if(data.some(n=>!Number.isFinite(n)&&n!==-Infinity)) throw Error('Inspection produced nonfinite values.')
+      return {value:{shape:[...value.shape],data:data.map((n,i)=>excluded[i]?-1e9:n),...(excluded.some(Boolean)?{excluded}: {})},axes:capture.signal.axes}
+    }
     finally {value.dispose()}
   }
   gradients(rows:DatasetExample[]) {

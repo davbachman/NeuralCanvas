@@ -177,6 +177,44 @@ export function softmax(a: Tensor) {
     }
   })
 }
+/** Stable final-axis indices. Excluded entries follow every eligible entry. */
+export function argsort(a: Tensor, descending = true) {
+  const width = a.shape.at(-1)
+  if (!width) throw new Error('Argsort needs a nonempty final axis.')
+  const indices: number[] = []
+  for (let start = 0; start < a.data.length; start += width) {
+    const ranked = Array.from({length: width}, (_, i) => i).sort((i, j) =>
+      Number(!!a.excluded?.[start + i]) - Number(!!a.excluded?.[start + j]) ||
+      (descending ? a.data[start + j] - a.data[start + i] : a.data[start + i] - a.data[start + j]) || i - j)
+    for (const index of ranked) indices.push(index)
+  }
+  return result(a.shape, indices, [a], () => { /* Integer ranks are discrete. */ })
+}
+
+/** Keep/exclude final-axis IDs, broadcasting a vector of IDs across rows. */
+export function indexMask(a: Tensor, indices: Tensor, mode: 'keep' | 'exclude' = 'keep') {
+  const width = a.shape.at(-1), k = indices.shape.at(-1)
+  if (!width || !k || (indices.shape.length !== 1 &&
+      (indices.shape.length !== a.shape.length || indices.shape.slice(0, -1).some((d, i) => d !== a.shape[i])))) {
+    throw new Error('Index mask needs values [..., width] and IDs [k] or matching rows [..., k].')
+  }
+  if (!['keep', 'exclude'].includes(mode) || indices.data.some(id => !Number.isInteger(id) || id < 0 || id >= width)) {
+    throw new Error('Index mask needs integer IDs within the final axis and a valid mode.')
+  }
+  const excluded = a.data.map(() => true)
+  for (let row = 0; row < a.data.length / width; row++) {
+    const start = indices.shape.length === 1 ? 0 : row * k
+    const selected = new Set(indices.data.slice(start, start + k))
+    for (let j = 0; j < width; j++) excluded[row * width + j] = !!a.excluded?.[row * width + j] ||
+      (mode === 'keep' ? !selected.has(j) : selected.has(j))
+  }
+  const out = result(a.shape, a.data.map((v, i) => excluded[i] ? -1e9 : v), [a, indices], output => {
+    if (a.requiresGrad) output.grad.forEach((g, i) => { if (!excluded[i]) a.grad[i] += g })
+  })
+  out.excluded = excluded
+  return out
+}
+
 export function causalMask(a: Tensor) {
   if (a.shape.length !== 2 || a.shape[0] !== a.shape[1]) throw new Error('Causal mask expects square scores.')
   const n = a.shape[0], allowed = (i: number) => i % n <= Math.floor(i / n)

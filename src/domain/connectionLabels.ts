@@ -9,6 +9,7 @@ export function inputConnectionLabels(node: GraphNode, lossKind?: LossKind): str
   }
   const roles: Partial<Record<NodeType, string[]>> = {
     embedding: ['table', 'token IDs'], 'one-hot': ['token IDs'],
+    argsort: ['values'], 'index-mask': ['values', 'indices'],
     conv2d: ['image', 'kernel', 'bias'], 'layer-norm': ['input', 'scale γ', 'offset β'],
     matmul: ['left', 'right'], softmax: ['logits'], 'causal-mask': ['scores'], target: ['target'],
   }

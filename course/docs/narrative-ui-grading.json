@@ -67,14 +67,14 @@
   },
   {
     "file": "assignments/12-sampling/reference/browser/base.json",
-    "score": 40,
-    "maxScore": 40,
+    "score": 20,
+    "maxScore": 20,
     "bytes": 636193
   },
   {
     "file": "assignments/12-sampling/reference/browser/sampling.json",
-    "score": 50,
-    "maxScore": 50,
-    "bytes": 639605
+    "score": 70,
+    "maxScore": 70,
+    "bytes": 544406
   }
 ]

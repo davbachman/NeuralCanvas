@@ -18,6 +18,8 @@ Choose any block from **Build** or the searchable menu on a blank canvas. Select
 | **Tensor transform** | Choose Reshape, Transpose, Slice, or Mean. Set shape, axis order, slice range, or averaging axes in Details. |
 | **Concatenate** | Joins inputs along an axis. On axis 1, vectors `[n]` act as columns, so four `[112]` inputs produce `[112, 4]`. |
 | **Softmax** | Converts scores into probabilities along the last axis. Useful for inspecting predictions; multiclass cross entropy takes raw logits directly. |
+| **Argsort** | Returns integer indices sorted along the final axis. Choose Descending or Ascending in Details. Equal values prefer the lower original index; excluded entries come last. Rank indices are discrete and receive zero gradient. |
+| **Index mask** | First port: values `[..., width]`. Second port: integer indices `[k]` shared across rows, or matching rows `[..., k]`. Choose Keep selected or Exclude selected. Preserves shape and vocabulary positions; Softmax gives excluded entries exactly zero probability. |
 | **Causal mask** | Masks future positions in a square token-by-token score matrix before softmax. |
 | **Layer norm** | Input `[tokens, width]`, learned scale `[width]`, learned bias `[width]`. Initialize scale to ones and bias to zeros. |
 | **Convolution** | Image `[H, W, C]`, filters `[F, KH, KW, C]`, biases `[F]`. Valid convolution, stride 1; output `[H−KH+1, W−KW+1, F]`. |

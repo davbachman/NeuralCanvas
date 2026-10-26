@@ -5,12 +5,45 @@ import {buildTextModel,type TextModelKind} from '../test/textModels'
 import {backwardPass,forwardPass,parameterValues} from './engine'
 import {withDatasetExample} from './datasetTraining'
 import {DEFAULT_TRAINING} from './trainingSettings'
+import {createNode} from './examples'
 
 beforeAll(async()=>{await tf.setBackend('cpu');await tf.ready()})
 afterEach(()=>expect(tf.memory().numTensors).toBe(0))
 const data=(language=false)=>prepareTextDocuments([{text:'good funny good film',label:'positive',split:'train'},{text:'bad film',label:'negative',split:'train'},{text:'good film again',label:'positive',split:'test'},{text:'bad dull movie',label:'negative',split:'test'}],'reviews.csv',{task:language?'language':'sentiment',maxLength:4})
 const kinds:TextModelKind[]=['counts-linear','counts-mlp','mean','position-mean','attention','position-attention','transformer','alice-baseline','alice-transformer']
 describe('batched tensor compiler',()=>{
+ it('evaluates indexed sampling branches without changing the training objective or gradients',async()=>{
+  const graph=buildTextModel(data(true),'alice-baseline',4)
+  const loss=graph.nodes.find(n=>n.type==='loss'||n.type==='cross-entropy')!
+  const logits=graph.edges.find(e=>e.target===loss.id&&e.inputSlot===0)!.source
+  const baseline=new TensorGraph(graph)
+  const ids={...createNode('input',100),id:'excluded-id',params:{value:{shape:[1],data:[1]}}}
+  const mask={...createNode('index-mask',101),id:'selected',params:{indexMaskMode:'exclude' as const}}
+  const rank={...createNode('argsort',102),id:'ranked'}
+  const prob={...createNode('softmax',103),id:'selected-prob'}
+  graph.nodes.push(ids,mask,rank,prob)
+  graph.edges.push({id:'l-m',source:logits,target:mask.id,inputSlot:0},{id:'i-m',source:ids.id,target:mask.id,inputSlot:1},{id:'m-r',source:mask.id,target:rank.id,inputSlot:0},{id:'m-p',source:mask.id,target:prob.id,inputSlot:0})
+  const modified=new TensorGraph(graph)
+  try {
+   const rows=modified.examples.slice(0,2)
+   const signal=await modified.inspectSignal(rows,prob.id)
+   const masked=await modified.inspectSignal(rows,mask.id)
+   expect(masked!.value.data.every(Number.isFinite)).toBe(true)
+   expect(masked!.value.excluded?.some(Boolean)).toBe(true)
+   const width=signal!.value.shape.at(-1)!
+   for(let i=0;i<signal!.value.data.length;i+=width) {
+    expect(signal!.value.data[i+1]).toBe(0)
+    expect(signal!.value.data.slice(i,i+width).reduce((a,b)=>a+b,0)).toBeCloseTo(1,6)
+   }
+   const ranks=await modified.inspectSignal(rows,rank.id)
+   for(let i=0;i<ranks!.value.data.length;i+=width) expect(ranks!.value.data[i+width-1]).toBe(1)
+   const a=baseline.gradients(rows),b=modified.gradients(rows)
+   try {
+    expect(Array.from(await a.loss.data())).toEqual(Array.from(await b.loss.data()))
+    for(const [id,v] of baseline.variables) expect(Array.from(await a.grads[v.name].data())).toEqual(Array.from(await b.grads[modified.variables.get(id)!.name].data()))
+   } finally {tf.dispose([a.loss,b.loss,...Object.values(a.grads),...Object.values(b.grads)])}
+  } finally {baseline.dispose();modified.dispose()}
+ })
  it.each(kinds)('matches per-example loss and mean parameter gradients for %s, including unequal lengths',async kind=>{
   const graph=buildTextModel(data(kind.startsWith('alice')),kind,4), model=new TensorGraph(graph)
   try {
