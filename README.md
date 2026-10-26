@@ -25,6 +25,7 @@ For a guided first build, follow [Get started](docs/USAGE.md) or begin with [Ass
 | Model construction | [Build models from scratch](docs/BUILDING-MODELS.md) · [Example models and lessons](docs/EXAMPLES.md) |
 | Training and evaluation | [Training, testing, and reports](docs/TRAINING.md) |
 | Files and exports | [Save projects and export PyTorch models](docs/FILES-AND-EXPORT.md) |
+| Local checkout | [Automatic updates on macOS](docs/AUTO-PULL.md) |
 
 ## Datasets
 
