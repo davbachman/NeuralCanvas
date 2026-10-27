@@ -24,7 +24,7 @@ Both dense layers include biases; use Cross entropy (logits) and a separate
 Softmax branch. Counts are 3,190 and 3,242 parameters (1.63% difference).
 
 Both start fresh and train ten epochs in one run with Tensor CPU, Adam .02,
-batch 32, shuffle, report every 5, no clipping, stopping, decay or loss penalty.
+batch 32, shuffle, report every epoch, no clipping, stopping, decay or loss penalty.
 Uniform embedding, Xavier matrices, zero biases. Ten epochs is the comparison
 budget; the grader evaluates model artifacts, not unverifiable training history.
 
@@ -115,3 +115,9 @@ Students open **Dataset → Details → Browse datasets…** and click **Use thi
 
 
 Browser/grader compatibility is checked with app 417be2e and the original canonical data. See [the dataset browser update](../../../docs/DATASET-BROWSER-ASSIGNMENTS.md).
+
+## Loss-reporting update (2026-10-27)
+
+The current student recipe reports training and held-out loss every epoch. Ten epochs now produce 11 plotted points, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and their original reporting intervals remain historical evidence.
+
+UI/save and responsive-handout checks used app `b5f195d0eb3d2ed44f06897a27e453625f9e19ed` with documentation/helper edits present (dirty checkout; app runtime unchanged). Ten reporting-control cases saved without changing learned parameters or completed epochs; all seven revised handouts fit 375 px and 1280 px viewports. Existing reporting-interval tests and the public course validator passed. This did not repeat full-budget model training.

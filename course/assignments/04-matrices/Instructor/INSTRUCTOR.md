@@ -39,7 +39,7 @@ App revision: `3fa65974cb668346627b40935ce1abc0131ed104`, validated in an isolat
 | Matrix MPG, seed 137 | 0.05 | 318 | 1,000 | 12.757442 MSE | 7.555346 MSE | — |
 | Iris, seed 137 | 0.1 | 120 | 2,000 | 0.095093 CE | 0.092154 CE | 29/30 (96.67%) |
 
-All three MPG seeds agree to the shown precision. Iris validation CE ranges from 0.092154 to 0.093132, with 29/30 correct for every seed. Low-level training took about 1.3–2.4 seconds here; that excludes UI overhead and is not a promised classroom runtime. No optimality claim is made for multiclass CE. Report every 500 epochs and allow consecutive training chunks.
+All three MPG seeds agree to the shown precision. Iris validation CE ranges from 0.092154 to 0.093132, with 29/30 correct for every seed. Low-level training took about 1.3–2.4 seconds here; that excludes UI overhead and is not a promised classroom runtime. No optimality claim is made for multiclass CE. Report every 50 epochs for MPG and 100 epochs for Iris; each complete run has 21 loss points including epoch zero. Allow consecutive training chunks.
 
 Independent Python graph evaluation agrees with app losses and accuracy to at least nine decimal places. The grader tests every seed, including cases where the trained matrix's individual entries differ. The regression errors agree with the familiar two-feature model because the model class, standardized inputs, split, and objective are the same.
 
@@ -100,3 +100,7 @@ Students open **Dataset → Details → Browse datasets…** and click **Use thi
 
 
 Browser/grader compatibility is checked with app 417be2e and the original canonical data. See [the dataset browser update](../../../docs/DATASET-BROWSER-ASSIGNMENTS.md).
+
+## Loss-reporting update (2026-10-27)
+
+The current handout uses reporting intervals that produce 21 plotted loss points per complete run, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and their original reporting intervals remain historical evidence.

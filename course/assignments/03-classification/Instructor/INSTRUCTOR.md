@@ -32,7 +32,7 @@ Connect each used Dataset feature directly to Standardize features, and malignan
 
 Checked that revision in an isolated clean app checkout: all 13 tests in `datasetInputs.test.ts` and `VisualizationPanel.test.tsx` passed. Both original Assignment 3 reference models, without Input/Target blocks, rendered plots and held-out readouts through the app's server-rendered VisualizationPanel. Their validation BCE remained 0.2613671209503326 and 0.22985307302838365. This checks the source revision and component behavior; deployment to the student site and interactive browser training were not verified.
 
-Reporting shows the model plot and its training/held-out readouts. The separate Loss by epoch history reports at epoch 0 and every 500 epochs with this recipe. Test → Held-out test set → Run inference provides a separate validation evaluation. The earlier automatic-input instruction correction did not change the grader. The logits-loss update below requires replacing both the Canvas description and Gradescope ZIP; dataset and rubric remain unchanged.
+Reporting shows the model plot and its training/held-out readouts. The separate Loss by epoch history reports at epoch 0 and every 100 epochs with this recipe. Test → Held-out test set → Run inference provides a separate validation evaluation. The earlier automatic-input instruction correction did not change the grader. The logits-loss update below requires replacing both the Canvas description and Gradescope ZIP; dataset and rubric remain unchanged.
 
 ## Data and provenance
 
@@ -63,7 +63,7 @@ For the two-feature reference model, the threshold feedback is:
 | 0.50 | 34 | 4 | 67 | 8 |
 | 0.75 | 31 | 0 | 71 | 11 |
 
-The low-level engine runs took approximately 4–6 seconds per model here. Browser scheduling/rendering overhead and student hardware are not included; this is not a promised classroom runtime. Report every 500 epochs and allow consecutive training chunks. Browser checks for the logits update cover short 10-epoch UI training from initial parameters, importing the full engine-trained references, held-out inference, the separate Sigmoid Data view, and File → Save. The complete 2,000-epoch run was verified in the engine, not through the browser UI. Hosted Gradescope and the deployed student site remain unverified.
+The low-level engine runs took approximately 4–6 seconds per model here. Browser scheduling/rendering overhead and student hardware are not included; this is not a promised classroom runtime. Report every 100 epochs and allow consecutive training chunks. Browser checks for the logits update cover short 10-epoch UI training from initial parameters, importing the full engine-trained references, held-out inference, the separate Sigmoid Data view, and File → Save. The complete 2,000-epoch run was verified in the engine, not through the browser UI. Hosted Gradescope and the deployed student site remain unverified.
 
 ## Grading and limits
 
@@ -122,3 +122,7 @@ Students open **Dataset → Details → Browse datasets…** and click **Use thi
 
 
 Browser/grader compatibility is checked with app 417be2e and the original canonical data. See [the dataset browser update](../../../docs/DATASET-BROWSER-ASSIGNMENTS.md).
+
+## Loss-reporting update (2026-10-27)
+
+The current handout uses reporting intervals that produce 21 plotted loss points per complete run, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and their original reporting intervals remain historical evidence.

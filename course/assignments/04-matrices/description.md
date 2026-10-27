@@ -65,8 +65,8 @@ For both models, in **Train → Training execution**, change the default Tensor 
 
 | Model | Learning rate | Examples per update | Epochs | Report every |
 | --- | --- | --- | --- | --- |
-| MPG | 0.05 | 318 | 1,000 | 500 epochs |
-| Iris | 0.1 | 120 | 2,000 | 500 epochs |
+| MPG | 0.05 | 318 | 1,000 | 50 epochs |
+| Iris | 0.1 | 120 | 2,000 | 100 epochs |
 
 Use **Train → Run epochs**. Consecutive runs continue training unless you reset parameters. Open **Reporting** for loss history: it updates at epoch 0 and at the chosen reporting interval. Use **Test → Held-out test set → Run inference** to evaluate validation data; choose Training set to evaluate training data. Here “held-out test” is validation because we use it to compare models. There is no hidden performance set.
 

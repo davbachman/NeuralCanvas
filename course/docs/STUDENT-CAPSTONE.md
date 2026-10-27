@@ -30,8 +30,7 @@ Submit Assignment 10's football.json as earlier.json alongside those files.
 There is no second narrative-pretraining run and no supplied model.
 
 Use Tensor engine, Adam 0.003, batch 32, shuffle each epoch, clip norm 1 and no
-penalty, decay or early stopping. Assignment 18's CPU pilots report every epoch;
-QA reports every five. WebGL can use a supported GPU, with CPU as fallback.
+penalty, decay or early stopping. The current student recipes report every epoch, including the five-epoch QA run. WebGL can use a supported GPU, with CPU as fallback.
 The default epoch counter continues 0 → 10 → 15. Runtime and epoch counts are
 not graded. Cloud software-rendering timings are not laptop GPU benchmarks.
 

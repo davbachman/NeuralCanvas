@@ -103,3 +103,7 @@ Save the selected Assignment 18 generator as pretrained.json before selecting th
 
 
 Browser/grader compatibility is checked with app 417be2e and the original canonical data. See [the dataset browser update](../../../docs/DATASET-BROWSER-ASSIGNMENTS.md).
+
+## Loss-reporting update (2026-10-27)
+
+The current student recipe reports training and held-out loss every epoch. The five-epoch default now produces six plotted points, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and their original reporting intervals remain historical evidence.

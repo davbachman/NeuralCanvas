@@ -32,7 +32,7 @@ mask, Softmax, then multiply by V. Concatenate attended row first and encoded
 question before Q second. Keep the 64-unit ReLU/nine-logit head and separate
 output Softmax. Total: 6,441 parameters, 82.8% fewer than Assignment 9's 37,417.
 
-Five continuous epochs, report every five, Tensor CPU, Adam .003, batch 32,
+Five continuous epochs, report every epoch, Tensor CPU, Adam .003, batch 32,
 shuffle, clip norm 1, patience 0, no decay/penalty. Uniform tables, Xavier
 matrices, zero biases. The changed architecture randomizes fresh; the evaluation
 copy never randomizes or trains. Longer training is optional and can help or
@@ -108,3 +108,7 @@ Students open **Dataset → Details → Browse datasets…** and click **Use thi
 
 
 Browser/grader compatibility is checked with app 417be2e and the original canonical data. See [the dataset browser update](../../../docs/DATASET-BROWSER-ASSIGNMENTS.md).
+
+## Loss-reporting update (2026-10-27)
+
+The current student recipe reports training and held-out loss every epoch. The five-epoch default now produces six plotted points, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and the recipe metadata in `reference/data.json` record the original validation interval; they are historical evidence and are not grading criteria.

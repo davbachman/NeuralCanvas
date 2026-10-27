@@ -44,7 +44,7 @@ token representations for the next assignment's attention.
 ## Recipe, grading and observed outcomes
 
 Tensor CPU, Adam .003, batch 32, shuffle, five continuous epochs, report every
-five, clip norm 1, patience 0, no decay or penalty. Uniform E/P, Xavier matrices,
+epoch, clip norm 1, patience 0, no decay or penalty. Uniform E/P, Xavier matrices,
 zero biases. Optional Auto/WebGL and longer runs do not change grading.
 
 Data/form/train points remain 10/60/25, with train loss <= .75. The fixed-weight
@@ -109,3 +109,7 @@ Students open **Dataset → Details → Browse datasets…** and click **Use thi
 
 
 Browser/grader compatibility is checked with app 417be2e and the original canonical data. See [the dataset browser update](../../../docs/DATASET-BROWSER-ASSIGNMENTS.md).
+
+## Loss-reporting update (2026-10-27)
+
+The current student recipe reports training and held-out loss every epoch. The five-epoch default now produces six plotted points, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and the recipe metadata in `reference/data.json` record the original validation interval; they are historical evidence and are not grading criteria.

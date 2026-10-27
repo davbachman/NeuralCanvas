@@ -34,7 +34,7 @@ Compare training BCE, validation BCE, and validation accuracy with Part A. Addin
 
 - Dataset output mode: **Numeric batch**; Rows: **Training**.
 - In **Train → Training execution**, change the default Tensor engine to **Trace engine · SGD**; learning rate **0.1**; **456 examples per update** (full batch).
-- Start with small coefficients using Randomize parameters, or set all Params to zero. Run **2,000 epochs**, reporting every **500 epochs**. You may run consecutive chunks without resetting parameters.
+- Start with small coefficients using Randomize parameters, or set all Params to zero. Run **2,000 epochs**, reporting every **100 epochs**. You may run consecutive chunks without resetting parameters.
 - Use no loss penalty. Fit feature statistics only on training rows and keep them fixed for validation.
 
 The validation loss here is BCE, not the MSE used in the earlier fuel-economy regression assignments. Their numerical values and grading cutoffs are not comparable.
@@ -43,7 +43,7 @@ The validation loss here is BCE, not the MSE used in the earlier fuel-economy re
 
 Open the **Reporting** tab to see the model visualization and its **Training loss** and **Held-out loss** readouts. Held-out loss is the validation BCE for this assignment. The app identifies the input features from the Dataset columns connected to the prediction path into Loss. No separate Input or Target blocks are needed for training, visualization, or validation reporting. Existing models with those passthrough blocks remain valid; you do not need to rebuild them.
 
-The separate **Loss by epoch** chart records training and held-out loss at epoch 0 and at the reporting interval. With these settings, new reports appear every **500 epochs**, not every epoch. This history does not require Input or Target blocks. To evaluate a saved model separately, open **Test**, choose **Held-out test set**, and click **Run inference**. After inference, select the Sigmoid block and open **Data**. The **Inspection context** defaults to held-out inference; use the arrows beside **Examples** to browse probabilities. Match each **Dataset row** to the same row in the prediction report, including incorrect predictions. If held-out reporting is unavailable, check the warning in Reporting and confirm that the dataset still has its original training and test split.
+The separate **Loss by epoch** chart records training and held-out loss at epoch 0 and at the reporting interval. With these settings, new reports appear every **100 epochs**, giving 21 points over the full run. This history does not require Input or Target blocks. To evaluate a saved model separately, open **Test**, choose **Held-out test set**, and click **Run inference**. After inference, select the Sigmoid block and open **Data**. The **Inspection context** defaults to held-out inference; use the arrows beside **Examples** to browse probabilities. Match each **Dataset row** to the same row in the prediction report, including incorrect predictions. If held-out reporting is unavailable, check the warning in Reporting and confirm that the dataset still has its original training and test split.
 
 ## Threshold exploration — no additional submission
 

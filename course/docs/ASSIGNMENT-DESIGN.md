@@ -60,6 +60,15 @@ For improvement challenges, prefer fixed, independently piloted baseline and fin
 
 Representation changes require the grader to reconstruct the corresponding canonical features from the original dataset. Allowing a different vocabulary size must not permit altered reviews, labels, split membership, or validation-fitted vocabulary. Test malformed and adversarial submissions as well as full-credit models.
 
+## Loss-reporting intervals
+
+Use every-epoch reporting for short runs so students can see how loss evolves.
+For longer runs, choose an interval that gives a useful learning curve without
+evaluating the full training and held-out sets after every update. In particular,
+avoid recipes that show only the initial and final loss or just one intermediate
+point. Reporting frequency is not a graded artifact. Preserve historical pilot
+intervals when describing the evidence; current student intervals may be denser.
+
 ## Approved whole-story sequence and presentation
 
 Assignments 9 and 10 now use one whole story token sequence plus a separate
@@ -67,7 +76,7 @@ question, with the same original texts, answers and group-disjoint splits.
 Assignment 9 adapts the Assignment 8 embedding MLP with learned token positions
 and a question encoder (37,417 parameters). Assignment 10 replaces the flattened
 story path with cross-attention over story tokens (6,441 parameters). Both use
-five continuous Adam epochs at 0.003, batch 32, reporting every five, clip norm 1,
+five continuous Adam epochs at 0.003, batch 32, reporting every epoch, clip norm 1,
 no decay/penalty and no early stopping. Longer training is optional; grade saved
 quality rather than training-history claims. The shared football benchmark and
 Assignment 9's required 5-point unchanged-weight evaluation remain.

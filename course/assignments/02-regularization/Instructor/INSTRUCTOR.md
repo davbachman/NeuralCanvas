@@ -47,7 +47,7 @@ Actual app trace-engine training and saved-project serialization were run with s
 
 The required runs agree across all three seeds. The strength sweep also includes 0.001, 0.01, and 1, with results in app-pilot.json. Both 0.01 and 0.1 earn full credit. The degree-5 ordinary least-squares solution has training MSE 17.10578 and validation MSE 40.93367. The 10,000-epoch run is close in training objective, but the weaker directions converge slowly; the finite-run validation error should not be represented as the exact optimum's value.
 
-The low-level Node trace-engine polynomial pilot took about 3 seconds on this machine. This excludes browser rendering, scheduling, evaluation/reporting overhead, and device variation; it is not a promised student runtime. The Chrome interface pilot ran roughly 35–50 epochs/second, so allow several minutes for 10,000 epochs on a comparable machine, with the tab foregrounded. Keep reporting at 500 epochs. Tensor/WebGL is unnecessary. A long run may be broken into smaller consecutive runs without resetting parameters.
+The low-level Node trace-engine polynomial pilot took about 3 seconds on this machine. This excludes browser rendering, scheduling, evaluation/reporting overhead, and device variation; it is not a promised student runtime. The Chrome interface pilot ran roughly 35–50 epochs/second, so allow several minutes for 10,000 epochs on a comparable machine, with the tab foregrounded. Use the reporting intervals in the current handout: 50 epochs for 1,000-epoch runs, 250 for 5,000, and 500 for 10,000. Each complete run then has 21 loss points including epoch zero. Tensor/WebGL is unnecessary. A long run may be broken into smaller consecutive runs without resetting parameters.
 
 Browser verification used Chrome: an unregularized run stopped at 11,042 epochs scored 30/30 (training MSE 17.20234, validation MSE 29.94107). A fresh zero-parameter L2=0.1 model trained for 1,000 epochs scored 40/40 (validation MSE 13.99684). Both were exported using File → Save and evaluated independently. The shorter 10,000-epoch recipe was verified with three engine seeds. Canvas HTML was rendered and visually checked; numeric HTML entities preserve mathematical symbols when previewed as a standalone fragment. Safari and hosted Gradescope were not exercised for this assignment.
 
@@ -101,3 +101,7 @@ Students open **Dataset → Details → Browse datasets…** and click **Use thi
 
 
 Browser/grader compatibility is checked with app 417be2e and the original canonical data. See [the dataset browser update](../../../docs/DATASET-BROWSER-ASSIGNMENTS.md).
+
+## Loss-reporting update (2026-10-27)
+
+The current handout uses reporting intervals that produce 21 plotted loss points per complete run, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and their original reporting intervals remain historical evidence.

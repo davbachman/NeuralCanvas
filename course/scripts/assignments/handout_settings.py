@@ -16,7 +16,7 @@ def training(day):
               'Reshuffle training examples each epoch', 'Exact learning rate',
               'Training execution', 'Backend', 'Optimizer',
               'Gradient norm limit (0 = off)', 'Early stopping patience (0 = off)']
-    values = [epochs, '5' if day in (8, 9, 10, 19) else '1', '32', 'Checked',
+    values = [epochs, '1', '32', 'Checked',
               '0.02' if day == 8 else '0.003', 'Tensor engine · minibatches',
               'WebGL' if day == 19 else 'Tensor CPU', 'Adam', '0' if day == 8 else '1', '0']
     headers = ['Control', 'Value']

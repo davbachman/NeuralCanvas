@@ -52,18 +52,18 @@ The training objective is **J = training MSE + (λ/2)(w₁² + w₂² + w₃² +
 
 ## Training settings
 
-Use Dataset output mode **Numeric batch** and Rows **Training**. In **Train → Training execution**, change the default Tensor engine to **Trace engine · SGD**. Use **24 examples per update** and report every **500 epochs**. These are full-batch updates. Leave regularization off except in Part C; do not add dropout in this experiment.
+Use Dataset output mode **Numeric batch** and Rows **Training**. In **Train → Training execution**, change the default Tensor engine to **Trace engine · SGD**. Use **24 examples per update** and set **Report loss every** as listed for each model below. These are full-batch updates. Leave regularization off except in Part C; do not add dropout in this experiment.
 
-**Settings that worked in the instructor pilot**
+**Training settings and loss-reporting intervals**
 
-| Model / strength | Learning rate | Epochs |
-| --- | --- | --- |
-| Linear baseline | 0.1 | 1,000 |
-| Fifth degree, no penalty | 0.1 | 10,000 |
-| Fifth degree, λ = 0.001 | 0.1 | 10,000 |
-| Fifth degree, λ = 0.01 | 0.1 | 5,000 |
-| Fifth degree, λ = 0.1 or 1 | 0.1 | 1,000 |
-| Fifth degree, λ = 10 | **0.05** | 5,000 |
+| Model / strength | Learning rate | Epochs | Report every |
+| --- | --- | --- | --- |
+| Linear baseline | 0.1 | 1,000 | 50 epochs |
+| Fifth degree, no penalty | 0.1 | 10,000 | 500 epochs |
+| Fifth degree, λ = 0.001 | 0.1 | 10,000 | 500 epochs |
+| Fifth degree, λ = 0.01 | 0.1 | 5,000 | 250 epochs |
+| Fifth degree, λ = 0.1 or 1 | 0.1 | 1,000 | 50 epochs |
+| Fifth degree, λ = 10 | **0.05** | 5,000 | 250 epochs |
 
 Allow several minutes for the longest runs in the browser; keep the app tab in the foreground. You can split long training runs into smaller runs whose epochs add to the suggested total. If loss becomes nonfinite, stop, check that every power feature has been standardized on training rows, reset to small coefficients, and reduce the learning rate. WebGL is unnecessary for these small models.
 

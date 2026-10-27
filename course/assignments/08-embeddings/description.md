@@ -59,7 +59,7 @@ First set **Training execution** to **Tensor engine · minibatches** to show the
 | Control | Value |
 | --- | --- |
 | Epochs per run | 10 |
-| Report loss every | 5 |
+| Report loss every | 1 |
 | Examples per update | 32 |
 | Reshuffle training examples each epoch | Checked |
 | Exact learning rate | 0.02 |
