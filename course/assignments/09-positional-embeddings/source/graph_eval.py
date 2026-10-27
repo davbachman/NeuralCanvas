@@ -25,7 +25,7 @@ def encode_story(facts, question, data):
         rows=[[index.get(t,0) for t in tokens(s,data)] for s in (facts,question)]
         require(all(0<len(row)<=length for row,length in zip(rows,lengths)),'Story or question exceeds its token limit.')
         story,question=[np.array(row+[1]*(length-len(row))) for row,length in zip(rows,lengths)]
-        return [story,question,(story!=1)[:,None],(question!=1)[:,None]]
+        return [story,question,np.arange(lengths[0]),(story!=1)[:,None],(question!=1)[:,None]]
     n,w=data['maxFacts'],data['factWords'];index={t:i for i,t in enumerate(data['vocabulary'])}
     require(0<len(facts)<=n and question.strip(),'Invalid story.')
     rows=[[index.get(t,0) for t in tokens(s,data)] for s in [*facts,question]]

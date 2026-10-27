@@ -58,13 +58,14 @@ For `maxLength = S` and `questionLength = Q`, the exact zero-based output order 
 | --- | --- | --- | --- |
 | 0 | story token IDs | `[S]` | `[batch, S]` |
 | 1 | question token IDs | `[Q]` | `[batch, Q]` |
-| 2 | story word mask | `[S, 1]` | `[batch, S, 1]` |
-| 3 | question word mask | `[Q, 1]` | `[batch, Q, 1]` |
-| 4 | answer | `[1]` | `[batch, 1]` |
+| 2 | story position IDs | `[S]` | `[batch, S]` |
+| 3 | story word mask | `[S, 1]` | `[batch, S, 1]` |
+| 4 | question word mask | `[Q, 1]` | `[batch, Q, 1]` |
+| 5 | answer | `[1]` | `[batch, 1]` |
 
-Padding uses token ID 1 and mask value 0. Real tokens, including unknown words encoded as ID 0, have mask value 1. The answer is the index into `classLabels`. No position IDs or fact-level mask are emitted. Story and question token positions keep their own indices in Data inspection.
+Padding uses token ID 1 and mask value 0. Real tokens, including unknown words encoded as ID 0, have mask value 1. The answer is the index into `classLabels`. Story position IDs are `0, 1, …, S−1` for every example, including padded slots. No fact-level mask is emitted. Story and question token positions keep their own indices in Data inspection.
 
-Connect each token array to Embedding's token input. Multiply its embedding output by the corresponding word mask before pooling or combining inputs. Attention over story words must use the story mask to exclude padding. A model can construct position information separately if it needs it.
+Connect each token array to Embedding's token input. Multiply its embedding output by the corresponding word mask before pooling or combining inputs. Attention over story words must use the story mask to exclude padding. For learned positions, connect a position table of shape `[S, D]` and the story position IDs to a separate Embedding block. Add its `[S, D]` output to the story word embeddings, then apply the story mask so padded positions contribute nothing.
 
 For the example above, the first story begins `[2, 4, 1, 1, ...]`, its mask begins `[1, 1, 0, 0, ...]`, the question begins `[6, 2, 7, 1, ...]`, and its mask begins `[1, 1, 1, 0, ...]`. The answer is `[0]`.
 
@@ -78,6 +79,6 @@ Edits are temporary inference inputs. Single-example parameter updates are disab
 
 ## Compatibility and converting a model
 
-Existing `facts`, `tokens`, and `counts` datasets and saved projects keep their behavior. A facts model that previously stored a whole story as one fact may reshape `[1, S]` into `[S]` and slice/reshape its shared-length question down to `[Q]`. The new representation supplies those inputs directly. Rewire the corresponding masks to slots 2 and 3 and the answer to slot 4; remove the obsolete input reshapes and question slices. Preserve the vocabulary array, class order, and parameter values during this conversion.
+Existing `facts`, `tokens`, and `counts` datasets and saved projects keep their behavior. A facts model that previously stored a whole story as one fact may reshape `[1, S]` into `[S]` and slice/reshape its shared-length question down to `[Q]`. The new representation supplies those inputs directly. Use the story position IDs at slot 2 with a position-table Embedding lookup. Rewire the corresponding masks to slots 3 and 4 and the answer to slot 5; remove the obsolete input reshapes and question slices. Preserve the vocabulary array, class order, and parameter values during this conversion.
 
 The regression fixture compares such models with story/question lengths 32/8. Their intermediate embeddings, attention, logits, Softmax probabilities, and held-out predictions are identical with unchanged parameters. Separate fixtures exercise other lengths, exact masks, malformed imports, editing/restoration, project round trips, and Tensor minibatch gradients and training.

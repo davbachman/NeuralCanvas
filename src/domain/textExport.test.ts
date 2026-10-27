@@ -5,12 +5,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { prepareTextDocuments, textDataset } from './textData'
 import { buildTextModel, type TextModelKind } from '../test/textModels'
+import { storyQuestionData, storyQuestionModel } from '../test/storyQuestionModel'
 import { backwardPass, forwardPass } from './engine'
 import { generatePyTorchExport } from './pytorchExport'
 import type { TextDatasetData } from './types'
 
 const python = process.env.PYTORCH_TEST_PYTHON
-const kinds: (TextModelKind | 'one-hot' | 'tied-embeddings')[] = ['counts-linear','counts-mlp','mean','position-mean','attention','position-attention','transformer','alice-baseline','alice-transformer','one-hot','tied-embeddings']
+const kinds: (TextModelKind | 'one-hot' | 'tied-embeddings' | 'story-question')[] = ['counts-linear','counts-mlp','mean','position-mean','attention','position-attention','transformer','alice-baseline','alice-transformer','one-hot','tied-embeddings','story-question']
 describe('text model PyTorch parity', () => {
   it('exports large count datasets in space proportional to observed tokens', () => {
     const data: TextDatasetData = {
@@ -52,8 +53,8 @@ describe('text model PyTorch parity', () => {
   }, 30_000)
 
   it.skipIf(!python).each(kinds)('matches forward loss and all parameter gradients for %s', kind => {
-    const data = prepareTextDocuments([{text:'good film good film',label:'positive',split:'train'}, {text:'bad movie bad movie',label:'negative',split:'train'}, {text:'good new movie',label:'positive',split:'test'}], 'test.csv', {task:kind.startsWith('alice') || kind === 'tied-embeddings' ? 'language' : 'sentiment',maxLength:4})
-    const graph = buildTextModel(data,kind === 'one-hot' ? 'mean' : kind === 'tied-embeddings' ? 'alice-transformer' : kind,4)
+    const data = kind === 'story-question' ? storyQuestionData(7, 4) : prepareTextDocuments([{text:'good film good film',label:'positive',split:'train'}, {text:'bad movie bad movie',label:'negative',split:'train'}, {text:'good new movie',label:'positive',split:'test'}], 'test.csv', {task:kind.startsWith('alice') || kind === 'tied-embeddings' ? 'language' : 'sentiment',maxLength:4})
+    const graph = kind === 'story-question' ? storyQuestionModel(data) : buildTextModel(data,kind === 'one-hot' ? 'mean' : kind === 'tied-embeddings' ? 'alice-transformer' : kind,4)
     if (kind === 'one-hot') {
       graph.nodes = [...graph.nodes.map(node => node.id === 'embedded-tokens' ? {...node,type:'matmul' as const} : node), {id:'one-hot',label:'One-hot',type:'one-hot',params:{numClasses:data.vocabulary.length},position:{x:0,y:0}}]
       graph.edges = [...graph.edges.filter(edge => edge.target !== 'embedded-tokens'), {id:'ids-hot',source:'text-data',sourceSlot:0,target:'one-hot',inputSlot:0}, {id:'hot-matrix',source:'one-hot',target:'embedded-tokens',inputSlot:0}, {id:'table-matrix',source:'word-embeddings',target:'embedded-tokens',inputSlot:1}]

@@ -107,3 +107,24 @@ Browser/grader compatibility is checked with app 417be2e and the original canoni
 ## Loss-reporting update (2026-10-27)
 
 The current student recipe reports training and held-out loss every epoch. The five-epoch default now produces six plotted points, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and their original reporting intervals remain historical evidence.
+
+## Position-lookup update (2026-10-27)
+
+The story/question Dataset now outputs story position IDs at slot 2, followed
+by story and question masks at slots 3 and 4 and the answer at slot 5. The
+assigned model uses the position table through an Embedding lookup before
+adding position vectors to word embeddings. This matches the later
+self-attention construction. The capstone’s earlier.json uses the same updated
+attention model. Graders require this wiring; existing saved-model compatibility
+is not part of this update. Dataset files, learned parameter values/counts,
+training budgets and numerical targets are preserved. Refresh the current
+Gradescope ZIP and the HTML handout when publishing.
+
+Current checks: [position-lookup validation](../../../docs/position-lookup-validation.json).
+Trace predictions, Tensor CPU minibatch losses/gradients and one Adam update
+match direct table addition with zero numerical difference on the checked models.
+The actual browser-saved Assignment 9/10 models and the capstone handoff each
+earn 100/100 under the rebuilt local ZIPs. This preserves the original training
+evidence; no full-budget retraining was needed. Validation used app
+`119696ccad8fbc557a5054cf05313d88477b3dac` with the position-output and handout changes present
+(dirty checkout). These local checks do not upload to Canvas or Gradescope.

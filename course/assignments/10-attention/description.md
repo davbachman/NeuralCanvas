@@ -19,6 +19,7 @@ For the required football evaluation copy: Select your Dataset block and open **
 | Vocabulary entries | 25, including unknown and padding |
 | story token IDs | 32 |
 | question token IDs | 8 |
+| story position IDs | 32: indices 0–31 |
 | story word mask | 32 × 1 |
 | question word mask | 8 × 1 |
 | answer | 1 class index; 9 answer classes |
@@ -26,7 +27,7 @@ For the required football evaluation copy: Select your Dataset block and open **
 | Held-out examples — Mixed-question classifier | 1920 |
 | Held-out examples — Mixed training · football benchmark | 240 |
 
-Keep the shared **25 × 16 word embeddings**, **32 × 16 position table**, Dataset story/question IDs, word masks, and question encoder. The positioned, masked story has shape **32 × 16**; the **encoded masked question**, after its ReLU, has shape **1 × 16**.
+Keep the shared **25 × 16 word embeddings**, **32 × 16 position table and its Embedding lookup**, Dataset story/question and story-position IDs, word masks, and question encoder. Continue to look up position vectors from the Dataset’s story position IDs, add them to word embeddings, and apply the story mask after that addition. The positioned, masked story has shape **32 × 16**; the **encoded masked question**, after its ReLU, has shape **1 × 16**.
 
 Remove the reshape that flattened the story for the classifier. You will replace that input to Concatenate with an attended story row, and resize the first classifier matrix. Keep the 64-unit hidden layer, its bias, the nine-output layer, loss and output Softmax. Initialize the completed architecture afresh before training.
 

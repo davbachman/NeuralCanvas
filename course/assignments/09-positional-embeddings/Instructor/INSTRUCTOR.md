@@ -28,13 +28,14 @@ has the same training set and 240 held-out ball-location questions, 120 in each
 event order, exactly matching the capstone questions/answers/split.
 
 The prepared data uses story-question with maxLength=32 and questionLength=8.
-It supplies story IDs [32], question IDs [8], story word mask [32,1], question
-word mask [8,1], and answer [1], in that output order. The story is document.text;
-the separate question is document.question. No fact dimension, position IDs,
-fact mask, input reshapes or question slices are supplied or required.
+It supplies story IDs [32], question IDs [8], story position IDs [32], story
+word mask [32,1], question word mask [8,1], and answer [1], in that output order. The story is document.text;
+the separate question is document.question. Story positions are 0–31, including padded slots. No fact dimension, fact mask,
+input reshapes or question slices are required.
 
-Share E (25 x 16) between story and question lookups. Add a learned P (32 x 16)
-directly to story embeddings, then apply its word padding mask. Mask question
+Share E (25 x 16) between story and question lookups. Use a separate Embedding
+lookup with learned P (32 x 16) and the Dataset story position IDs. Add its
+position vectors to story word embeddings, then apply the story padding mask. Mask question
 embeddings, flatten eight vectors, and encode to 16 features with a matrix,
 bias and ReLU. Flatten all 32 story vectors, append the question, then use
 528 x 64 + bias/ReLU and 64 x 9 + bias. Separate logits Softmax. Total: 37,417
@@ -113,3 +114,24 @@ Browser/grader compatibility is checked with app 417be2e and the original canoni
 ## Loss-reporting update (2026-10-27)
 
 The current student recipe reports training and held-out loss every epoch. The five-epoch default now produces six plotted points, including the starting point. This changes evaluation and plotting frequency, not parameter updates or grading. Early stopping is disabled. Extra reports require extra evaluation work; no runtime improvement is claimed. Retained pilot reports and the recipe metadata in `reference/data.json` record the original validation interval; they are historical evidence and are not grading criteria.
+
+## Position-lookup update (2026-10-27)
+
+The story/question Dataset now outputs story position IDs at slot 2, followed
+by story and question masks at slots 3 and 4 and the answer at slot 5. The
+assigned model uses the position table through an Embedding lookup before
+adding position vectors to word embeddings. This matches the later
+self-attention construction. The capstone’s earlier.json uses the same updated
+attention model. Graders require this wiring; existing saved-model compatibility
+is not part of this update. Dataset files, learned parameter values/counts,
+training budgets and numerical targets are preserved. Refresh the current
+Gradescope ZIP and the HTML handout when publishing.
+
+Current checks: [position-lookup validation](../../../docs/position-lookup-validation.json).
+Trace predictions, Tensor CPU minibatch losses/gradients and one Adam update
+match direct table addition with zero numerical difference on the checked models.
+The actual browser-saved Assignment 9/10 models and the capstone handoff each
+earn 100/100 under the rebuilt local ZIPs. This preserves the original training
+evidence; no full-budget retraining was needed. Validation used app
+`119696ccad8fbc557a5054cf05313d88477b3dac` with the position-output and handout changes present
+(dirty checkout). These local checks do not upload to Canvas or Gradescope.

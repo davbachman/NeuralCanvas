@@ -16,9 +16,10 @@ The Dataset supplies these outputs directly:
 | --- | --- | --- |
 | 0 | story token IDs | 32 |
 | 1 | question token IDs | 8 |
-| 2 | story word mask | 32 × 1 |
-| 3 | question word mask | 8 × 1 |
-| 4 | answer | 1 |
+| 2 | story position IDs | 32: indices 0–31 |
+| 3 | story word mask | 32 × 1 |
+| 4 | question word mask | 8 × 1 |
+| 5 | answer | 1 |
 
 Six nontrainable input Reshape/Slice blocks are removed. Embedding/classifier
 reshapes remain part of the model. Learned parameters, epoch counts, training
@@ -72,3 +73,14 @@ The independent evaluator now recognizes both representations and verifies the
 canonical `questionLength`. Its self-contained release copies are refreshed
 throughout 9–19. The current dataset-filename audit continues to require identical
 bytes for any reused student filename.
+
+## Position lookup (2026-10-27)
+
+The output table above includes the new story-position output. Assignments 9
+and 10 now look up P through an Embedding block using those IDs before adding
+position vectors to word embeddings and applying the story mask. Assignment
+14 explicitly reuses this pattern. Graders and the capstone’s earlier-model
+reference use the same construction. The original validation sections above
+describe the earlier direct-input conversion; current position-lookup checks
+are recorded in the instructor guides. Dataset bytes and the learned
+parameters, mathematical models, training budgets and numerical targets are preserved.

@@ -21,6 +21,7 @@ For the required football evaluation copy: Select your Dataset block and open **
 | Vocabulary entries | 25, including unknown and padding |
 | story token IDs | 32 |
 | question token IDs | 8 |
+| story position IDs | 32: indices 0–31 |
 | story word mask | 32 × 1 |
 | question word mask | 8 × 1 |
 | answer | 1 class index; 9 answer classes |
@@ -34,12 +35,12 @@ The label **nobody** answers who has the football after it has been dropped. Who
 
 Each story has five events involving Liam, Nora and a football. Entering a room moves a person and any football they carry; taking picks up the football; dropping leaves it in that room. Sentence punctuation stays within the single story sequence. The question and answer are separate from that sequence.
 
-The Dataset supplies these token IDs and masks in the shapes shown above. Connect the token IDs directly to their Embedding inputs; use the masks with the corresponding embeddings. A padding mask contains 1 for an observed token and 0 for padding. Padding reserves space; it is not an event.
+The Dataset supplies these token IDs, story position IDs, and masks in the shapes shown above. Connect the token IDs directly to their Embedding inputs; use the masks with the corresponding embeddings. A padding mask contains 1 for an observed token and 0 for padding. Padding reserves space; it is not an event.
 
 ## Add word positions
 
 1. Resize the shared word-embedding table **E to 25 × 16**. Use that same Param for both story and question Embedding lookups. The story embeddings have shape **32 × 16**; the question embeddings have shape **8 × 16**.
-2. Create a learned Param table **P of shape 32 × 16**. Row j is the positional embedding for story-token slot j. Add P directly to the story embeddings with Arithmetic addition. This gives every story token both word and position information.
+2. Create a learned Param table **P of shape 32 × 16**. Row j is the positional embedding for story-token slot j. Add a separate **Embedding** block: connect P to its table input and the Dataset’s **story position IDs** to its ID input. These IDs are **0, 1, …, 31**, including the reserved padding slots. The lookup produces **32 × 16** position vectors. Add those vectors to the story word embeddings with Arithmetic addition. This is the same lookup-and-add pattern you will use in later attention models.
 3. Multiply the positioned story embeddings elementwise by the **32 × 1 story padding mask**. Broadcasting zeros every feature at a padded position. Apply the question’s **8 × 1 padding mask** to its embeddings as well. Use Arithmetic multiplication for these masks.
 
 Flattening already keeps slots in order. The learned position vectors also put position information *inside* each token representation, which becomes useful when attention mixes tokens in the next assignment.

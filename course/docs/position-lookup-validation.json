@@ -1,0 +1,183 @@
+{
+  "appCommit": "119696ccad8fbc557a5054cf05313d88477b3dac",
+  "appDirty": true,
+  "scope": "Local Trace and Tensor CPU equivalence, one Adam update, Chromium browser import/forward/inspection/save/reimport, and extracted Gradescope runners. No fresh full-budget training.",
+  "native": [
+    {
+      "assignment": "09-positional-embeddings",
+      "part": "baseline",
+      "traceExamples": 8,
+      "minibatchSize": 32,
+      "traceError": 0,
+      "lossError": 0,
+      "gradientError": 0,
+      "updateError": 0,
+      "parameterCount": 37417
+    },
+    {
+      "assignment": "10-attention",
+      "part": "attention",
+      "traceExamples": 8,
+      "minibatchSize": 32,
+      "traceError": 0,
+      "lossError": 0,
+      "gradientError": 0,
+      "updateError": 0,
+      "parameterCount": 6441
+    }
+  ],
+  "browser": [
+    {
+      "assignment": "09-positional-embeddings",
+      "part": "baseline",
+      "preset": "Mixed-question classifier",
+      "outputLabels": [
+        "story token IDs",
+        "question token IDs",
+        "story position IDs",
+        "story word mask",
+        "question word mask",
+        "answer"
+      ],
+      "positionShape": [
+        32
+      ],
+      "lookupShape": [
+        32,
+        16
+      ],
+      "answerSlot": 5,
+      "parametersPreserved": true,
+      "epochPreserved": true,
+      "reimported": true
+    },
+    {
+      "assignment": "09-positional-embeddings",
+      "part": "football",
+      "preset": "Mixed training \u00b7 football benchmark",
+      "outputLabels": [
+        "story token IDs",
+        "question token IDs",
+        "story position IDs",
+        "story word mask",
+        "question word mask",
+        "answer"
+      ],
+      "positionShape": [
+        32
+      ],
+      "lookupShape": [
+        32,
+        16
+      ],
+      "answerSlot": 5,
+      "parametersPreserved": true,
+      "epochPreserved": true,
+      "reimported": true
+    },
+    {
+      "assignment": "10-attention",
+      "part": "attention",
+      "preset": "Mixed-question classifier",
+      "outputLabels": [
+        "story token IDs",
+        "question token IDs",
+        "story position IDs",
+        "story word mask",
+        "question word mask",
+        "answer"
+      ],
+      "positionShape": [
+        32
+      ],
+      "lookupShape": [
+        32,
+        16
+      ],
+      "answerSlot": 5,
+      "parametersPreserved": true,
+      "epochPreserved": true,
+      "reimported": true
+    },
+    {
+      "assignment": "10-attention",
+      "part": "football",
+      "preset": "Mixed training \u00b7 football benchmark",
+      "outputLabels": [
+        "story token IDs",
+        "question token IDs",
+        "story position IDs",
+        "story word mask",
+        "question word mask",
+        "answer"
+      ],
+      "positionShape": [
+        32
+      ],
+      "lookupShape": [
+        32,
+        16
+      ],
+      "answerSlot": 5,
+      "parametersPreserved": true,
+      "epochPreserved": true,
+      "reimported": true
+    }
+  ],
+  "layouts": [
+    {
+      "assignment": "09-positional-embeddings",
+      "width": 375,
+      "scrollWidth": 375
+    },
+    {
+      "assignment": "09-positional-embeddings",
+      "width": 1280,
+      "scrollWidth": 1280
+    },
+    {
+      "assignment": "10-attention",
+      "width": 375,
+      "scrollWidth": 375
+    },
+    {
+      "assignment": "10-attention",
+      "width": 1280,
+      "scrollWidth": 1280
+    },
+    {
+      "assignment": "14-self-attention",
+      "width": 375,
+      "scrollWidth": 375
+    },
+    {
+      "assignment": "14-self-attention",
+      "width": 1280,
+      "scrollWidth": 1280
+    }
+  ],
+  "browserErrors": [],
+  "packagedScores": [
+    {
+      "assignment": "09-positional-embeddings",
+      "score": 100,
+      "tests": 14,
+      "browserFiles": true
+    },
+    {
+      "assignment": "10-attention",
+      "score": 100,
+      "tests": 13,
+      "browserFiles": true
+    },
+    {
+      "assignment": "19-qa-finetuning",
+      "score": 100,
+      "tests": 27,
+      "browserFiles": true
+    }
+  ],
+  "datasetsAndNumericalTargetsUnchanged": true,
+  "trainedParameterValuesUnchanged": true,
+  "existingSavedModelCompatibility": false
+}

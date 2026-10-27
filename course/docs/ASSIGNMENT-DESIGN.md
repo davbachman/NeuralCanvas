@@ -97,8 +97,10 @@ subsequent assignments progressively modify that generator. See
 [WHOLE-STORY-REVISION.md](WHOLE-STORY-REVISION.md).
 
 The direct story-question representation now supplies [32] story IDs, [8]
-question IDs and [32,1]/[8,1] word masks; the six legacy input adapters are gone.
-Prepared JSON selects these lengths. Preserve the useful embedding/classifier
+question IDs, [32] story position IDs and [32,1]/[8,1] word masks; the six legacy input adapters are gone.
+Look up learned story positions with a separate Embedding block, add the
+position vectors to word embeddings, then apply the story mask. This establishes
+the pattern reused by the later self-attention model. Prepared JSON selects these lengths. Preserve the useful embedding/classifier
 reshapes that belong to the model. See [DIRECT-STORY-INPUTS.md](DIRECT-STORY-INPUTS.md).
 
 ## Prepared datasets and app settings tables (2026-10-22)

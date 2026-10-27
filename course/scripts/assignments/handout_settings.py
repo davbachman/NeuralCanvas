@@ -67,6 +67,7 @@ def dataset_properties(day, part=None):
     elif day in (9, 10):
         rows = [('Vocabulary entries', '25, including unknown and padding'),
                 ('story token IDs', '32'), ('question token IDs', '8'),
+                ('story position IDs', '32: indices 0–31'),
                 ('story word mask', '32 × 1'), ('question word mask', '8 × 1'),
                 ('answer', '1 class index; 9 answer classes'),
                 ('Training examples in either QA preset', '3840'),

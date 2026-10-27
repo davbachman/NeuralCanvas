@@ -42,6 +42,7 @@ export function encodeStory(story: StoryExperiment, data: TextDatasetData): { fe
     const s = encode(story.text, 'Story', data.maxLength)
     const q = encode(story.question, 'Question', data.questionLength!)
     return { features: [tensor([s.length], s), tensor([q.length], q),
+      tensor([s.length], s.map((_, position) => position)),
       tensor([s.length, 1], s.map(id => Number(id !== 1))), tensor([q.length, 1], q.map(id => Number(id !== 1)))],
       unknownWords: [...unknownWords] }
   }
@@ -243,6 +244,6 @@ export function textDataset(data: TextDatasetData): ToyDataset {
 
 /** Socket metadata does not require encoding or materializing dataset tensors. */
 export function textDatasetLabels(data: Pick<TextDatasetData, 'representation' | 'task'>): Pick<ToyDataset, 'featureLabels' | 'targetLabel'> {
-  if (data.representation === 'story-question') return { featureLabels: ['story token IDs', 'question token IDs', 'story word mask', 'question word mask'], targetLabel: 'answer' }
+  if (data.representation === 'story-question') return { featureLabels: ['story token IDs', 'question token IDs', 'story position IDs', 'story word mask', 'question word mask'], targetLabel: 'answer' }
   return { featureLabels: data.representation==='facts' ? ['fact token IDs','question token IDs','fact position IDs','fact mask','fact word mask','question word mask'] : [data.representation === 'counts' ? 'word counts' : 'token IDs', 'position IDs'], targetLabel: data.task === 'sentiment' ? 'sentiment' : data.task==='classification' ? 'answer' : 'next-token IDs' }
 }

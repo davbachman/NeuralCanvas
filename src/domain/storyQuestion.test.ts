@@ -20,15 +20,17 @@ describe('whole story and separate question', () => {
     expect(encoded.features).toEqual([
       {shape: [maxLength], data: [2, 0, ...Array(maxLength - 2).fill(1)]},
       {shape: [questionLength], data: [6, 3, 7, ...Array(questionLength - 3).fill(1)]},
+      {shape: [maxLength], data: Array.from({length: maxLength}, (_, position) => position)},
       {shape: [maxLength, 1], data: [1, 1, ...Array(maxLength - 2).fill(0)]},
       {shape: [questionLength, 1], data: [1, 1, 1, ...Array(questionLength - 3).fill(0)]},
     ])
     expect(encoded.unknownWords).toEqual(['atlantis'])
     const source = storyQuestionModel(data).nodes[0]
-    expect(datasetOutputCountForNode(source)).toBe(5)
-    expect(datasetTargetSlotForNode(source)).toBe(4)
-    expect(Array.from({length: 5}, (_, slot) => datasetOutputLabelForSlot(source, slot))).toEqual(['story token IDs', 'question token IDs', 'story word mask', 'question word mask', 'answer'])
-    expect(datasetOutputValueForSlot(source, 4)).toEqual({shape: [1], data: [0]})
+    expect(datasetOutputCountForNode(source)).toBe(6)
+    expect(datasetTargetSlotForNode(source)).toBe(5)
+    expect(Array.from({length: 6}, (_, slot) => datasetOutputLabelForSlot(source, slot))).toEqual(['story token IDs', 'question token IDs', 'story position IDs', 'story word mask', 'question word mask', 'answer'])
+    expect(datasetOutputValueForSlot(source, 2)).toEqual(encoded.features[2])
+    expect(datasetOutputValueForSlot(source, 5)).toEqual({shape: [1], data: [0]})
     expect(datasetExamplesForNode(source).map(row => row.split)).toEqual(['train', 'train', 'test', 'test'])
     expect(data).toEqual(before)
   })
@@ -104,7 +106,10 @@ describe('whole story and separate question', () => {
     expect(graph.nodes.some(n => ['story_ids', 'short_question', 'question_ids', 'story_mask', 'short_question_mask', 'question_mask'].includes(n.id))).toBe(false)
     for (let row = 0; row < data.documents.length; row++) {
       const actual = forwardPass(withDatasetExample(graph, 'text-data', row)), expected = forwardPass(withDatasetExample(legacy, 'text-data', row))
-      for (const id of ['story_lookup', 'question_lookup', 'attention', 'output', 'probabilities']) expect(actual.graph.nodes.find(n => n.id === id)!.value).toEqual(expected.graph.nodes.find(n => n.id === id)!.value)
+      for (const id of ['story_lookup', 'positioned_story', 'question_lookup', 'attention', 'output', 'probabilities']) expect(actual.graph.nodes.find(n => n.id === id)!.value).toEqual(expected.graph.nodes.find(n => n.id === id)!.value)
+      expect(actual.graph.nodes.find(n => n.id === 'position_lookup')!.value).toEqual(parameterValues(graph).positions)
+      const actualGradients = backwardPass(actual.graph).graph, expectedGradients = backwardPass(expected.graph).graph
+      for (const node of actualGradients.nodes.filter(n => n.type === 'weight')) expect(node.grad).toEqual(expectedGradients.nodes.find(n => n.id === node.id)!.grad)
       expect(actual.loss).toBe(expected.loss)
       expect(parameterValues(actual.graph)).toEqual(parameterValues(graph))
     }
@@ -117,7 +122,7 @@ describe('whole story and separate question', () => {
     const edited = {...graph, nodes: graph.nodes.map(n => n.type === 'dataset' ? {...n, params: {...n.params, storyExperiment: story}} : n)}
     const encoded = encodeStory(story, graph.nodes[0].params.textData!)
     encoded.features.forEach((value, slot) => expect(datasetOutputValueForSlot(edited.nodes[0], slot)).toEqual(value))
-    expect(datasetOutputValueForSlot(edited.nodes[0], 4)).toEqual(datasetOutputValueForSlot(graph.nodes[0], 4))
+    expect(datasetOutputValueForSlot(edited.nodes[0], 5)).toEqual(datasetOutputValueForSlot(graph.nodes[0], 5))
     const actual = forwardPass(edited)
     expect(actual.graph.nodes.find(n => n.id === 'probabilities')!.value).not.toEqual(forwardPass(graph).graph.nodes.find(n => n.id === 'probabilities')!.value)
     expect(parameterValues(actual.graph)).toEqual(parameterValues(graph))
@@ -134,10 +139,10 @@ describe('whole story and separate question', () => {
     const graph = storyQuestionModel(storyQuestionData(7, 4)), original = structuredClone(graph), model = new TensorGraph(graph)
     try {
       const rows = model.examples.slice(0, 2), expected = rows.map((_, i) => backwardPass(forwardPass(withDatasetExample(graph, 'text-data', i)).graph))
-      for (const [slot, shape] of [[0, [2, 7]], [1, [2, 4]], [2, [2, 7, 1]], [3, [2, 4, 1]], [4, [2, 1]]] as const) {
+      for (const [slot, shape] of [[0, [2, 7]], [1, [2, 4]], [2, [2, 7]], [3, [2, 7, 1]], [4, [2, 4, 1]], [5, [2, 1]]] as const) {
         const signal = await model.inspectSignal(rows, 'text-data', slot)
         expect(signal!.value.shape).toEqual(shape)
-        expect(signal!.value.data).toEqual(rows.flatMap(row => slot === 4 ? row.target.data : row.features[slot].data))
+        expect(signal!.value.data).toEqual(rows.flatMap(row => slot === 5 ? row.target.data : row.features[slot].data))
       }
       const gradients = model.gradients(rows)
       try {
@@ -161,6 +166,10 @@ describe('whole story and separate question', () => {
       }
       expect(tensorAxisLabels(graph, 'question_lookup')[0]).toHaveLength(4)
       expect(tensorAxisLabels(graph, 'story_lookup')[0]).toHaveLength(7)
+      expect(tensorAxisLabels(graph, 'position_lookup')[0]).toEqual(Array.from({length: 7}, (_, i) => 'position ' + i))
+      expect(tensorAxisLabels(graph, 'positions')[0]).toEqual(Array.from({length: 7}, (_, i) => 'position ' + i))
+      expect(tensorAxisLabels(graph, 'text-data', 3)[0]).toEqual(tensorAxisLabels(graph, 'story_lookup')[0])
+      expect(tensorAxisLabels(graph, 'text-data', 4)[0]).toEqual(tensorAxisLabels(graph, 'question_lookup')[0])
       expect(tensorAxisLabels(graph, 'embedding')[0]).toEqual(graph.nodes[0].params.textData!.vocabulary)
       expect(graph).toEqual(original)
     } finally {model.dispose()}

@@ -99,7 +99,7 @@ it.each(['tokens', 'counts', 'facts', 'story-question'] as const)('shows only la
   const node = { ...createNode('dataset', 1), params: { dataset: 'custom-text' as const, textData } }
   const { container } = card(node)
   const labels = [...container.querySelectorAll<HTMLElement>('.node-output-labels span')]
-  expect(labels.map(label => label.textContent)).toEqual(representation === 'story-question' ? ['story token IDs', 'question token IDs', 'story word mask', 'question word mask', 'answer'] : representation === 'facts'
+  expect(labels.map(label => label.textContent)).toEqual(representation === 'story-question' ? ['story token IDs', 'question token IDs', 'story position IDs', 'story word mask', 'question word mask', 'answer'] : representation === 'facts'
     ? ['fact token IDs', 'question token IDs', 'fact position IDs', 'fact mask', 'fact word mask', 'question word mask', 'answer']
     : [representation === 'counts' ? 'word counts' : 'token IDs', 'position IDs', 'sentiment'])
   expect(container.querySelector('.builder-node')).toHaveClass('is-compact')

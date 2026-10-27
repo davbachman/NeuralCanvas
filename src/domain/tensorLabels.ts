@@ -11,8 +11,9 @@ export function tensorAxisLabels(graph: GraphModel, id: string, slot = 0, visite
   const labels = (index: number) => edges[index] ? tensorAxisLabels(graph, edges[index].source, edges[index].sourceSlot ?? 0, seen) : []
   if (node.type === 'dataset' && node.params.textData) {
     const data = node.params.textData
-    if (data.representation === 'story-question' && slot < 4) {
-      const tokenSlot = slot % 2
+    if (data.representation === 'story-question' && slot < 5) {
+      if (slot === 2) return [Array.from({length: data.maxLength}, (_, i) => 'position ' + i)]
+      const tokenSlot = slot < 2 ? slot : slot - 3
       const tokens = datasetOutputValueForSlot(node, tokenSlot).data.map((token, position) => position + ': ' + JSON.stringify(data.vocabulary[token]))
       return slot < 2 ? [tokens] : [tokens, undefined]
     }

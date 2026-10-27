@@ -29,7 +29,7 @@ Select your Dataset block and open **Details → Browse datasets…**. Choose **
 
 ## Build shared self-attention
 
-Add **16-dimensional token embeddings** and **16-dimensional learned position embeddings**, using the Dataset’s token and position IDs. Work out the two table shapes. Call their sum X. Create independent **16 × 16** matrices for Q, K and V and compute each projection from X.
+Add **16-dimensional token embeddings** and **16-dimensional learned position embeddings**, using the Dataset’s token and position IDs. As in the story/question model, use a separate **Embedding** block for each lookup and add their outputs. Work out the two table shapes. Call their sum X. Create independent **16 × 16** matrices for Q, K and V and compute each projection from X.
 
 Compute **QK<sup>T</sup>/4**. Add **Build → Sequences and attention → Causal mask** between the scaled scores and their Softmax. It allows each position to use itself and earlier positions. The word masks in the cross-attention assignment excluded padding; this causal mask excludes future positions. Apply Softmax across each row, then multiply those attention weights by V.
 
