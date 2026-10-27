@@ -1,8 +1,13 @@
-"""Generate only student handouts for the public app; --check never writes."""
+"""Generate GitHub Markdown and deployed student pages; --check never writes."""
 import argparse
 import html
 from pathlib import Path
 import re
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'assignments'))
+from handout_markdown import markdown
+from package_common import write_manifest
 
 COURSE = Path(__file__).resolve().parents[1]
 APP = COURSE.parent
@@ -38,19 +43,24 @@ def render(source):
 
 
 def sync(check=False):
-    sources = sorted((COURSE / 'assignments').glob('*/Canvas/description.html'))
+    sources = sorted((COURSE / 'assignments').glob('*/description.html'))
     if len(sources) != 19:
         raise ValueError(f'Expected 19 handouts, found {len(sources)}')
     for source in sources:
-        target = APP / 'public/course' / (source.parents[1].name + '.html')
-        expected = render(source)
-        if check:
-            if not target.is_file() or target.read_text() != expected:
-                raise ValueError(f'Outdated student page: {target}; run {Path(__file__).name}')
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(expected)
-    print(f'{"Checked" if check else "Updated"} all 19 student pages.')
+        outputs = {
+            source.with_suffix('.md'): markdown(source.read_text()),
+            APP / 'public/course' / (source.parent.name + '.html'): render(source),
+        }
+        for target, expected in outputs.items():
+            if check:
+                if not target.is_file() or target.read_text() != expected:
+                    raise ValueError(f'Outdated handout: {target}; run {Path(__file__).name}')
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(expected)
+        if not check:
+            write_manifest(source.parent)
+    print(f'{"Checked" if check else "Updated"} all 19 Markdown descriptions and student pages.')
 
 
 if __name__ == '__main__':

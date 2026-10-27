@@ -7,5 +7,4 @@ for base in sorted((root/'assignments').iterdir()):
     if base.is_dir() and 9<=int(base.name[:2])<=19:
         if os.getenv('RELEASE_ASSIGNMENTS') and base.name not in os.environ['RELEASE_ASSIGNMENTS'].split(','):continue
         config=json.loads((base/'reference/data.json').read_text())
-        files=sorted(p.name for p in (base/'Canvas').iterdir() if p.name!='description.html')
-        package_assignment(base.name,files,config['version'])
+        package_assignment(base.name,config['version'])

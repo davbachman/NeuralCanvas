@@ -1,9 +1,9 @@
 # Public course materials
 
 This directory is the canonical home for the 19 current assignments, Canvas
-handouts, dataset fixtures, Gradescope ZIPs and grader sources, untrained
+handouts, Gradescope ZIPs and grader sources, untrained
 templates, instructor guides, packaging helpers, and curriculum/validation
-documentation. Read README.md and the relevant INSTRUCTOR.md before changes.
+documentation. Read README.md and the relevant Instructor/INSTRUCTOR.md before changes.
 
 The instructor explicitly permits public wiring, model templates, shape details,
 and autograder internals. Keep trained solution files, fitted answer coefficients,
@@ -17,14 +17,18 @@ filenames. Do not add dataset upload instructions, student starter models,
 written responses, or manually graded questions. CSV bytes are protected by the
 repository's .gitattributes. Keep one current version per assignment.
 
-Canvas/description.html is the canonical handout. Run
+Each assignment's `description.html` is the canonical handout. Run
 `python course/scripts/sync-handouts.py` from the app root after editing it;
-`public/course/` contains the generated student website pages. Only student
-handouts are copied into the deployed app; instructor materials remain in Git.
+this generates the adjacent `description.md` for GitHub, refreshes handout hashes,
+and updates the student website pages in `public/course/`. Do not edit the
+generated Markdown independently or recreate `Canvas/` folders. Datasets live
+in the app's `public/datasets/`, with hashes in `src/learning/dataset-library.json`.
+Only student handouts are copied into the deployed app; instructor materials
+remain in Git.
 
 Run course commands from this directory. Use Python 3.12 and requirements.txt.
 Run `python scripts/validate-course.py` after changes; it checks package/source
-parity, manifests, dataset copies, public artifact boundaries, and all 19
+parity, manifests, app dataset hashes, public artifact boundaries, and all 19
 packaged runners with invalid submissions. Rebuild changed autograders with the
 appropriate `scripts/assignments/package-*.py` command. Full-credit and semantic
 regression tests use private fixtures and run from NeuralCanvas-Coursework.

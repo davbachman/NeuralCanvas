@@ -1,5 +1,5 @@
 {
-  "scope": "Current Canvas dataset files only; excludes archived releases and private fixtures.",
+  "scope": "App datasets referenced by current handouts; excludes archived releases and private fixtures.",
   "assignmentsChecked": [
     "01-mpg",
     "02-regularization",

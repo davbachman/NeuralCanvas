@@ -1,6 +1,5 @@
 {
   "Gradescope/gradescope-counts-07.zip": "c992e684678e5a83f047a18b8bd652edd831661f72e3a093c224c955e78724fa",
-  "Canvas/description.html": "3c9f0f094450986d59f10ae7c08a9f2e91e677e547d66b27e20932fe348c13cf",
-  "Canvas/imdb.json": "e049d3a5a9876fa614bb0a6107f53af32380e48b83ce1158d3be4da99c0fe079",
-  "Canvas/football-counts.json": "c510903cc7ac6efb40a66290b0745e9a0bb205b2df2bce051ba425c620ae52f3"
+  "description.html": "3c9f0f094450986d59f10ae7c08a9f2e91e677e547d66b27e20932fe348c13cf",
+  "description.md": "9f7decf822f47226856eb9a061ff2ccf0888c48db5c730e85784142b32c65a69"
 }

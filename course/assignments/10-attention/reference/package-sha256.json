@@ -1,6 +1,5 @@
 {
   "Gradescope/gradescope-10-attention.zip": "9a3882cd0425e5d2ca60af7c5ce1e9adc2f60088e94cf8ccf0408b20ed7e17f7",
-  "Canvas/description.html": "6a1d176ebd62f42f231a1bc1cc8fb9d2f28ffbb013bac049094be0f630b0e079",
-  "Canvas/football-test.json": "1faddcf1525876a0fb98aa4b9b01bd2b711f1f26db4293578e6934959296f626",
-  "Canvas/stories.json": "0380ce7ffd8f26b9ffc580eaf3dc0b275bdde92fa03c43db8f33161d685fcd22"
+  "description.html": "6a1d176ebd62f42f231a1bc1cc8fb9d2f28ffbb013bac049094be0f630b0e079",
+  "description.md": "6fd15f4a766b4a21f9b72dd4172c5a3acb4be728e92fc198a54ffd4525968b18"
 }

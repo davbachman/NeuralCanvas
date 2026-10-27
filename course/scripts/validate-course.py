@@ -8,6 +8,9 @@ import sys
 import tempfile
 import zipfile
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'assignments'))
+from handout_markdown import Handout
+
 COURSE = Path(__file__).resolve().parents[1]
 APP = COURSE.parent
 EARLY_PARTS = {
@@ -48,9 +51,14 @@ def validate():
         require(not path.is_symlink(), f'Public material depends on an external link: {path}')
         if path.suffix == '.json':
             check_templates(json.loads(path.read_text()), path)
+    library = json.loads((APP / 'src/learning/dataset-library.json').read_text())
     dataset_count = 0
     for base in assignments:
-        require((base / 'INSTRUCTOR.md').is_file(), f'Missing instructor guide: {base}')
+        require((base / 'Instructor/INSTRUCTOR.md').is_file(), f'Missing instructor guide: {base}')
+        require(not (base / 'INSTRUCTOR.md').exists(), f'Obsolete instructor guide path: {base}')
+        require((base / 'description.html').is_file(), f'Missing HTML description: {base}')
+        require((base / 'description.md').is_file(), f'Missing Markdown description: {base}')
+        require(not (base / 'Canvas').exists(), f'Obsolete Canvas folder: {base}')
         require(not (base / 'archive').exists(), f'Unreviewed historical archive: {base}')
         require(not (base / 'reference/models').exists(), f'Trained reference models: {base}')
         require(not (base / 'reference/standardized-models').exists(), f'Trained reference models: {base}')
@@ -70,14 +78,23 @@ def validate():
             for name in expected:
                 canonical = data_file if name == 'data.json' else base / 'source' / name
                 require(archive.read(name) == canonical.read_bytes(), f'Package/source mismatch: {base.name}/{name}')
-        for relative, digest in json.loads((base / 'reference/package-sha256.json').read_text()).items():
+        manifest = json.loads((base / 'reference/package-sha256.json').read_text())
+        require(set(manifest) == {str(package.relative_to(base)), 'description.html', 'description.md'},
+                f'Incomplete release manifest: {base}')
+        for relative, digest in manifest.items():
             require(hashlib.sha256((base / relative).read_bytes()).hexdigest() == digest,
                     f'Package manifest mismatch: {base.name}/{relative}')
-        for dataset in (base / 'Canvas').iterdir():
-            if dataset.name != 'description.html':
-                require(dataset.read_bytes() == (APP / 'public/datasets' / dataset.name).read_bytes(),
-                        f'App/course dataset mismatch: {dataset}')
-                dataset_count += 1
+        handout = Handout((base / 'description.html').read_text())
+        require(handout.datasets, f'Missing dataset browser choices: {base}')
+        for filename in set(handout.datasets):
+            if filename == 'digits-8x8':
+                continue  # The optional image preset has no separate classroom file.
+            entries = [entry for entry in library.values() if entry['file'] == filename]
+            require(len(entries) == 1, f'Unknown app dataset: {base.name}/{filename}')
+            dataset = APP / 'public/datasets' / filename
+            require(hashlib.sha256(dataset.read_bytes()).hexdigest() == entries[0]['sha256'],
+                    f'App dataset hash mismatch: {dataset}')
+            dataset_count += 1
         parts = EARLY_PARTS.get(base.name) or list(data['parts'])
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -100,7 +117,7 @@ def validate():
                         f'Grader subprocess failed: {base.name}/{case}')
         print(f'{base.name}: package, data, manifest, missing/malformed submissions OK', flush=True)
     subprocess.run([sys.executable, str(COURSE / 'scripts/sync-handouts.py'), '--check'], check=True)
-    print(f'Validated 19 public teaching releases and {dataset_count} dataset copies.')
+    print(f'Validated 19 public teaching releases and {dataset_count} app dataset references.')
 
 
 if __name__ == '__main__':

@@ -144,7 +144,7 @@ OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/football/validate-st
 .venv/bin/python scripts/assignments/advanced/audit-narratives.py
 ```
 
-See each Canvas handout and INSTRUCTOR.md for uploads. The final upload ZIP is
+See each Canvas handout and Instructor/INSTRUCTOR.md for uploads. The final upload ZIP is
 gradescope-19-qa-finetuning.zip. Source and reference files stay private.
 Hosted Gradescope and the deployed student app are not tested by local checks.
 Older pilot paths/numbers describe the experiments at the time; Git retains the

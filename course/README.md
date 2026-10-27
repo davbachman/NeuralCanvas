@@ -2,7 +2,7 @@
 
 This directory contains the complete current teaching releases for the
 [19-assignment course](../README.md#course-assignments): student handouts,
-datasets, ready-to-upload autograders, grader source, instructor notes, rubrics,
+ready-to-upload autograders, grader source, instructor notes, rubrics,
 curriculum plans, and validation summaries. No private repository is needed to
 teach the course or rebuild its autograders.
 
@@ -10,11 +10,11 @@ Created by David Bachman with Codex.
 
 ## Use an assignment
 
-1. Open its folder under [assignments/](assignments/) and read INSTRUCTOR.md.
-2. Paste `Canvas/description.html` into Canvas's HTML editor; set your own due
-   date and Gradescope link. Students select datasets in Neural Canvas's dataset
-   browser. The adjacent dataset files preserve exact preparation/provenance;
-   no dataset attachments are needed.
+1. Open its folder under [assignments/](assignments/) and read `Instructor/INSTRUCTOR.md`.
+2. Read `description.md` on GitHub, or paste `description.html` into Canvas's HTML
+   editor; set your own due date and Gradescope link. Students select datasets in Neural Canvas's dataset
+   browser. Datasets live in the app's [public/datasets/](../public/datasets/);
+   no dataset attachments or assignment-local copies are needed.
 3. Upload the ZIP in `Gradescope/` to a 100-point Gradescope Programming
    Assignment, using the base image, memory, and timeout in the instructor guide.
 4. Follow the handout's model filenames and the guide's submission/rubric notes.
@@ -28,11 +28,12 @@ Canvas or Gradescope. Local runner checks do not certify hosted Gradescope.
 
 | Location | Contents |
 | --- | --- |
-| `assignments/*/Canvas/` | Canonical student handout and exact dataset fixtures |
+| `assignments/*/description.html` | Canonical student handout for Canvas's HTML editor |
+| `assignments/*/description.md` | Generated Markdown handout for viewing on GitHub |
 | `assignments/*/Gradescope/` | One current Gradescope upload ZIP |
 | `assignments/*/source/` | Self-contained bounded grader, runner, and setup |
 | `assignments/*/reference/` | Canonical grading data, untrained graph templates, provenance, and package hashes |
-| `assignments/*/INSTRUCTOR.md` | Publishing, construction, rubric, teaching, and validation notes |
+| `assignments/*/Instructor/INSTRUCTOR.md` | Publishing, construction, rubric, teaching, and validation notes |
 | [docs/REMAINING-SEMESTER-SCHEDULE.md](docs/REMAINING-SEMESTER-SCHEDULE.md) | Current course sequence |
 | [docs/ASSIGNMENT-DESIGN.md](docs/ASSIGNMENT-DESIGN.md) | Course design and assessment principles |
 | [docs/README.md](docs/README.md) | Current and historical validation reports |
@@ -58,8 +59,8 @@ python3.12 -m venv .venv
 ```
 
 The check verifies every upload ZIP against its canonical sources and hashes,
-checks the dataset copies against the app, checks that templates contain no
-trained weights, and runs each packaged grader with malformed submissions.
+checks the referenced app datasets against their recorded hashes, checks that
+templates contain no trained weights, and runs each packaged grader with malformed submissions.
 It needs no private fixtures or network downloads. To grade your own models,
 extract a ZIP into `source/` in a temporary directory, put saved JSON files in
 its sibling `submission/`, then run:
@@ -85,7 +86,10 @@ To rebuild all current uploads from committed data without training:
 Packaging refreshes the ZIP and `reference/package-sha256.json`. Preserve issued
 datasets and rubrics; do not redownload or refit data to run checks.
 
-The deployed student pages are generated from the canonical handouts. From the
-app root, run `python course/scripts/sync-handouts.py` after editing handouts,
-or add `--check` to verify they are current. Instructor guides and graders are
-available through GitHub and are not copied into the app's static site.
+The Markdown descriptions and deployed student pages are generated from the
+canonical HTML handouts. From the app root, run
+`python course/scripts/sync-handouts.py` after editing handouts,
+or add `--check` to verify they are current. The same command refreshes the
+description hashes in each release manifest without rebuilding grader ZIPs.
+Instructor guides and graders are available through GitHub and are not copied
+into the app's static site.
