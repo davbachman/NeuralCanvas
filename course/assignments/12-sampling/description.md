@@ -43,7 +43,7 @@ Temperature changes relative probabilities. Top-k restricts which tokens can be 
 
 For example, Argsort of scores \[0.4, 2.0, 0.1\] returns indices \[1, 0, 2\]. Keeping only its first index should give a probability vector \[0, 1, 0\], still indexed by the original three tokens.
 
-Padding is never a generated token. Use a fixed **Input** tensor of shape **\[1\]** containing the padding token ID **1**, and an Index mask in **Exclude selected** mode to remove padding **before ranking**. Use the resulting ranked indices to construct separate top-k distributions with **k = 1** and **k = 5** at **T = 1**. Preserve the full 25-token output shape; mask unwanted logits rather than shortening the vocabulary logits or setting them to zero. Keep the index construction connected to the model's logits, so it adapts to each input.
+Padding is never a generated token. Use a fixed **Input** tensor of shape **\[1\]** containing the padding token ID **1**, and an **Index mask** in **Exclude selected** mode to remove padding **before ranking**. Use the resulting ranked indices to construct separate top-k distributions with **k = 1** and **k = 5** at **T = 1**. Preserve the full 25-token output shape; mask unwanted logits rather than shortening the vocabulary logits or setting them to zero. Keep the index construction connected to the model's logits, so it adapts to each input.
 
 ## Part C — Combine both controls
 
