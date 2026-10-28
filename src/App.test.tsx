@@ -745,7 +745,7 @@ describe('Neural Canvas app', () => {
 
   it('edits source tensors in Details while keeping canvas cards free of tensor readouts', () => {
     const { container } = render(<App initialGraph={createStarterGraph()} />)
-    editSourceValue('x', '1,2,3', '3')
+    editSourceValue('x', '1,2,3')
     expect(screen.getByLabelText('Tensor values')).toHaveValue('1, 2, 3')
     expect(container.querySelector('.builder-node .node-metrics')).toBeNull()
     fireEvent.click(screen.getByRole('tab', { name: 'Data' }))
@@ -1016,7 +1016,7 @@ describe('Neural Canvas app', () => {
   it('undoes source value edits with Command-Z', async () => {
     render(<App initialGraph={createStarterGraph()} />)
 
-    editSourceValue('x', '1,2,3', '3')
+    editSourceValue('x', '1,2,3')
     expect(screen.getByLabelText('Tensor values')).toHaveValue('1, 2, 3')
     fireEvent.keyDown(document, { key: 'z', metaKey: true })
     expect(screen.getByLabelText('Tensor values')).toHaveValue('2')

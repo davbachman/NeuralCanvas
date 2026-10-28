@@ -8,6 +8,7 @@ import { TensorHeatmap } from './TensorHeatmap'
 import { EditableBlockTitle } from './EditableBlockTitle'
 import { arithmeticInputLabels, isLossNode, lossFormulaForNode, lossKindForNode, lossOptionsForNode, TENSOR_TRANSFORM_OPTIONS } from '../domain/engine'
 import { formatFullTensor, toTensor } from '../domain/tensor'
+import { formatInputValues, parseInputValues } from '../domain/inputValues'
 import type { CoordinateBinding } from '../domain/neuronProjection'
 import type {
   GraphGroup,
@@ -295,19 +296,21 @@ function TensorEditor({
   onParams: Props['onParams']
 }) {
   const value = toTensor(node.params.value)
+  const isInput = node.type === 'input'
+  const manualInput = isInput && node.params.inputMode !== 'random'
+  const editableData = isInput ? formatInputValues(value) : value.data.map(String).join(', ')
   const [shape, setShape] = useState(value.shape.join(', ')),
-    [data, setData] = useState(
-      value.data.map((item) => String(item)).join(', '),
-    ),
+    [data, setData] = useState(editableData),
     [error, setError] = useState('')
   const initializer = initializerForNode(node)
-  const [seed, setSeed] = useState(() => [...node.id].reduce((seed,letter) => (seed*31+letter.charCodeAt(0)) >>> 0,42))
+  const [parameterSeed, setParameterSeed] = useState(() => [...node.id].reduce((seed,letter) => (seed*31+letter.charCodeAt(0)) >>> 0,42))
+  const seed = isInput ? node.params.inputSeed ?? parameterSeed : parameterSeed
   const signature = JSON.stringify(value)
   const [source, setSource] = useState(signature)
   if (source !== signature) {
     setSource(signature)
     setShape(value.shape.join(', '))
-    setData(value.data.map(String).join(', '))
+    setData(editableData)
   }
   const initializeShape = () => {
     try {
@@ -322,6 +325,19 @@ function TensorEditor({
       className="tensor-editor"
       onSubmit={(event) => {
         event.preventDefault()
+        if (manualInput) {
+          try {
+            onValue(node.id, parseInputValues(data))
+            setError('')
+          } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Invalid input values.')
+          }
+          return
+        }
+        if (isInput) {
+          initializeShape()
+          return
+        }
         let dimensions: number[]
         try {
           dimensions = parseTensorShape(shape)
@@ -347,32 +363,55 @@ function TensorEditor({
         setError('')
       }}
     >
-      <label className="inspector-field">
-        Shape <span>e.g. 3, 1 or (3, 1); empty = scalar</span>
-        <input
-          aria-label="Tensor shape"
-          value={shape}
-          onChange={(event) => setShape(event.target.value)}
-          onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); initializeShape() } }}
-        />
-      </label>
-      <p className="coordinate-note">Enter a shape, then initialize its values or enter all values below and apply them.</p>
-      <div className="tensor-initializer"><label className="inspector-field">Initialize<select aria-label="Tensor initializer" value={initializer} onChange={event => onParams(node.id, { initializer: event.target.value as Initializer })}>{INITIALIZERS.map(kind => <option key={kind} value={kind}>{kind === 'xavier' ? 'Xavier · matrices' : kind === 'he' ? 'He · ReLU / filters' : kind}</option>)}</select></label><button type="button" onClick={initializeShape}>Initialize tensor</button></div>
-      {(node.type === 'weight' || node.type === 'bias') && <p className="coordinate-note">Saved with this block. Train → Randomize parameters uses this method with fresh random draws.</p>}
-      <label className="inspector-field">Random seed<NumberInput aria-label="Initializer seed" type="number" value={seed} onChange={event => setSeed(Number(event.target.value))}/></label>
-      <label className="inspector-field">
-        Values
-        <textarea
-          aria-label="Tensor values"
-          rows={Math.min(6, Math.max(2, Math.ceil(value.data.length / 6)))}
-          value={data}
-          onChange={(event) => setData(event.target.value)}
-        />
-      </label>
+      {isInput && <>
+        <label className="inspector-field">Input values
+          <select aria-label="Input value mode" value={node.params.inputMode ?? 'manual'} onChange={event => {
+            onParams(node.id, { inputMode: event.target.value as NodeParams['inputMode'] })
+            setError('')
+          }}>
+            <option value="manual">Manual Value Entry</option>
+            <option value="random">Random Inputs</option>
+          </select>
+        </label>
+        <p className="coordinate-note">Input values stay fixed during training. Param values are updated by training.</p>
+      </>}
+      {!manualInput && <>
+        <label className="inspector-field">
+          Shape <span>e.g. 3, 1 or (3, 1); empty = scalar</span>
+          <input
+            aria-label="Tensor shape"
+            value={shape}
+            onChange={(event) => setShape(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); initializeShape() } }}
+          />
+        </label>
+        <p className="coordinate-note">{isInput ? 'Choose a shape, initialization method, and seed, then generate fixed input values.' : 'Enter a shape, then initialize its values or enter all values below and apply them.'}</p>
+        <div className="tensor-initializer"><label className="inspector-field">Initialize<select aria-label="Tensor initializer" value={initializer} onChange={event => onParams(node.id, { initializer: event.target.value as Initializer })}>{INITIALIZERS.map(kind => <option key={kind} value={kind}>{kind === 'xavier' ? 'Xavier · matrices' : kind === 'he' ? 'He · ReLU / filters' : kind}</option>)}</select></label><button type="button" onClick={initializeShape}>{isInput ? 'Generate inputs' : 'Initialize tensor'}</button></div>
+        {(node.type === 'weight' || node.type === 'bias') && <p className="coordinate-note">Saved with this block. Train → Randomize parameters uses this method with fresh random draws.</p>}
+        <label className="inspector-field">Random seed<NumberInput aria-label="Initializer seed" type="number" min={isInput ? 0 : undefined} max={isInput ? 0xffffffff : undefined} step="1" value={seed} onChange={event => {
+          const next = Number(event.target.value)
+          if (isInput) {
+            if (Number.isInteger(next) && next >= 0 && next <= 0xffffffff) onParams(node.id, { inputSeed: next })
+          } else setParameterSeed(next)
+        }}/></label>
+      </>}
+      {(!isInput || manualInput) && <>
+        <label className="inspector-field">
+          Values
+          <textarea
+            aria-label="Tensor values"
+            rows={Math.min(6, Math.max(2, Math.ceil(value.data.length / 6)))}
+            value={data}
+            placeholder={isInput ? '2 or 1, 2, 3 or [[1, 2], [3, 4]]' : undefined}
+            onChange={(event) => setData(event.target.value)}
+          />
+        </label>
+        {manualInput && <p className="coordinate-note">Enter a number, a comma-separated list, or nested arrays such as [[1, 2], [3, 4]]. Brackets determine matrix and tensor shapes.</p>}
+        <button type="submit" className="inspector-wide">
+          Apply values
+        </button>
+      </>}
       {error && <p role="alert">{error}</p>}
-      <button type="submit" className="inspector-wide">
-        Apply values
-      </button>
     </form>
   )
 }

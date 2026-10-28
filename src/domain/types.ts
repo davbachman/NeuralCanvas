@@ -106,6 +106,9 @@ export type Initializer = 'zeros' | 'ones' | 'xavier' | 'he' | 'uniform'
 export interface NodeParams {
   /** Preferred method for initializing or randomizing this parameter. */
   initializer?: Initializer
+  /** Input authoring controls; neither mode makes the input trainable. */
+  inputMode?: 'manual' | 'random'
+  inputSeed?: number
   /** Optional variable name used in displayed formulas and pseudocode. */
   outputName?: string
   value?: TensorValue | number

@@ -16,7 +16,7 @@ type Captured = { value: TensorValue; rows?: number[]; axes: string[]; labels: A
  * inference run. Numerical settings, dataset contents, and wiring do. */
 export function inferenceSignature(graph: GraphModel, datasetId = graph.nodes.find(node => node.type === 'dataset')?.id): string {
   return JSON.stringify({
-    nodes: graph.nodes.map(node => ({ id: node.id, type: node.type, params: Object.fromEntries(Object.entries(node.params).filter(([key]) => key !== 'outputName' && key !== 'initializer' && !(node.id === datasetId && ['datasetIndex', 'datasetSplit', 'datasetValues', 'storyExperiment'].includes(key)))) })),
+    nodes: graph.nodes.map(node => ({ id: node.id, type: node.type, params: Object.fromEntries(Object.entries(node.params).filter(([key]) => !['outputName', 'initializer', 'inputMode', 'inputSeed'].includes(key) && !(node.id === datasetId && ['datasetIndex', 'datasetSplit', 'datasetValues', 'storyExperiment'].includes(key)))) })),
     edges: graph.edges.map(({ source, target, sourceSlot, inputSlot }) => ({ source, target, sourceSlot, inputSlot })),
   })
 }

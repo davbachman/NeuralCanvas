@@ -238,3 +238,16 @@ it('saves preferred initializers and rejects unknown initialization methods', ()
   invalid.state.graph.nodes.find((node: { id: string }) => node.id === 'w').params.initializer = 'unknown'
   expect(parseProjectStateFile(JSON.stringify(invalid)).ok).toBe(false)
 })
+
+it('round-trips input authoring modes and seeds without changing input values', () => {
+  const state = projectSnapshot(), input = state.graph.nodes.find(node => node.type === 'input')!
+  input.params = { ...input.params, inputMode: 'random', inputSeed: 137, initializer: 'uniform' }
+  const file = createProjectStateFile(state), parsed = parseProjectStateFile(JSON.stringify(file))
+  expect(parsed.ok).toBe(true)
+  if (parsed.ok) expect(parsed.file.state.graph.nodes.find(node => node.id === input.id)!.params).toEqual(input.params)
+  for (const changes of [{ inputMode: 'automatic' }, { inputSeed: -1 }, { inputSeed: .5 }, { inputSeed: 0x100000000 }]) {
+    const invalid = structuredClone(file)
+    Object.assign(invalid.state.graph.nodes.find(node => node.id === input.id)!.params, changes)
+    expect(parseProjectStateFile(JSON.stringify(invalid)).ok).toBe(false)
+  }
+})

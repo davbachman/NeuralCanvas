@@ -2162,7 +2162,7 @@ function summarizeUpdateSteps(steps: EvaluationTraceStep[]): EvaluationTraceStep
 
 function computationSignature(graph: GraphModel): string {
   return JSON.stringify({
-    nodes: graph.nodes.map(({ id, type, params }) => ({ id, type, params: Object.fromEntries(Object.entries(params).filter(([key]) => key !== 'initializer')) })),
+    nodes: graph.nodes.map(({ id, type, params }) => ({ id, type, params: Object.fromEntries(Object.entries(params).filter(([key]) => !['initializer', 'inputMode', 'inputSeed'].includes(key))) })),
     edges: graph.edges.map(({ id, source, sourceSlot, target, inputSlot }) => ({
       id,
       source,
@@ -2181,7 +2181,7 @@ function mergeExecutionGraph(current: GraphModel, evaluated: GraphModel): GraphM
     ...current,
     nodes: current.nodes.map(node => {
       const result = nodes.get(node.id)
-      return result ? { ...result, params: { ...result.params, initializer: node.params.initializer }, label: node.label, position: node.position, dimensions: node.dimensions } : node
+      return result ? { ...result, params: { ...result.params, initializer: node.params.initializer, inputMode: node.params.inputMode, inputSeed: node.params.inputSeed }, label: node.label, position: node.position, dimensions: node.dimensions } : node
     }),
     edges: current.edges.map(edge => ({ ...edge, value: edges.get(edge.id)?.value, grad: edges.get(edge.id)?.grad })),
   }

@@ -7,6 +7,7 @@ import { blockPalette } from '../domain/blockPalette'
 import { formulaForNode, forwardPass } from '../domain/engine'
 import { datasetOutputValueForSlot } from '../domain/datasets'
 import { tensorValue } from '../domain/tensor'
+import { initializeTensor } from '../domain/authoring'
 import { predictionNode } from '../domain/datasetTraining'
 import type { GraphModel, GraphNode } from '../domain/types'
 import { ModelInspector } from './ModelInspector'
@@ -22,6 +23,51 @@ function InspectorHarness({initial}: {initial:GraphNode}) {
 }
 
 describe('scratch model authoring controls',()=>{
+  it('defaults inputs to manual entry and applies matrix dimensions from brackets', () => {
+    const initial = createNode('input', 1), onValue = vi.fn()
+    render(<ModelInspector {...callbacks} graph={{ nodes: [initial], edges: [], learningRate: .01 }} node={initial} onValue={onValue}/>)
+    expect(screen.getByLabelText('Input value mode')).toHaveValue('manual')
+    expect(screen.getByLabelText('Tensor values')).toBeVisible()
+    expect(screen.queryByLabelText('Tensor shape')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Tensor initializer')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Initializer seed')).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Tensor values'), { target: { value: '[[1, 2], [3, 4]]' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply values' }))
+    expect(onValue).toHaveBeenLastCalledWith(initial.id, tensorValue([2, 2], [1, 2, 3, 4]))
+    fireEvent.change(screen.getByLabelText('Tensor values'), { target: { value: '[[1, 2], [3]]' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply values' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('rectangular')
+    expect(onValue).toHaveBeenCalledTimes(1)
+  })
+
+  it('generates seeded inputs only on request and preserves values when switching modes', () => {
+    const initial = createNode('input', 1)
+    initial.params.value = tensorValue([2, 2], [1, 2, 3, 4])
+    render(<InspectorHarness initial={initial}/>)
+    const manual = (screen.getByLabelText('Tensor values') as HTMLTextAreaElement).value
+    fireEvent.change(screen.getByLabelText('Input value mode'), { target: { value: 'random' } })
+    expect(screen.queryByLabelText('Tensor values')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Apply values' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Tensor shape')).toHaveValue('2, 2')
+    fireEvent.change(screen.getByLabelText('Tensor initializer'), { target: { value: 'uniform' } })
+    fireEvent.change(screen.getByLabelText('Initializer seed'), { target: { value: '137' } })
+    fireEvent.change(screen.getByLabelText('Input value mode'), { target: { value: 'manual' } })
+    expect(screen.getByLabelText('Tensor values')).toHaveValue(manual)
+    fireEvent.change(screen.getByLabelText('Input value mode'), { target: { value: 'random' } })
+    expect(screen.getByLabelText('Initializer seed')).toHaveValue(137)
+    fireEvent.click(screen.getByRole('button', { name: 'Generate inputs' }))
+    fireEvent.change(screen.getByLabelText('Input value mode'), { target: { value: 'manual' } })
+    const first = (screen.getByLabelText('Tensor values') as HTMLTextAreaElement).value
+    expect(JSON.parse(first)).toEqual([
+      initializeTensor([2, 2], 'uniform', 137).data.slice(0, 2),
+      initializeTensor([2, 2], 'uniform', 137).data.slice(2),
+    ])
+    fireEvent.change(screen.getByLabelText('Input value mode'), { target: { value: 'random' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Generate inputs' }))
+    fireEvent.change(screen.getByLabelText('Input value mode'), { target: { value: 'manual' } })
+    expect(screen.getByLabelText('Tensor values')).toHaveValue(first)
+  })
+
   it('exposes sort order and index selection mode in Details',()=>{
     const first=render(<InspectorHarness initial={createNode('argsort',1)}/>)
     expect(screen.getByLabelText('Argsort order')).toHaveValue('descending')
@@ -42,6 +88,7 @@ describe('scratch model authoring controls',()=>{
   })
   it('creates an entire filter tensor and retains the selected initializer',()=>{
     render(<InspectorHarness initial={createNode('weight',1)}/>)
+    expect(screen.queryByLabelText('Input value mode')).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Tensor shape'),{target:{value:'4,3,3,1'}})
     fireEvent.change(screen.getByLabelText('Tensor initializer'),{target:{value:'he'}})
     fireEvent.click(screen.getByRole('button',{name:'Initialize tensor'}))

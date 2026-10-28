@@ -244,6 +244,8 @@ function isNodeParams(value: unknown): value is NodeParams {
   if (!isRecord(value)) return false
   return (
     (value.initializer === undefined || INITIALIZERS.includes(value.initializer as Initializer)) &&
+    (value.inputMode === undefined || value.inputMode === 'manual' || value.inputMode === 'random') &&
+    (value.inputSeed === undefined || (isOptionalNonNegativeInteger(value.inputSeed) && Number(value.inputSeed) <= 0xffffffff)) &&
     (value.value === undefined || isFiniteNumber(value.value) || isTensorValue(value.value)) &&
     (value.outputName === undefined || (typeof value.outputName === 'string' && /^[A-Za-z_][A-Za-z0-9_]*$/.test(value.outputName))) &&
     (value.activation === undefined || ACTIVATION_KINDS.has(value.activation as ActivationKind)) &&

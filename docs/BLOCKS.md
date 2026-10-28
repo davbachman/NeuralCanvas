@@ -7,7 +7,7 @@ Choose any block from **Build** or the searchable menu on a blank canvas. Select
 | Block | Purpose and inputs |
 | --- | --- |
 | **Dataset** | A built-in or imported data source. Its labeled output ports provide feature columns and targets; see [Datasets](DATASETS.md). |
-| **Input** | An editable constant or a named alias for an incoming dataset feature. A connected value overrides its stored value. |
+| **Input** | Fixed values, entered manually or generated using an initializer and seed, or a named alias for an incoming dataset feature. A connected value overrides its stored value. Training never updates Input values. |
 | **Param** | A trainable scalar or tensor, used for weights, biases, filters, embeddings, or normalization parameters. Enter a shape such as `3, 1`, initialize, and edit individual values. |
 | **Arithmetic** | An expression using `x1`, `x2`, etc. Supports `+`, `-`, `*`, `/`, numeric powers, parentheses, and elementwise broadcasting. |
 | **Matrix product** | `[rows, inner] × [inner, columns] → [rows, columns]`. Feed a learned matrix from Param into the right port. |
@@ -31,6 +31,7 @@ For regression, use mean squared error or mean absolute error. For a binary clas
 
 ## Shape tips
 
+- Input Details defaults to **Manual Value Entry**: enter a scalar, a comma-separated list, or nested arrays such as `[[1, 2], [3, 4]]` for a `[2, 2]` matrix, then **Apply values**. Choose **Random Inputs** to show Shape, Initialize, Random seed, and **Generate inputs** instead. Switching modes keeps the stored values; generating replaces them. The mode, initializer, and seed are saved with the block. Generated inputs remain fixed during training; Param values learn.
 - Reshape changes dimensions without changing the number of values. One `-1` can infer a dimension, for example `-1, 1` for a batch column.
 - Transpose with empty axes reverses the order; `1, 0` swaps matrix rows and columns.
 - Arithmetic broadcasts compatible dimensions. For example, adding a `[width]` bias to a `[batch, width]` matrix applies it to every row.
