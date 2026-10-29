@@ -63,5 +63,12 @@ export function TextDatasetPanel({ node, graph, onParams, onReplace }: { node: G
     {data.task === 'language' && <p>Targets: <code>{decodeTokens(example.target.data, data)}</code></p>}
     {data.task !== 'language' && !structured && <details><summary>Word-order experiment</summary><textarea aria-label="Review experiment" placeholder="Enter text or reverse the current token order" value={draft} onChange={event => setDraft(event.target.value)}/><button type="button" onClick={() => apply()}>Apply text</button><button type="button" onClick={() => apply(true)}>Reverse token order</button><p>Experiment keeps the selected example’s label for comparison. Choose a dataset row to restore its original input.</p>{error && <p role="alert">{error}</p>}</details>}
     <details><summary>Vocabulary · {data.vocabulary.length} entries</summary><input aria-label="Search vocabulary" placeholder="Find a word or ID" value={search} onChange={event => setSearch(event.target.value)}/><div className="text-token-list">{tokens.map(({token, id}) => <span key={id}>{id}: {JSON.stringify(token)}</span>)}</div><p>Showing up to 40 matches. ID 0 means an unknown token. Words and punctuation tokenize separately; internal apostrophes stay within words.</p></details>
+    {data.task === 'classification' && data.classLabels && <details open>
+      <summary>Answer classes · {data.classLabels.length} entries</summary>
+      <div role="list" aria-label="Answer class IDs" className="text-token-list">
+        {data.classLabels.map((label, id) => <span role="listitem" key={id}>{id}: {JSON.stringify(label)}</span>)}
+      </div>
+      <p>Answer class IDs are separate from input vocabulary token IDs. Use these IDs to interpret the final classifier’s probabilities.</p>
+    </details>}
   </section>
 }

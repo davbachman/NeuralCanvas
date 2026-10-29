@@ -88,6 +88,8 @@ An optional CSV column named `split` may contain `train` or `test` for each data
 
 For multiclass text, use `text,label,split` and select the multiclass task in the importer. For structured stories, add a `question` column and put newline-separated facts inside each quoted `text` cell. The fact representation exposes separate fact/question token tensors, fact positions, and padding masks. Vocabulary and answer classes are fitted on training examples; unknown test answer classes and overlong stories produce errors. Fixed token inputs use separate unknown and padding IDs. The inspector shows the encoded facts and question separately.
 
+For multiclass text, **Dataset → Details → Answer classes**, below **Vocabulary**, lists each answer-class ID and label in the dataset’s stored order. Use this mapping to interpret the final classifier’s Softmax probabilities. Answer-class IDs are separate from input vocabulary token IDs.
+
 ## Feature standardization
 
 Place **Standardize features** after assembling numeric inputs and before trainable layers. Click **Fit on training rows** in its inspector. Training means and population standard deviations are saved and reused on held-out rows. Refit after changing the training split or feature construction. See [housing pilot](STANDARDIZATION-HOUSING-PILOT.md).
