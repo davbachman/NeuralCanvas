@@ -5,7 +5,7 @@ import './decoderControls.css'
 import type { GraphModel } from '../domain/types'
 
 export function TextGenerationControls({graph}: {graph: GraphModel}) {
-  const [prompt, setPrompt] = useState('alice'), [sample, setSample] = useState(false), [temperature, setTemperature] = useState(1), [topK, setTopK] = useState(10)
+  const [prompt, setPrompt] = useState('nora'), [sample, setSample] = useState(false), [temperature, setTemperature] = useState(1), [topK, setTopK] = useState(10)
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [rows, setRows] = useState<{token: string; probability: number}[]>([])
   const [continuation, setContinuation] = useState<TextGenerationState>()
   const data = graph.nodes.find(node => node.type === 'dataset' && node.params.textData?.task === 'language')?.params.textData

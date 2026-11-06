@@ -72,11 +72,12 @@ describe('text workflow controls', () => {
     const data = prepareTextDocuments([{text:'alice was beside her sister on the bank',split:'train'}, {text:'the rabbit ran across the field',split:'test'}], 'alice.txt', {task:'language',maxLength:4})
     const graph = buildTextModel(data,'alice-transformer',4), before = JSON.stringify(graph)
     render(<TextGenerationControls graph={graph}/>)
+    const initialPromptLength = (screen.getByLabelText('Text generation prompt') as HTMLTextAreaElement).value.length
     fireEvent.click(screen.getByRole('button',{name:'Inspect next-token probabilities'}))
     await waitFor(() => expect(screen.getByLabelText('Text next-token probabilities')).toHaveTextContent('%'))
     fireEvent.click(screen.getByRole('button',{name:'Generate 40 tokens'}))
     await waitFor(() => expect(screen.getByRole('button',{name:'Generate 40 tokens'})).toBeEnabled())
-    expect((screen.getByLabelText('Text generation prompt') as HTMLTextAreaElement).value.length).toBeGreaterThanOrEqual(45)
+    expect((screen.getByLabelText('Text generation prompt') as HTMLTextAreaElement).value.length).toBeGreaterThanOrEqual(initialPromptLength + 40)
     expect(JSON.stringify(graph)).toBe(before)
     fireEvent.change(screen.getByLabelText('Text generation prompt'),{target:{value:''}})
     fireEvent.click(screen.getByRole('button',{name:'Generate one token'}))
