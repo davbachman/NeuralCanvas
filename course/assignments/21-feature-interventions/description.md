@@ -2,72 +2,95 @@
 
 # Assignment 21: Test features through residual interventions
 
-A feature can correlate with a token context without controlling the model's next prediction. Test that distinction by changing one feature direction inside your frozen transformer and measuring the resulting probabilities. The goal is a bounded, reproducible prediction effect, not a guarantee that a feature represents a clean concept or improves factual accuracy.
+When does a feature activate, and which predictions does its direction support? Investigate both questions in a common pretrained transformer and sparse autoencoder, then build interventions that test its effect on next-word probabilities.
 
-Start from your own **sparse.json** from the sparse-feature lesson. Preserve its 32-feature autoencoder, original transformer values, dataset and reconstruction objective in this file. Use copies for the interventions. No new training is needed.
+Download [**feature-steering.json**](https://davbachman.github.io/NeuralCanvas/models/feature-steering.json) and use **File → Import**. It contains a trained narrative transformer and 32-feature SAE, with every Param frozen and no discovery or steering branches. Use this checkpoint for every submitted file; keep your own sparse.json for comparison. Do not train, randomize or change learned values.
 
-Select your Dataset block and open **Details → Browse datasets…**. Choose **Text and sequences** → **Football stories**. Choose the **Narrative generation** preset. Set **Training targets** to **Every input position**. Click **Use this dataset**. Keep the supplied data and split unchanged.
+The checkpoint embeds the canonical data. Verify its configuration in **Dataset → Details → Browse datasets…**: **Text and sequences** → **Football stories** → **Narrative generation**, with **Training targets → Every input position**. Preserve its 25-word vocabulary, 32-token windows, and 1,534 training / 765 validation windows.
 
-## Choose one feature and restore vocabulary predictions
+## Discover what activates feature 5
 
-Use the feature-context inspector to choose a candidate j. The index is local to your trained encoder: the grader does not require a reference feature number. Your chosen feature must satisfy the bounded activation and prediction requirements below; a feature that is always inactive cannot demonstrate an intervention.
+Investigate **zero-based feature index 5** of the encoder ReLU output h, labelled **sae features**. This index has meaning only in this checkpoint. Run **Test → Run inference** on training data, select h, and open **Data → Inspect feature contexts**. Set **Feature index** to 5, choose **Examples to inspect**, then **Find high activations**. Brackets mark the selected token. Compare surrounding words as well as that token.
 
-In an intervention copy, choose **Train → Freeze existing parameters** so both transformer and autoencoder Params stay fixed. Reconnect the existing Loss prediction to the original vocabulary logits and its target to the Dataset's next-token target output. Choose **Cross entropy (logits)**, **Target source → Dataset target**, **Penalized activation → None**, **Valid-token mask → All valid positions** and **Parameter regularization → Penalty → None**. Keep the complete autoencoder branch and its learned values. This uses one Loss block at a time; do not create another Loss.
+Look for a recurring word at highly activating positions. Check smaller or zero activations in **Data → Dataset row**. Develop a hypothesis on training examples, then check additional examples. For the numerical comparison use the **final input row, position 31**, of each window, holding absolute position fixed; the context inspector can also show other positions.
 
-Use the same intervention location as before: the second block's final feed-forward residual r, immediately before the final output Layer norm. Keep **the original r feeding the autoencoder**. Only the path from r to that output Layer norm should receive r′. This prevents a feedback cycle and preserves the original residual's reconstruction error.
+Record your hypothesis as connected operations in **discovery.json**. Keep the supplied vocabulary Loss and original residual path. Construct:
 
-## Build three visible interventions
+```text
+h_j = one-column Slice of h for feature 5
+X = One-hot encoding of Dataset input token IDs, vocabulary size 25
+m = one-column Slice of X for your hypothesized word
+on_word  = h_j * m
+off_word = h_j * (1 - m)
+```
 
-Let v<sub>j</sub> be row j of your saved decoder Wd, selected by a Slice connected directly to Wd. Let h<sub>j</sub> be the corresponding column of your original ReLU encoder output. Use ordinary Input, Slice, Arithmetic and Matrix product operations. Apply the intervention at **every input position**; use no position mask in these submitted files. The grader measures the final-position next-token distribution.
+Determine Slice axes and exclusive bounds from the shapes. Use Arithmetic for the elementwise products. h\_j, m and the two products have shape **32 × 1**. Use the Dataset's input IDs, not next-token targets. Find your word's vocabulary index in the Dataset's Data view. Keep both activation branches visible, with no new Params or changes to Loss.
 
-| File | Required construction | Purpose |
+Compare the two branches on the same examples. The grader verifies their construction and scores the association on final positions of all canonical training and validation windows. **AUROC** is the fraction of matching-word / other-word pairs in which activation is larger on the matching word, with ties counting one-half. Require AUROC ≥ **0.98** and a mean activation gap ≥ **0.5** on both splits, with at least 10 examples per group. No manually selected examples or written interpretation are submitted.
+
+<details>
+<summary>Input-context hint — open after inspecting examples</summary>
+
+Look for the word introducing the consequence clause after a story's events. This checkpoint's feature 5 separates final-position occurrences of **now** from other words. This is an input-context association, not proof of a unique concept or an output effect.
+
+</details>
+
+## Build three interventions on feature 5
+
+Preserve discovery.json and make three copies. The supplied Loss already uses **Cross entropy (logits)**, original vocabulary logits and **Dataset target**, with **Penalized activation → None**, **Valid-token mask → All valid positions** and no parameter penalty. Keep those settings and every Param **Frozen**.
+
+Use the second block's final feed-forward residual r, immediately before final output Layer norm. Keep **the original r feeding the encoder**. Only the path from r to output Layer norm receives r′. Preserve the complete SAE reconstruction and discovery branches.
+
+Let v\_j be row 5 of the actual learned decoder Wd, selected by a Slice connected directly to Wd. Use Input, Slice, Arithmetic and Matrix product to construct:
+
+| File | Construction at every input position | Purpose |
 | --- | --- | --- |
-| zero.json | r′ = r + 0 v<sub>j</sub> | A connected residual intervention with zero strength restores baseline predictions. |
-| amplified.json | r′ = r + α v<sub>j</sub>, with 0 &lt; α ≤ 1 | Add a bounded amount of the selected direction. Start with α = 1. |
-| ablated.json | r′ = r − h<sub>j</sub> v<sub>j</sub> | Remove the selected feature contribution while retaining the reconstruction error. |
+| zero.json | r′ = r + 0 v\_j | Restore original predictions at zero strength. |
+| amplified.json | r′ = r + α v\_j, 0 &lt; α ≤ 1 | Add the bounded direction. Start with α = 1. |
+| ablated.json | r′ = r − h\_j v\_j | Remove the feature contribution, retaining reconstruction error. |
 
-Use the **same j** in all three intervention copies. Keep identical learned values across those copies and sparse.json. Use a fixed scalar strength: an Input or a numeric constant in Arithmetic. Do not add a trainable strength or extra Params. In the ablation file, derive h<sub>j</sub> from the actual encoder activations. Determine the appropriate Slice axes, bounds and broadcasting or matrix product shapes. Your feature-contribution construction from the previous lesson is useful here.
+Use feature 5 in all three files. Determine Slice and Matrix product shapes. Strength must be a fixed scalar, with no new Params. Derive ablation from the actual encoder activation; a fixed negative strength does not implement ablation. Apply the intervention at every position, without a position mask. Do not replace r with the reconstruction, copy decoder numbers into Input, or modify a vocabulary bias.
 
-Do not replace r with r\_hat. Do not add a vocabulary bias, use copied decoder numbers or attach a disconnected steering branch: these constructions do not establish a residual intervention.
+## Discover which continuation the direction supports
 
-## Measure effects and controls
+Compare the same contexts in all three models. Use **Test → Held-out test set → Run inference**, then inspect the final row of the separate vocabulary Softmax in **Data → Dataset row**. Begin with windows ending in your discovered word, and include low-activation controls. The input word associated with a feature need not be the next word it supports.
 
-The grader independently evaluates the **765 canonical validation windows**. For your submitted feature, it ranks windows by h<sub>j</sub> at the final input position, resolving ties by canonical window order. The 32 highest-activation windows form the high-activation group; the 32 lowest form the control group. These sets depend on your learned feature, not on a fixed feature index.
+For a quick comparison select **Dataset → Details → Inspect next-token probabilities** and enter exactly the same prompt in each copy. This display shows the top 12 tokens and excludes padding; the grader uses all 25 entries. Which next word increases under amplification and decreases under ablation? Compare probability changes as well as changes to the most likely token.
 
-For two next-token distributions p and q, **total variation = ½ Σ |p − q|** over all 25 vocabulary entries. It is zero for identical distributions and at most one. The grader checks zero-strength restoration, a measurable amplification effect, a stronger ablation effect on high-activation contexts, small changes on low-activation controls, and bounded collateral changes across all validation windows. It also evaluates the original model's canonical next-token cross entropy independently.
+The grader uses **all validation windows ending in the discovered input word**, without choosing only successful examples. There are 32 for this checkpoint. Amplification must raise the supported output word's mean probability by at least **0.05**, and ablation must reduce the same word's probability by at least **0.15**, relative to zero. These are absolute probability differences. Start with α = 1; a much smaller strength can fail the effect requirement.
 
-Investigate in the app: run **Test → Held-out test set → Run inference**, select h and open **Data**. Set **Examples to inspect** to 765 in the feature-context scan to check the largest activation over the validation windows. Use **Dataset row** to inspect the final row of h and of the separate vocabulary Softmax for the same example in zero.json, amplified.json and ablated.json. The Dataset block's Data view shows the corresponding token IDs and context. Re-run inference after changing a graph. For a typed prompt, **Dataset → Details → Inspect next-token probabilities** provides another quick comparison; that generation display excludes padding and shows only the top 12 tokens, while the grader uses the full 25-entry distribution.
+<details>
+<summary>Output self-check — open after comparing distributions</summary>
 
-Choose a feature whose activation does not exceed the stated bound over **any of the 32 positions in any validation window**. The bound prevents ablation from winning through an overwhelming residual change. Numerical acceptance requirements are listed in the rubric below. You may inspect several features and use a smaller α within the stated range; exhaustive tuning or training a new transformer is unnecessary.
+After **now**, this direction favors **the**, often beginning “the football…”. Original mean P(the) is about 0.282; amplification with α = 1 gives 0.419 and ablation gives 0.018. Amplification makes “the” the most likely next token in all 32 contexts, changing 26 original choices. These results describe this supplied checkpoint; they do not establish improved football-state accuracy.
 
-Validation windows used to select a feature or strength are a validation set, not an untouched final test. A prediction shift demonstrates a causal effect of this intervention in this model. It does not show that the feature is uniquely responsible for a concept or that the resulting story is correct.
+</details>
 
-## Submit — four saved models, 100 points
+## Check controls and submit — four models, 100 points
 
-**Numerical requirements, evaluated from saved operations**
+The grader evaluates all 765 canonical validation windows and ranks final-position activations to select the highest and lowest 32, with canonical-order tie breaking. These groups differ from the 32 word-matched contexts above. **Total variation = ½ Σ |p − q|** over the vocabulary measures any distribution change; the word-specific check measures its direction.
 
 | Check | Requirement |
 | --- | --- |
-| Preserved sparse autoencoder | Original generator cross entropy ≤ 0.60/0.65 training/validation; reconstruction MSE ≤ 0.20 on both; validation active features/token ≤ 12 and inactive features ≤ 16. |
-| Selected feature activation for ablation | Maximum h<sub>j</sub> ≤ 4 over all positions in all validation windows. |
+| Checkpoint / feature | Unchanged supplied transformer and SAE values; frozen Params; feature 5. |
+| Discovery | Connected on-word / off-word activation branches; both-split AUROC ≥ 0.98 and mean activation gap ≥ 0.5. |
 | Zero restoration | Maximum absolute probability difference ≤ 0.0000001. |
-| Amplification | 0 &lt; α ≤ 1; mean final-position total variation ≥ 0.005. |
-| Ablation high-activation contexts | Mean total variation over the highest 32 contexts ≥ 0.05. |
-| Ablation low-activation controls | Mean total variation over the lowest 32 contexts ≤ 0.01. |
-| Collateral changes, amplification and ablation | Mean total variation over all windows ≤ 0.10, and mean final-position cross-entropy increase ≤ 0.30 relative to the unchanged generator. |
+| Amplification | 0 &lt; α ≤ 1; all-window mean TV ≥ 0.005; supported-word mean probability increase ≥ 0.05 on word-matched contexts. |
+| Ablation | High-32 mean TV ≥ 0.05; low-32 mean TV ≤ 0.01; supported-word probability decrease ≥ 0.15 on word-matched contexts. |
+| Bounds / collateral change | Max h\_j ≤ 4 over all validation positions. Both nonzero interventions: mean TV ≤ 0.10 and final-position cross-entropy increase ≤ 0.30. |
 
-| Component | Points |
+The unchanged checkpoint also retains generator cross entropy ≤ 0.60/0.65 training/validation, SAE MSE ≤ 0.20 on both splits, and validation activity ≤ 12 with ≤ 16 inactive features. No retraining is needed.
+
+| Submitted file / component | Points |
 | --- | --- |
-| sparse.json: canonical data, valid frozen reference and autoencoder, useful reconstruction and sparse features | 20 |
-| zero.json: valid connected construction and restored predictions | 20 |
-| amplified.json: bounded decoder-direction construction and independently measured effect | 20 |
-| ablated.json: encoder-derived feature removal, high-activation effect and controls | 30 |
-| Identical transformer and autoencoder values, with the same selected feature across related files | 10 |
+| discovery.json: checkpoint and connected branches / verified association | 10 / 10 |
+| zero.json: construction / restoration | 10 / 10 |
+| amplified.json: construction / distribution and word-specific effects | 10 / 10 |
+| ablated.json: construction / effects and controls | 15 / 15 |
+| Supplied values and assigned feature preserved across all four files | 10 |
 
-Valid components earn partial credit independently. The grader never executes submitted code and ignores cached predictions, losses, labels and training history. No written responses, screenshots or external quiz are required.
+Valid components earn independent partial credit. The grader checks saved operations and values, ignoring cached outputs, labels and inspection history. No written responses, screenshots or quiz are required. The existing validation split was used to choose the checkpoint and feature; it is not an untouched test set. A causal output effect does not establish unique meaning or correct factual tracking.
 
 ## Optional generation and clamping
 
-In an intervention copy use **Dataset → Details → Continue the text** to compare the same prompt with zero, positive and ablated interventions. The edited graph is evaluated again for each generated token. Use **Most likely** for a deterministic illustration; free-running text is not the acceptance test.
-
-Optional extension: clamp the feature to c using **r′ = r + (c − h<sub>j</sub>)v<sub>j</sub>**, or construct a token-position mask. Keep the original residual feeding the encoder. These variants are optional and are not additional submissions.
+Use **Dataset → Details → Continue the text** with **Most likely** to compare continuations of the same prompt. Generation reevaluates the graph at every token; free-running text is not the acceptance test. Optional unsubmitted extensions: try a different feature, clamp to c with r′ = r + (c − h\_j)v\_j, or build a token-position mask. Keep the original residual feeding the encoder.

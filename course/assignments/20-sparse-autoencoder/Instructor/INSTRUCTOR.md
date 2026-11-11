@@ -16,6 +16,14 @@ derive shapes and build a selected feature's rank-one contribution with Slice
 and Matrix product. Inspection supports that artifact; reading contexts or
 claiming a semantic label earns no points.
 
+The revised handout gives families (verbs, names, rooms, punctuation roles and
+story stages), with no trained model or prescribed interpretation. Students use
+training contexts to propose a pattern, check additional contexts, and choose
+the candidate for their graded contribution. Clean semantics is not a grading
+requirement. Distinguish input association from output effect and acknowledge
+that dense controls can also be interpretable. The next lesson deliberately uses
+a common pretrained checkpoint rather than this student-specific feature.
+
 The 48-run NumPy screening study compared narrative and QA bases, widths 32/64,
 four penalties and three independent base/encoder initializations. Width 64
 improved reconstruction but increased active features and inspection complexity.

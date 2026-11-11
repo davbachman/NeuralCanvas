@@ -11,6 +11,12 @@ answer keys, scripts/pilots that produce complete trained solutions, and exams i
 the private NeuralCanvas-Coursework repository. Ask the user when uncertain.
 Do not import private Git history or copy entire private directories here.
 
+Instructor-authorized exception (2026-11-11): Assignment 21 supplies the frozen
+trained checkpoint `student/feature-steering.json`, also deployed at
+`public/models/feature-steering.json`. Keep its hash in the release manifest.
+Completed discovery and intervention constructions remain private. Assignment
+20 continues to use student-built models with no supplied trained model.
+
 All current assignments use the app's dataset browser. Preserve saved-model
 submissions, dataset bytes/splits, published grading thresholds, and stable ZIP
 filenames. Do not add dataset upload instructions, student starter models,

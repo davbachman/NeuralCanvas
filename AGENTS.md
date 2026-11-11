@@ -17,3 +17,9 @@ changing them. Assignments, autograders, wiring/templates, instructor guides,
 rubrics, and validation summaries belong here. Trained solutions, answer keys,
 solution-producing pilots, and exams belong in the private sibling
 `NeuralCanvas-Coursework` repository. Ask the user when the boundary is unclear.
+
+Explicit instructor exception (2026-11-11): the frozen student checkpoint for
+the guided steering assignment is public at
+`course/assignments/21-feature-interventions/student/feature-steering.json`,
+with an identical deployed copy at `public/models/feature-steering.json`.
+This authorization does not extend to completed discovery/intervention solutions.

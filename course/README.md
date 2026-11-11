@@ -21,7 +21,9 @@ Created by David Bachman with Codex.
    Test your own saved models in Gradescope before issuing the assignment.
 
 Students build their own editable models. Later assignments reuse earlier
-trained models; preserve those handoffs. A repository push does not update
+trained models; preserve those handoffs. The guided steering lesson explicitly
+supplies one frozen trained checkpoint, with students constructing its discovery
+and intervention branches. A repository push does not update
 Canvas or Gradescope. Local runner checks do not certify hosted Gradescope.
 
 ## Directory layout

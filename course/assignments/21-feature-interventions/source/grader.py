@@ -293,7 +293,7 @@ def intervention_model(model,part,reference):
 
 def intervention_metrics(model,view,info,part,reference):
     baseline=metrics(view,info,reference)
-    acts=[];tvs=[];loss_change=[];max_activation=0.;zero_error=0.
+    acts=[];tvs=[];loss_change=[];max_activation=0.;zero_error=0.;word_before=[];word_after=[]
     j=info['feature'];direction=view.params[info['decoder']][j]
     for xs,y,split in examples(reference['dataset']):
         if split!='test':continue
@@ -306,14 +306,101 @@ def intervention_metrics(model,view,info,part,reference):
         require(np.allclose(reset,original,rtol=1e-9,atol=1e-10),'Zero intervention does not restore baseline logits.')
         def softmax(z):z=z-z.max();p=np.exp(z);return p/p.sum()
         p=softmax(original[-1]);q=softmax(changed[-1]);tvs.append(float(np.abs(p-q).sum()/2));acts.append(float(h[-1]))
+        checkpoint=reference.get('checkpoint')
+        if checkpoint and xs[0][-1]==reference['dataset']['vocabulary'].index(checkpoint['associationToken']):
+            token=reference['dataset']['vocabulary'].index(checkpoint['outputToken'])
+            word_before.append(float(p[token]));word_after.append(float(q[token]))
         loss_change.append(float(-np.log(max(q[y[-1]],1e-300))+np.log(max(p[y[-1]],1e-300))))
         max_activation=max(max_activation,float(h.max()));zero_error=max(zero_error,float(np.max(np.abs(q-p))) if part=='zero' else 0.)
     order=np.argsort(-np.array(acts),kind='stable');low=np.argsort(np.array(acts),kind='stable');n=reference['contextCount'];tvs=np.array(tvs)
     baseline.update(feature=j,alpha=info['alpha'],mean_tv=float(tvs.mean()),high_tv=float(tvs[order[:n]].mean()),low_tv=float(tvs[low[:n]].mean()),max_activation=max_activation,ce_increase=float(np.mean(loss_change)),zero_error=zero_error)
+    if word_before:
+        baseline.update(word_contexts=len(word_before),word_before=float(np.mean(word_before)),word_after=float(np.mean(word_after)),word_change=float(np.mean(np.array(word_after)-word_before)))
     return baseline
 
 
+def require_checkpoint(info,reference):
+    checkpoint=reference['checkpoint']
+    require(info['base_fingerprint']==checkpoint['baseFingerprint'] and info['sae_fingerprint']==checkpoint['saeFingerprint'],
+            'Preserve every learned transformer and SAE value from the supplied feature-steering.json checkpoint.')
+    require(info.get('feature')==checkpoint['feature'],'Use the assigned zero-based feature index '+str(checkpoint['feature'])+'.')
+
+
+def discovery_model(model,reference):
+    """Restore only the assessment view's internal Loss; student graph keeps CE."""
+    data=reference['dataset'];xs,y,_=next(examples(data));expected,rsig=canonical(reference)
+    model.frozen(set(model.params))
+    require(model.loss['params'].get('loss')=='cross-entropy' and model.loss['params'].get('targetMode','dataset')!='internal',
+            'Keep the supplied vocabulary Cross entropy Loss for discovery.')
+    require(model.loss['params'].get('activationPenaltyStrength',0)==0,'Disable activation penalties in the supplied frozen checkpoint.')
+    target=model.inputs[model.loss['id']][1]
+    require(target['source']==model.source['id'] and target.get('sourceSlot',0)==2,'Keep the original Dataset targets.')
+    _,sig,_,cache=model.execute(xs,y,all_nodes=True)
+    require(sig==expected,'Discovery must retain the original unsteered vocabulary path.')
+    residual=next(k for k,(_,s) in cache.items() if s==rsig and k in model.ancestors(model.loss_sources()[0]))
+    base_params=model.ancestors(model.loss_sources()[0])&model.params.keys();extra=set(model.params)-base_params
+    require(len(extra)==4,'Keep exactly the supplied encoder, decoder and biases.')
+    reconstruction=None
+    for we,be,wd,bd in itertools.permutations(extra):
+        if model.params[we].shape!=(16,32) or model.params[wd].shape!=(32,16) or model.params[be].shape not in [(32,),(1,32)] or model.params[bd].shape not in [(16,),(1,16)]:continue
+        hidden=('relu',add_signature(('matmul',rsig,cache[we][1]),cache[be][1]))
+        recon=add_signature(('matmul',hidden,cache[wd][1]),cache[bd][1])
+        reconstruction=next((k for k,(_,s) in cache.items() if s==recon),None)
+        if reconstruction:break
+    require(reconstruction is not None,'Preserve the supplied SAE reconstruction branch.')
+    graph=dict(nodes=copy.deepcopy(list(model.nodes.values())),edges=copy.deepcopy([e for edges in model.inputs.values() for e in edges]))
+    for node in graph['nodes']:
+        if node['id'] in extra:node['params']['trainable']=True
+        if node['id']==model.loss['id']:node['params']=dict(loss='mse',targetMode='internal')
+    for edge in graph['edges']:
+        if edge['target']==model.loss['id']:edge.update(source=reconstruction if edge['inputSlot']==0 else residual,sourceSlot=0)
+    view=Graph(graph,data);info=discover(view,reference,True)
+    info['feature']=reference['checkpoint']['feature'];require_checkpoint(info,reference)
+    _,_,_,values=model.execute(xs,y,all_nodes=True,with_values=True)
+    h=('slice',1,info['feature'],info['feature']+1,values[info['hidden']][1])
+    from graph_eval import expression
+    tokens_signature=('feature',0)
+    # Read the Dataset signature from a genuine One-hot ancestor, never a name.
+    token_id=None
+    for token in range(len(data['vocabulary'])):
+        mask=('slice',1,token,token+1,('one-hot',len(data['vocabulary']),tokens_signature))
+        on=expression('x1 * x2',[h,mask],True)
+        off=expression('x1 * (1 - x2)',[h,mask],True)
+        if any(s==on for _,s in values.values()) and any(s==off for _,s in values.values()):
+            token_id=token;break
+    require(token_id is not None,'Build h_j*m and h_j*(1-m), where m is a Slice of One-hot encoding of the current Dataset token IDs.')
+    info['token_id']=token_id
+    return view,info
+
+
+def grade_discovery(path,reference):
+    rules=reference['parts']['discovery']['points'];tests=[]
+    def add(name,ok,message):tests.append(dict(name='discovery — '+name,score=rules[name] if ok else 0,max_score=rules[name],output=message,visibility='visible'))
+    try:
+        model=load(path,reference['dataset']);view,info=discovery_model(model,reference)
+        add('form',True,'Frozen supplied checkpoint and connected word-conditioned activation branches verified.')
+    except Exception as error:
+        add('form',False,str(error));add('association',False,'Association credit requires a valid discovery construction.');return dict(tests=tests,metrics={})
+    try:
+        rows={s:[] for s in ('train','test')}
+        for xs,y,split in examples(reference['dataset']):
+            _,_,_,cache=model.execute(xs,y,endpoint=info['hidden'])
+            rows[split].append((bool(xs[0][-1]==info['token_id']),float(cache[info['hidden']][0][-1,info['feature']])))
+        measured={};good=True
+        for split,observations in rows.items():
+            yes=np.array([v for label,v in observations if label]);no=np.array([v for label,v in observations if not label])
+            require(len(yes)>=10 and len(no)>=10,'Select a word with enough positive and negative canonical contexts.')
+            auc=float(np.mean((yes[:,None]>no[None,:])+.5*(yes[:,None]==no[None,:])))
+            gap=float(yes.mean()-no.mean());measured[split]=dict(positives=len(yes),negatives=len(no),auc=auc,mean_gap=gap)
+            good=good and auc>=reference['checkpoint']['minAssociationAuc'] and gap>=reference['checkpoint']['minMeanActivationGap']
+        add('association',bool(good),f"Selected input word {reference['dataset']['vocabulary'][info['token_id']]!r}; final-position association: {measured}. This describes input context, not the output word supported by the feature.")
+        return dict(tests=tests,metrics=measured,base_fingerprint=info['base_fingerprint'],sae_fingerprint=info['sae_fingerprint'],adequate_base=True,feature=info['feature'])
+    except Exception as error:
+        add('association',False,str(error));return dict(tests=tests,metrics={})
+
+
 def grade_intervention(path,part,reference):
+    if part=='discovery':return grade_discovery(path,reference)
     if part=='sparse':
         original=copy.deepcopy(reference);original['parts']['sparse']=reference['saeRule']
         result=grade_model(path,'sparse',original)
@@ -322,7 +409,10 @@ def grade_intervention(path,part,reference):
     rules=reference['parts'][part];tests=[]
     def add(name,ok,message):
         points=rules['points'][name];tests.append(dict(name=f'{part} — {name}',score=points if ok else 0,max_score=points,output=message,visibility='visible'))
-    try:model=load(path,reference['dataset']);view,info=intervention_model(model,part,reference);add('form',True,'Residual path, original encoder input, same-feature direction, frozen values and bounded strength verified.')
+    try:
+        model=load(path,reference['dataset']);view,info=intervention_model(model,part,reference)
+        if 'checkpoint' in reference:require_checkpoint(info,reference)
+        add('form',True,'Residual path, original encoder input, assigned feature, frozen checkpoint values and bounded strength verified.')
     except Exception as error:
         for name in rules['points']:add(name,False,str(error) if name=='form' else 'Submit a valid independent intervention for behavioral credit.')
         return dict(tests=tests,metrics={})
@@ -332,7 +422,12 @@ def grade_intervention(path,part,reference):
         if part=='zero':good=adequate and m['zero_error']<=reference['zeroTolerance']
         elif part=='amplified':good=adequate and reference['minAmplificationTV']<=m['mean_tv']<=reference['maxMeanTV'] and m['ce_increase']<=reference['maxCEIncrease']
         else:good=adequate and m['high_tv']>=reference['minHighTV'] and m['low_tv']<=reference['maxLowTV'] and m['max_activation']<=reference['maxActivation'] and m['mean_tv']<=reference['maxMeanTV'] and m['ce_increase']<=reference['maxCEIncrease']
+        if 'checkpoint' in reference and part!='zero':
+            checkpoint=reference['checkpoint'];change=m.get('word_change',0)
+            good=good and (change>=checkpoint['minAmplificationProbabilityIncrease'] if part=='amplified' else -change>=checkpoint['minAblationProbabilityDecrease'])
         add('effect',bool(good),f"Feature {m['feature']}; mean TV {m['mean_tv']:.6f}; high-{reference['contextCount']} TV {m['high_tv']:.6f}; low-{reference['contextCount']} TV {m['low_tv']:.6f}; maximum h across validation tokens {m['max_activation']:.6f}; final-token CE change {m['ce_increase']:.6f}; zero probability error {m['zero_error']:.3g}.")
+        if 'word_before' in m:
+            tests[-1]['output']+=f" On {m['word_contexts']} contexts ending in {reference['checkpoint']['associationToken']!r}, mean P({reference['checkpoint']['outputToken']!r}) {m['word_before']:.6f} → {m['word_after']:.6f} (change {m['word_change']:+.6f})."
         return dict(tests=tests,metrics=m,base_fingerprint=info['base_fingerprint'],sae_fingerprint=info['sae_fingerprint'],adequate_base=bool(adequate),quality_ok=bool(good),feature=info['feature'])
     except Exception as error:
         add('effect',False,'Evaluation failed: '+str(error));return dict(tests=tests,metrics={})

@@ -27,14 +27,21 @@ releases and original datasets remain intact. See
 
 Assignments 20 and 21 append sparse residual reconstruction and controlled
 feature interventions. The original 1–19 numbering, datasets, rubrics and
-releases are preserved. Both extensions use the student's saved multihead.json
-narrative checkpoint; QA fine-tuning does not overwrite this handoff. Students
-build an unpenalized and sparse autoencoder with frozen transformer values,
-unit-norm decoder directions, and an independently constructed feature
-contribution. The next lesson grades zero restoration, bounded amplification,
-feature ablation and controls from saved graph operations. Feature indices are
-student-specific; semantic labels and training-history claims earn no points.
-See [INTERPRETABILITY-EXTENSION.md](INTERPRETABILITY-EXTENSION.md) for evidence,
+releases are preserved. The first extension uses the student's saved
+multihead.json narrative checkpoint;
+QA fine-tuning does not overwrite this handoff. Students build dense and sparse
+SAEs and explore example feature families, with a student-selected contribution
+as the automatically graded artifact. On 2026-11-11 the instructor explicitly
+authorized a common frozen pretrained transformer/SAE for the second extension.
+Students discover the context associated with specified feature 5, submit
+word-conditioned activation branches, then construct zero, amplified and ablated
+interventions and discover the supported continuation. Both association and
+directional output effects are automatically graded from saved operations.
+The single student checkpoint is a narrow exception to the normal rule against
+supplied trained models; completed constructions remain private. No written
+responses or external quiz are added. Feature indices in the first extension
+remain student-specific. See [INTERPRETABILITY-EXTENSION.md](INTERPRETABILITY-EXTENSION.md)
+for evidence,
 the selected recipe, grading targets and validation limits. Earlier dated
 decisions below retain their original numbering and scope.
 

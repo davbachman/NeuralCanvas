@@ -18,3 +18,10 @@ The files are complete editable projects, not screenshots or locked demonstratio
 | [block.json](block.json), [block-untrained.json](block-untrained.json) | Transformer block with trained or initial weights |
 | [decoder.json](decoder.json), [decoder-untrained.json](decoder-untrained.json) | Full miniature decoder with trained or initial weights |
 | [cnn.json](cnn.json) | Digit CNN |
+
+## Guided feature steering checkpoint
+
+[feature-steering.json](feature-steering.json) is the instructor-supplied frozen
+transformer and SAE for the feature-intervention lesson. It contains no completed
+discovery or steering branches. Follow the [student handout](../course/21-feature-interventions.html)
+for the guided investigation. Other completed assignment solutions remain private.

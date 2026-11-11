@@ -1,5 +1,6 @@
 {
-  "Gradescope/gradescope-21-feature-interventions.zip": "a176982e708d73f90c65b055feb026daeee599616b6fa2d1f9a5c1e77bdd93de",
-  "description.html": "8f9659b9af02e95780b7a6718629264447c7748215010f8d68f5246e2020cd0d",
-  "description.md": "6d3ee3c4cbea969db4c9426182b8e88c05ccc154e7b91bba5e815dc98267334a"
+  "Gradescope/gradescope-21-feature-interventions.zip": "27ed34dc02685f210c514e07189255394e65a83f16d0cfe1a3d498680479ad0b",
+  "description.html": "dc5f5d0767021503037471de02eb80f362900dd953ba7384ec48a9b517c1ebba",
+  "description.md": "46c4306522c78f58b1b870eca2ebc0b7a63bb8ac65a5acd7415356e9cb6fa5ad",
+  "student/feature-steering.json": "ca394b06be55b08067a08946db40119672cedb64e17d0bc959ef29562c54b100"
 }

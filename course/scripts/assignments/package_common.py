@@ -9,6 +9,9 @@ def write_manifest(base):
     packages = list((base / 'Gradescope').glob('*.zip'))
     assert len(packages) == 1, f'Expected one current package: {base}'
     files = [packages[0], base / 'description.html', base / 'description.md']
+    config = json.loads((base / 'reference/data.json').read_text())
+    if config.get('checkpoint'):
+        files.append(base / config['checkpoint']['file'])
     manifest = {str(p.relative_to(base)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
     (base / 'reference/package-sha256.json').write_text(json.dumps(manifest, indent=2) + '\n')
 

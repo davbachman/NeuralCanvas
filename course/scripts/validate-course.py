@@ -42,6 +42,14 @@ def check_templates(value, path):
 
 
 def validate():
+    # Explicit instructor authorization: one frozen student checkpoint for the
+    # guided steering lesson. Completed discovery/intervention models stay private.
+    checkpoint_base = COURSE / 'assignments/21-feature-interventions'
+    checkpoint_config = json.loads((checkpoint_base / 'reference/data.json').read_text())['checkpoint']
+    student_checkpoint = checkpoint_base / checkpoint_config['file']
+    require(student_checkpoint == checkpoint_base / 'student/feature-steering.json', 'Unexpected trained checkpoint exception')
+    require(hashlib.sha256(student_checkpoint.read_bytes()).hexdigest() == checkpoint_config['sha256'], 'Student checkpoint hash mismatch')
+    require((APP / 'public/models/feature-steering.json').read_bytes() == student_checkpoint.read_bytes(), 'Deployed checkpoint differs from canonical student asset')
     assignments = sorted(path for path in (COURSE / 'assignments').iterdir() if path.is_dir())
     require(len(assignments) == 21, 'Expected all 21 current assignments')
     require([int(path.name[:2]) for path in assignments] == list(range(1, 22)),
@@ -52,7 +60,8 @@ def validate():
             continue
         require(not path.is_symlink(), f'Public material depends on an external link: {path}')
         if path.suffix == '.json':
-            check_templates(json.loads(path.read_text()), path)
+            if path != student_checkpoint:
+                check_templates(json.loads(path.read_text()), path)
     library = json.loads((APP / 'src/learning/dataset-library.json').read_text())
     dataset_count = 0
     for base in assignments:
@@ -81,7 +90,10 @@ def validate():
                 canonical = data_file if name == 'data.json' else base / 'source' / name
                 require(archive.read(name) == canonical.read_bytes(), f'Package/source mismatch: {base.name}/{name}')
         manifest = json.loads((base / 'reference/package-sha256.json').read_text())
-        require(set(manifest) == {str(package.relative_to(base)), 'description.html', 'description.md'},
+        expected_manifest = {str(package.relative_to(base)), 'description.html', 'description.md'}
+        if data.get('checkpoint'):
+            expected_manifest.add(data['checkpoint']['file'])
+        require(set(manifest) == expected_manifest,
                 f'Incomplete release manifest: {base}')
         for relative, digest in manifest.items():
             require(hashlib.sha256((base / relative).read_bytes()).hexdigest() == digest,

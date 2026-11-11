@@ -29,8 +29,8 @@ ok=all(p in reports and reports[p].get('adequate_base') for p in parts)
 for field in ('base_fingerprint','sae_fingerprint'):
     values=[reports.get(p,{}).get(field) for p in parts]
     ok=ok and all(values) and len(set(values))==1
-features=[reports.get(p,{}).get('feature') for p in ('zero','amplified','ablated')]
+features=[reports.get(p,{}).get('feature') for p in parts]
 ok=ok and all(x is not None for x in features) and len(set(features))==1
-tests.append(dict(name='Unchanged transformer, sparse autoencoder and selected feature',score=rule['points'] if ok else 0,max_score=rule['points'],output='All four files must preserve one adequately trained transformer and sparse autoencoder; the three intervention files must select the same feature.',visibility='visible'))
+tests.append(dict(name='Supplied checkpoint and assigned feature preserved',score=rule['points'] if ok else 0,max_score=rule['points'],output='All four files must preserve the supplied transformer and SAE values and use the assigned feature.',visibility='visible'))
 result=dict(tests=tests,score=sum(t['score'] for t in tests),output='Metrics recomputed from submitted operations and values on canonical data. Cached scores and training histories are ignored.',visibility='visible',stdout_visibility='hidden',output_format='text',test_output_format='text',test_name_format='text')
 (root/'results/results.json').write_text(json.dumps(result,allow_nan=False))

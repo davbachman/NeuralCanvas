@@ -7578,12 +7578,10 @@
     0.1
   ],
   "parts": {
-    "sparse": {
+    "discovery": {
       "points": {
-        "data": 5,
-        "form": 5,
-        "quality": 5,
-        "sparsity": 5
+        "form": 10,
+        "association": 10
       }
     },
     "zero": {
@@ -7607,7 +7605,7 @@
   },
   "comparison": {
     "parts": [
-      "sparse",
+      "discovery",
       "zero",
       "amplified",
       "ablated"
@@ -7647,5 +7645,18 @@
     ],
     "validationRole": "Model-selection validation, not an untouched test set."
   },
-  "zeroTolerance": 1e-07
+  "zeroTolerance": 1e-07,
+  "checkpoint": {
+    "file": "student/feature-steering.json",
+    "sha256": "ca394b06be55b08067a08946db40119672cedb64e17d0bc959ef29562c54b100",
+    "baseFingerprint": "2530f900ca01671a8d33de1cdf14ef86256b574233c41dc861db4e1105a5d276",
+    "saeFingerprint": "e10b88f6b4f4d4e2bba73dbcfe2291a896abdb850890bf7f9d566a0ba682f6b4",
+    "feature": 5,
+    "associationToken": "now",
+    "outputToken": "the",
+    "minAssociationAuc": 0.98,
+    "minMeanActivationGap": 0.5,
+    "minAmplificationProbabilityIncrease": 0.05,
+    "minAblationProbabilityDecrease": 0.15
+  }
 }

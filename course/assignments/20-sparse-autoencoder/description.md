@@ -70,7 +70,15 @@ Activation L1 is different from the existing parameter penalty. Reconstruction e
 
 Use **Test → Run inference** on the training split. Select h and open **Data → Inspect feature contexts**. Choose a zero-based **Feature index** and **Examples to inspect**, then **Find high activations**. The scan ranks positive activations and brackets the selected token in its context. Increase the example limit when needed; results describe only the scanned examples. Use this inspection to choose a feature for the construction below. You submit the construction, not a claim that you inspected examples.
 
-## Independent construction: isolate one feature's contribution
+## Look for a feature family in your own model
+
+Use your trained model, without a supplied pretrained SAE, to choose a candidate for the submitted contribution below. Possible families include a particular verb or person's name; a word class such as rooms; periods ending events versus consequence clauses; or positions near a story's beginning or end. These are examples to investigate, not patterns guaranteed in every model. Feature indices are local to your encoder.
+
+Inspect several candidates. Compare high activations with low or zero activations in **Data → Dataset row**. Form a tentative description using training examples, then check additional contexts and validation examples. Where possible hold the current word fixed and vary its context. A feature can combine patterns; one striking example does not establish a clean concept. Use the most informative candidate you find, even if its interpretation remains uncertain.
+
+Distinguish **the context that activates a feature** from **the output its direction might support**. A feature active on a name need not promote that name next. The next lesson tests that distinction using a supplied checkpoint. Sparse activity alone does not establish greater interpretability than a dense representation; optionally inspect matching examples in reconstruction.json as a control.
+
+## Independent construction: isolate your candidate's contribution
 
 In sparse.json, choose any feature j from 0 through 31. Use two **Slice** operations and a **Matrix product** to construct the contribution **h<sub>j</sub> v<sub>j</sub>**, where h<sub>j</sub> contains that feature's activation at every token and v<sub>j</sub> is row j of your actual learned decoder Wd. Determine the Slice axes and exclusive bounds yourself. Keep the dimensions needed for a matrix product. The result must have the same 32 × 16 shape as r.
 
@@ -89,6 +97,6 @@ Submit **baseline.json**, **reconstruction.json** and **sparse.json**. The grade
 
 All autoencoder quality credit requires the original generator to meet its absolute quality targets. Use λ = 0.03 as the tested recipe; bounded values from **0.01 through 0.10** are accepted if they meet the same targets. Every saved decoder row must have norm one (numerical tolerance 0.00005). These bounds leave room for different initializations; they do not award points for a claimed number of epochs. Valid components receive partial credit.
 
-The held-out split is **validation** when used to select settings. Preserve all three files for the intervention lesson. No written answers, screenshots or separate quiz are required. Optional exploration: inspect other features or compare free-running text later; do not assume every feature is monosemantic.
+The held-out split is **validation** when used to select settings or features. Preserve all three files for comparison; the intervention lesson supplies a common pretrained checkpoint. Your candidate's contribution is the submitted artifact of this investigation. The grader checks its construction, not a semantic label or claimed inspection history. No written answers, screenshots or separate quiz are required. Optional exploration: inspect other features or compare free-running text later; do not assume every feature is monosemantic.
 
 Background: [Towards Monosemanticity](https://transformer-circuits.pub/2023/monosemantic-features/index.html) and [Scaling Monosemanticity](https://transformer-circuits.pub/2024/scaling-monosemanticity/). This small classroom model tests the mechanism; it does not reproduce large-model results.
