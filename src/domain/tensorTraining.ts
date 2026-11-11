@@ -133,6 +133,11 @@ export class TensorGraph {
   private expressions = new Map<string,ParsedArithmetic>()
   private source:GraphNode
   private lossNode:GraphNode
+  private frozenTargetId?:string
+  private frozenTargetParameters:string[]=[]
+  private frozenTargetVersions:object[]=[]
+  private frozenTargetCache=new WeakMap<DatasetExample,{signature:string;shape:number[];axes:Axis[];data:Float32Array}>()
+  private frozenTargetElements=0
   readonly graph:GraphModel
   constructor(graph:GraphModel) {
     this.graph=graph
@@ -174,6 +179,20 @@ export class TensorGraph {
       if(node.params.constraint==='unit-row-norm') rowConstrainedVariables.add(variable)
       this.variables.set(node.id,variable)
     }
+    // An SAE repeatedly sees an immutable transformer residual. Cache only a
+    // wholly frozen, deterministic target on fixed-length token inputs, so
+    // batching cannot change padding or the meaning of any cached position.
+    if(this.lossNode.params.targetMode==='internal'&&this.source.params.textData?.representation==='tokens'&&this.source.params.textData.fixedLength){
+      const targetId=this.inputs.get(this.lossNode.id)![1].source,ancestors=new Set<string>()
+      const visit=(id:string)=>{if(ancestors.has(id))return;ancestors.add(id);for(const edge of this.inputs.get(id)??[])visit(edge.source)}
+      visit(targetId)
+      const nodes=this.order.filter(n=>ancestors.has(n.id))
+      if(nodes.every(n=>!['weight','bias'].includes(n.type)||n.params.trainable===false)&&nodes.every(n=>n.type!=='dropout'||n.params.inferenceOnly||(n.params.dropoutRate??.1)===0)){
+        this.frozenTargetId=targetId
+        this.frozenTargetParameters=nodes.filter(n=>n.type==='weight'||n.type==='bias').map(n=>n.id)
+        this.frozenTargetVersions=this.frozenTargetParameters.map(id=>this.variables.get(id)!.dataId)
+      }
+    }
   }
   dispose(){for(const variable of this.variables.values()) variable.dispose()}
   private predictionKind(prediction:tf.Tensor,target:tf.Tensor):PredictionKind {
@@ -201,9 +220,30 @@ export class TensorGraph {
     else features.push(targetSignal)
     if(capture?.id===this.source.id) capture.signal=features[capture.slot]
     const values=new Map<string,Signal>()
+    if(this.frozenTargetId){
+      const versions=this.frozenTargetParameters.map(id=>this.variables.get(id)!.dataId)
+      if(versions.some((version,i)=>version!==this.frozenTargetVersions[i])){this.frozenTargetCache=new WeakMap();this.frozenTargetElements=0;this.frozenTargetVersions=versions}
+      const cached=rows.map(row=>this.frozenTargetCache.get(row))
+      if(cached.every((entry,i)=>entry&&entry.signature===JSON.stringify([rows[i].features,rows[i].target]))){
+        const first=cached[0]!
+        if(cached.every(entry=>JSON.stringify(entry!.shape)===JSON.stringify(first.shape))){
+          const value=tf.tensor(cached.flatMap(entry=>Array.from(entry!.data)),[count,...first.shape])
+          values.set(this.frozenTargetId,{value,axes:first.axes})
+          if(capture?.id===this.frozenTargetId)capture.signal={value,axes:first.axes}
+        }
+      }
+    }
+    // Disconnected inspection branches must not add training work. Retain every
+    // dependency of the objective and of an explicitly requested inspection.
+    const needed=new Set<string>()
+    const visit=(id:string)=>{if(needed.has(id)||values.has(id))return;needed.add(id);for(const edge of this.inputs.get(id)??[])visit(edge.source)}
+    visit(this.lossNode.id)
+    if(this.lossNode.params.activationPenaltyNodeId)visit(this.lossNode.params.activationPenaltyNodeId)
+    if(this.lossNode.params.lossMaskNodeId)visit(this.lossNode.params.lossMaskNodeId)
+    if(capture)visit(capture.id)
     const read=(edge:GraphModel['edges'][number])=>edge.source===this.source.id?features[edge.sourceSlot??0]:values.get(edge.source)!
     for(const node of this.order) {
-      if(node.type==='dataset'||isLossNode(node)) continue
+      if(node.type==='dataset'||isLossNode(node)||!needed.has(node.id)) continue
       const args=this.inputs.get(node.id)!.map(read), tensors=args.map(arg=>arg.value), [a,b,c]=tensors
       let axes:Axis[]=args.find(arg=>arg.axes.includes('batch'))?.axes??args[0]?.axes??[], value:tf.Tensor
       const kind=node.type==='tensor-transform'?node.params.transform:node.type
@@ -283,6 +323,15 @@ export class TensorGraph {
         default:throw Error('Unsupported tensor operation '+kind)
       }
       values.set(node.id,{value,axes})
+      if(node.id===this.frozenTargetId&&axes[0]==='batch'&&value.shape[0]===count){
+        const size=value.size/count,entries=value.dataSync()
+        rows.forEach((row,i)=>{
+          if(this.frozenTargetElements+size>4_000_000)return
+          const previous=this.frozenTargetCache.get(row)
+          this.frozenTargetCache.set(row,{signature:JSON.stringify([row.features,row.target]),shape:value.shape.slice(1),axes:[...axes],data:Float32Array.from(entries.slice(i*size,(i+1)*size))})
+          this.frozenTargetElements+=size-(previous?.data.length??0)
+        })
+      }
       if(capture?.id===node.id) capture.signal={value,axes}
     }
     const outputSignal=read(this.inputs.get(this.lossNode.id)![0])
@@ -400,6 +449,25 @@ export class TensorGraph {
       const variables=[...this.variables.values()].filter(variable=>variable.trainable)
       if(!variables.length) return {loss:this.execute(rows,true).loss,grads:{}}
       const result=tf.variableGrads(()=>this.execute(rows,true).loss,variables)
+      return {loss:result.value,grads:result.grads}
+    })
+  }
+  /** Exact one-step policy objective. Reward and reference arrays are frozen
+   * observations: only this model's answer logits receive gradients. */
+  rewardGradients(rows:DatasetExample[], actionTokenIds:number[], rewards:number[][], referenceLogProbabilities:number[][], klStrength:number) {
+    const k=actionTokenIds.length
+    if(!rows.length||k<2||!Number.isFinite(klStrength)||klStrength<0||rewards.length!==rows.length||referenceLogProbabilities.length!==rows.length||[...rewards,...referenceLogProbabilities].some(r=>r.length!==k||r.some(n=>!Number.isFinite(n)))) throw Error('Invalid reward objective arrays.')
+    return tf.tidy(()=>{
+      const variables=[...this.variables.values()].filter(variable=>variable.trainable)
+      if(!variables.length)throw Error('Unfreeze at least one model parameter before reward learning.')
+      const reward=tf.tensor2d(rewards),reference=tf.tensor2d(referenceLogProbabilities)
+      const result=tf.variableGrads(()=>{
+        const {prediction}=this.execute(rows,false),width=prediction.shape.at(-1)!
+        if(prediction.size!==rows.length*width||actionTokenIds.some(id=>!Number.isInteger(id)||id<0||id>=width))throw Error('Reward learning needs one answer-logit vector per example.')
+        const candidates=tf.gather(prediction.reshape([rows.length,width]),actionTokenIds,1)
+        const logPolicy=tf.logSoftmax(candidates),policy=tf.exp(logPolicy)
+        return tf.mean(tf.sum(tf.mul(policy,tf.sub(tf.mul(klStrength,tf.sub(logPolicy,reference)),reward)),1)) as tf.Scalar
+      },variables)
       return {loss:result.value,grads:result.grads}
     })
   }

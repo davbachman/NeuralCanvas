@@ -1,7 +1,7 @@
 # Teach with Neural Canvas
 
 This directory contains the complete current teaching releases for the
-[21-assignment course](../README.md#course-assignments): student handouts,
+[28-assignment course](../README.md#course-assignments): student handouts,
 ready-to-upload autograders, grader source, instructor notes, rubrics,
 curriculum plans, and validation summaries. No private repository is needed to
 teach the course or rebuild its autograders.
@@ -71,20 +71,19 @@ its sibling `submission/`, then run:
 AUTOGRADER_ROOT=/absolute/path/to/temporary-directory .venv/bin/python /absolute/path/to/temporary-directory/source/runner.py
 ```
 
-To rebuild all current uploads from committed data without training:
+To rebuild all current uploads from committed data without training, run from
+the app root:
 
 ```sh
-.venv/bin/python scripts/assignments/package-mpg.py
-.venv/bin/python scripts/assignments/package-regularization.py
-.venv/bin/python scripts/assignments/package-classification.py
-.venv/bin/python scripts/assignments/package-matrices.py
-.venv/bin/python scripts/assignments/package-mlp.py
-.venv/bin/python scripts/assignments/package-rings.py
-.venv/bin/python scripts/assignments/package-word-counts.py
-.venv/bin/python scripts/assignments/package-embeddings.py
-.venv/bin/python scripts/assignments/package-advanced.py
-.venv/bin/python scripts/assignments/package-interpretability.py
+python course/scripts/package-course.py
+python course/scripts/sync-handouts.py
+python course/scripts/validate-course.py
 ```
+
+The [sequence manifest](sequence.json) defines the 28 folders and their order.
+Current upload names are `gradescope-<assignment-folder>.zip`; old issued
+archives and historical recipe version identifiers remain preserved. Existing
+lesson-specific packaging helpers remain available for targeted revisions.
 
 Packaging refreshes the ZIP and `reference/package-sha256.json`. Preserve issued
 datasets and rubrics; do not redownload or refit data to run checks.

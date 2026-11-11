@@ -83,7 +83,7 @@ training from scratch.
 ```sh
 OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/football/build-later.py --days 9,10
 OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/football/build-student-capstone.py
-RELEASE_ASSIGNMENTS=09-positional-embeddings,10-attention,19-qa-finetuning .venv/bin/python scripts/assignments/package-advanced.py
+RELEASE_ASSIGNMENTS=14-positional-embeddings,15-attention,24-instruction-tuning .venv/bin/python scripts/assignments/package-advanced.py
 OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/football/audit-release.py --days 9,10
 OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/football/validate-student-capstone.py
 ```

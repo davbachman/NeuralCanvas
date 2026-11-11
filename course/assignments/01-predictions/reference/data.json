@@ -1,0 +1,118 @@
+{
+  "version": "01-predictions-v1",
+  "parts": {
+    "zero": {
+      "points": 30,
+      "kind": "zero"
+    },
+    "fitted": {
+      "points": 70,
+      "kind": "fit",
+      "trainMax": 0.2,
+      "validationMax": 0.2
+    }
+  },
+  "rows": [
+    {
+      "x": -2.4,
+      "y": -3.62,
+      "split": "test"
+    },
+    {
+      "x": -2.1,
+      "y": -3.32,
+      "split": "train"
+    },
+    {
+      "x": -1.8,
+      "y": -2.51,
+      "split": "train"
+    },
+    {
+      "x": -1.5,
+      "y": -2.2,
+      "split": "train"
+    },
+    {
+      "x": -1.2,
+      "y": -1.26,
+      "split": "test"
+    },
+    {
+      "x": -0.9,
+      "y": -0.85,
+      "split": "train"
+    },
+    {
+      "x": -0.6,
+      "y": 0.01,
+      "split": "train"
+    },
+    {
+      "x": -0.3,
+      "y": 0.24,
+      "split": "train"
+    },
+    {
+      "x": 0,
+      "y": 1.04,
+      "split": "test"
+    },
+    {
+      "x": 0.3,
+      "y": 1.77,
+      "split": "train"
+    },
+    {
+      "x": 0.6,
+      "y": 2.09,
+      "split": "train"
+    },
+    {
+      "x": 0.9,
+      "y": 2.88,
+      "split": "train"
+    },
+    {
+      "x": 1.2,
+      "y": 3.22,
+      "split": "test"
+    },
+    {
+      "x": 1.5,
+      "y": 4.12,
+      "split": "train"
+    },
+    {
+      "x": 1.8,
+      "y": 4.53,
+      "split": "train"
+    },
+    {
+      "x": 2.1,
+      "y": 5.4,
+      "split": "train"
+    },
+    {
+      "x": 2.4,
+      "y": 5.65,
+      "split": "test"
+    },
+    {
+      "x": 2.7,
+      "y": 6.45,
+      "split": "train"
+    },
+    {
+      "x": 3,
+      "y": 7.13,
+      "split": "train"
+    },
+    {
+      "x": 3.3,
+      "y": 7.5,
+      "split": "train"
+    }
+  ],
+  "source": "Neural Canvas deterministic Line regression (1D), default split"
+}

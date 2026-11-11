@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import zipfile
+from handout_markdown import markdown
 
 
 def write_manifest(base):
@@ -19,11 +20,15 @@ def write_manifest(base):
 def package_assignment(name, version):
     base = Path(__file__).resolve().parents[2] / 'assignments' / name
     source, reference = base / 'source', base / 'reference'
-    grade = base / 'Gradescope' / f'gradescope-{version}.zip'
+    (base / 'description.md').write_text(markdown((base / 'description.html').read_text()))
+    # The directory identifies a lesson; the config retains its recipe version.
+    # This keeps upload names stable when a recipe is revised.
+    grade = base / 'Gradescope' / f'gradescope-{name}.zip'
     grade.parent.mkdir(parents=True, exist_ok=True)
     files = ['setup.sh', 'run_autograder', 'runner.py', 'grader.py']
-    if (source / 'graph_eval.py').exists():
-        files.append('graph_eval.py')
+    for helper in ('graph_eval.py', 'reward_eval.py'):
+        if (source / helper).exists():
+            files.append(helper)
     with zipfile.ZipFile(grade, 'w', zipfile.ZIP_DEFLATED) as archive:
         for filename in files:
             archive.write(source / filename, filename)

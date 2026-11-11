@@ -1,0 +1,32 @@
+{
+  "appCommit": "16a9b4d7dae77ab92bbbda8d2f8592d1323fb9f5",
+  "appDirty": true,
+  "reports": [
+    {
+      "part": "chain",
+      "maxError": 0,
+      "examples": 20
+    },
+    {
+      "part": "shared",
+      "maxError": 0,
+      "examples": 20
+    }
+  ],
+  "scope": "Actual app engine and independent NumPy grading. Parent app commit recorded with concurrent course/reward work. No hosted Gradescope or deployed-site validation.",
+  "reviewedSourceHashesAfterPilots": {
+    "src/domain/engine.ts": "a01951eadf26fd24a6c123930bab36aaa6fbd4c3b65142da0372e81ae84d29af",
+    "src/domain/datasetTraining.ts": "1d5807aba030a530eebc7cd02df7c9273166866734e6ab2cb4f4e80c8b0db0ea",
+    "src/learning/cnnMath.ts": "8177b4ede38d70c96f95d0be0df38085eff3dd9ba2e444a45916afda7246745f"
+  },
+  "privateRegressionTests": 14,
+  "browser": {
+    "scope": "Real Chromium import/save; backprop forward inspections and full30epoch MLP/CNN Trace SGD training. Graphs imported from independent private construction, not all blocks built by mouse.",
+    "packagedScore": 100,
+    "pageErrors": [],
+    "layoutWidths": [
+      375,
+      1280
+    ]
+  }
+}

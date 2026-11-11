@@ -2,6 +2,23 @@
 
 Recorded 2026-10-18 at the instructor's request. The principles below are standing preferences. Updated after instructor approval of the Day 7/8 rewrite. The current assignments implement the football sequence below. Assignments 7–19 are unpublished and are revised in place, with earlier drafts retained only in Git history.
 
+## Current 28-assignment revision (2026-11-11)
+
+The instructor authorized rebuilding the entire course around the revised
+[28-assignment sequence](REMAINING-SEMESTER-SCHEDULE.md). This decision supersedes
+earlier restrictions on retaining current folder numbering or assignment boundaries.
+Begin with regression and gradient descent; introduce backpropagation with neural
+networks. Split generalization from regularization, add convolution, and continue
+the transformer through instruction tuning, verifiable rewards and learned
+preference rewards before the two connected interpretability lessons. SAE fitting
+and supplied steering checkpoints must use compatible final transformer weights.
+Do not reuse pre-reward feature-specific claims without new measurements.
+
+Canonical ordering and legacy URL redirects are recorded in `course/sequence.json`.
+Keep one current handout and package per lesson; retain issued archives unchanged.
+The dated records below retain their original scope and numbers. Current handouts,
+instructor guides and the current schedule govern teaching.
+
 ## Current dataset workflow (2026-10-24)
 
 All Assignments 1–19 now select their exact dataset in **Dataset → Details →
@@ -166,7 +183,7 @@ independent student shape/wiring work, model targets and grading rules. See
 The instructor approved football-narratives throughout Assignments 11–17,
 with Assignment 18 sampling the same trained model. Assignment 17's ten-epoch
 training supplies the pretraining checkpoint. Delete the separate pretraining
-Assignment 19 and move former QA Assignment 20 to `19-qa-finetuning`.
+Assignment 19 and move former QA Assignment 20 to `24-instruction-tuning`.
 There is one current assignment numbered 1–19 and no Assignment 20.
 
 Use the exact validated 25-token football corpus and history split. Keep the

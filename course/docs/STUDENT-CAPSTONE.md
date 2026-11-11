@@ -5,7 +5,7 @@ training evidence and pilot filenames are retained.
 
 Updated 2026-10-21 after instructor approval. Assignments 11–18 now use the same
 25-token football narratives. The separate pretraining Assignment 19 was deleted;
-former Assignment 20 is now `19-qa-finetuning`. There is no Assignment 20.
+former Assignment 20 is now `24-instruction-tuning`. There is no Assignment 20.
 Assignments 1–10 retain their tasks and rubrics.
 
 ## Current workflow
@@ -135,7 +135,7 @@ metrics, not cached scores or claimed training history.
 ```sh
 .venv/bin/python scripts/assignments/advanced/configure-narratives.py
 .venv/bin/python scripts/assignments/football/build-student-capstone.py
-RELEASE_ASSIGNMENTS=11-next-word,13-context,14-self-attention,15-residuals,16-normalization,17-stacking,18-multiple-heads,12-sampling,19-qa-finetuning .venv/bin/python scripts/assignments/package-advanced.py
+RELEASE_ASSIGNMENTS=16-next-word,18-context,19-self-attention,20-residuals,21-normalization,22-stacking,23-multiple-heads,17-sampling,24-instruction-tuning .venv/bin/python scripts/assignments/package-advanced.py
 OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/advanced/validate-narratives.py
 OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/football/validate-student-capstone.py
 .venv/bin/python scripts/assignments/advanced/test-narratives.py
@@ -144,7 +144,7 @@ OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/football/validate-st
 ```
 
 See each Canvas handout and Instructor/INSTRUCTOR.md for uploads. The final upload ZIP is
-gradescope-19-qa-finetuning.zip. Source and reference files stay private.
+gradescope-24-instruction-tuning.zip. Source and reference files stay private.
 Hosted Gradescope and the deployed student app are not tested by local checks.
 Older pilot paths/numbers describe the experiments at the time; Git retains the
 removed assignments rather than keeping alternate handouts or packages.

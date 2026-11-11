@@ -15,7 +15,7 @@ Created by [David Bachman](https://pzacad.pitzer.edu/~dbachman/) with Codex. Dav
 3. Add model operations from **Build**, connect their ports, and select blocks to edit their settings in **Details**.
 4. Use **Train** to inspect a forward pass or train the model, then **Test** to evaluate it. Save the editable project as JSON or export a supported model to PyTorch.
 
-For a guided first build, follow [Get started](docs/USAGE.md) or begin with [Assignment 1](https://davbachman.github.io/NeuralCanvas/course/01-mpg.html). Normal browser use requires no account or local installation.
+For a guided first build, follow [Get started](docs/USAGE.md) or begin with [Assignment 1](https://davbachman.github.io/NeuralCanvas/course/01-predictions.html). Normal browser use requires no account or local installation.
 
 ## Reference
 
@@ -58,43 +58,37 @@ See the [dataset guide](docs/DATASETS.md) for controls and the [dataset sources]
 
 [Browse the assignment descriptions on GitHub](course/assignments/README.md).
 
-These 21 assignments progress from regression to transformer question answering, sparse feature reconstruction and controlled residual interventions. Students build editable models, select datasets from the browser, and save their work as JSON. Many assignments extend earlier solutions, so keep trained models for later comparisons and fine-tuning. Each link opens the student instructions.
+The 28-assignment course develops regression, optimization, classification, neural networks, transformers, reward learning, and sparse-feature interpretation. Students build editable models in Neural Canvas and submit saved JSON files for automatic grading. Preserve model checkpoints as directed for later assignments.
 
-**Teaching the course:** [Instructor guides, Canvas handouts, Gradescope autograders, sources, and curriculum notes](course/README.md) are included in this repository. Completed solutions and exams remain private; the guided steering lesson explicitly supplies one frozen trained checkpoint.
-
-### Regression and classification
+**Teaching the course:** [Instructor guides, Canvas handouts, Gradescope packages, source, and validation notes](course/README.md). Completed solutions remain private; the guided steering lesson supplies an explicitly authorized frozen checkpoint.
 
 | Assignment | What students explore |
 | --- | --- |
-| [1. Predicting fuel economy with models you build](https://davbachman.github.io/NeuralCanvas/course/01-mpg.html) | Build one-feature, two-feature, and quadratic regression models on Auto MPG, using training-fitted feature standardization. Compare how added features affect predictions. |
-| [2. When a better fit makes worse predictions](https://davbachman.github.io/NeuralCanvas/course/02-regularization.html) | Use a small MPG training sample to investigate polynomial overfitting and L2 regularization. Compare training fit with validation performance. |
-| [3. From scores to probabilities](https://davbachman.github.io/NeuralCanvas/course/03-classification.html) | Build one- and two-feature breast-cancer classifiers with logits, binary cross-entropy, and sigmoid probabilities. Explore how a decision threshold changes classifications. |
-| [4. From weighted sums to matrix models](https://davbachman.github.io/NeuralCanvas/course/04-matrices.html) | Rewrite MPG regression as a matrix calculation, then classify three Iris species. Introduce concatenation, tensor parameters, matrix multiplication, softmax, and multiclass cross-entropy. |
-| [5. When layers become a neural network](https://davbachman.github.io/NeuralCanvas/course/05-mlp.html) | Compare linear regression with a ReLU multilayer perceptron for predicting concrete strength. Investigate how a nonlinear hidden layer learns useful intermediate features. |
-| [6. When a straight boundary is not enough](https://davbachman.github.io/NeuralCanvas/course/06-rings.html) | Compare linear and MLP classifiers on three-class concentric rings, examining how nonlinear features change decision boundaries. |
-
-### Text representations and cross-attention
-
-| Assignment | What students explore |
-| --- | --- |
-| [7. What can word counts tell us?](https://davbachman.github.io/NeuralCanvas/course/07-word-counts.html) | Build a guided IMDb sentiment classifier, then independently adapt word-count classification to football-story questions. |
-| [8. Learn a compact representation of words](https://davbachman.github.io/NeuralCanvas/course/08-embeddings.html) | Preserve word order and compare one-hot inputs with learned word embeddings on football questions, using comparable parameter counts and training budgets. |
-| [9. Positional embeddings and separate questions](https://davbachman.github.io/NeuralCanvas/course/09-positional-embeddings.html) | Add learned story positions and a separate question encoder to an embedding MLP. Establish a baseline on the common football-question benchmark. |
-| [10. Let questions attend to story tokens](https://davbachman.github.io/NeuralCanvas/course/10-attention.html) | Replace the flattened story input with question-directed cross-attention. Compare accuracy and parameter count with the preceding MLP on the same football questions. |
-
-### Language generation and transformers
-
-| Assignment | What students explore |
-| --- | --- |
-| [11. Predict the next word](https://davbachman.github.io/NeuralCanvas/course/11-next-word.html) | Turn classification into generation with a football-narrative bigram model that predicts the next token from the preceding token. |
-| [12. Control how the model chooses words](https://davbachman.github.io/NeuralCanvas/course/12-sampling.html) | Construct temperature, top-k, and combined sampling distributions while preserving the trained bigram model's parameters. Apply these generation choices to later language models. |
-| [13. Give the generator a longer memory](https://davbachman.github.io/NeuralCanvas/course/13-context.html) | Extend the bigram generator into a fixed-context MLP that uses an ordered sequence of embedded tokens to predict the next token. |
-| [14. Share attention across word positions](https://davbachman.github.io/NeuralCanvas/course/14-self-attention.html) | Replace the context MLP with self-attention, learned positions, and a causal mask so each token can attend to its available context. |
-| [15. Preserve and transform the representation](https://davbachman.github.io/NeuralCanvas/course/15-residuals.html) | Add an attention output projection, residual connections, and a shared feed-forward MLP to preserve and transform token representations. |
-| [16. Normalize the block and learn at every position](https://davbachman.github.io/NeuralCanvas/course/16-normalization.html) | Add layer normalization and train on next-token targets at every position. Evaluate the trained model at the final position to compare it with earlier generators. |
-| [17. Let attention build on attention](https://davbachman.github.io/NeuralCanvas/course/17-stacking.html) | Stack two independently parameterized transformer blocks so later attention can use already contextualized representations. Compare with the trained one-block model. |
-| [18. Give each block two attention patterns](https://davbachman.github.io/NeuralCanvas/course/18-multiple-heads.html) | Give each transformer block two independently learned attention heads while keeping the total feature width fixed. Keep the trained generator for the capstone. |
-| [19. Fine-tune your generator to answer questions](https://davbachman.github.io/NeuralCanvas/course/19-qa-finetuning.html) | Fine-tune the trained generator to predict answer tokens for football-story questions. Compare before and after fine-tuning, and with the earlier cross-attention model, on the common benchmark. |
-| [20. Interpret a transformer with sparse features](https://davbachman.github.io/NeuralCanvas/course/20-sparse-autoencoder.html) | Freeze the preserved narrative generator, compare reconstruction with sparse activation training, explore word/grammar/template families, and construct a candidate feature's contribution. |
-| [21. Test features through residual interventions](https://davbachman.github.io/NeuralCanvas/course/21-feature-interventions.html) | Use a supplied frozen checkpoint to discover a feature’s input association and steer its supported continuation with controlled interventions. |
-
+| [1. Predictions, parameters, and loss](https://davbachman.github.io/NeuralCanvas/course/01-predictions.html) | Manually fit a line, inspect residuals, and compare mean squared error. |
+| [2. Gradient descent](https://davbachman.github.io/NeuralCanvas/course/02-gradient-descent.html) | Derive regression gradients, follow updates, and investigate learning rate. |
+| [3. Multiple features and feature scaling](https://davbachman.github.io/NeuralCanvas/course/03-features.html) | Build regression models on real data with training-fitted scaling. |
+| [4. Model flexibility and generalization](https://davbachman.github.io/NeuralCanvas/course/04-generalization.html) | Compare linear and polynomial fits using training and validation data. |
+| [5. Regularization](https://davbachman.github.io/NeuralCanvas/course/05-regularization.html) | Investigate how L2 changes fitting and generalization. |
+| [6. Binary classification](https://davbachman.github.io/NeuralCanvas/course/06-classification.html) | Connect categorical targets, logits, sigmoid, cross-entropy, and thresholds. |
+| [7. Matrix models and multiclass classification](https://davbachman.github.io/NeuralCanvas/course/07-matrices.html) | Express models with matrices and classify multiple categories. |
+| [8. Nonlinearity and neural networks](https://davbachman.github.io/NeuralCanvas/course/08-mlp.html) | Construct nonlinear hidden layers for a regression task. |
+| [9. Backpropagation](https://davbachman.github.io/NeuralCanvas/course/09-backpropagation.html) | Trace and construct derivatives through a small neural network. |
+| [10. Nonlinear classification](https://davbachman.github.io/NeuralCanvas/course/10-rings.html) | Compare linear and MLP boundaries on concentric rings. |
+| [11. Convolution and image classification](https://davbachman.github.io/NeuralCanvas/course/11-convolution.html) | Build local receptive fields, shared filters, and pooling for digits. |
+| [12. Word-count models](https://davbachman.github.io/NeuralCanvas/course/12-word-counts.html) | Classify text and investigate information lost by discarding order. |
+| [13. Learned embeddings](https://davbachman.github.io/NeuralCanvas/course/13-embeddings.html) | Construct compact learned representations and preserve token order. |
+| [14. Positions and separate questions](https://davbachman.github.io/NeuralCanvas/course/14-positional-embeddings.html) | Represent whole stories, positions, questions, and padding masks. |
+| [15. Cross-attention](https://davbachman.github.io/NeuralCanvas/course/15-attention.html) | Let the question select useful story information. |
+| [16. Next-token prediction](https://davbachman.github.io/NeuralCanvas/course/16-next-word.html) | Build a bigram generator and perform autoregressive generation. |
+| [17. Temperature and top-k sampling](https://davbachman.github.io/NeuralCanvas/course/17-sampling.html) | Change output selection while keeping learned parameters fixed. |
+| [18. Longer context through an MLP](https://davbachman.github.io/NeuralCanvas/course/18-context.html) | Use ordered multiword context to overcome bigram limitations. |
+| [19. Causal self-attention](https://davbachman.github.io/NeuralCanvas/course/19-self-attention.html) | Share projections across positions with a causal mask. |
+| [20. Residual connections and feed-forward layers](https://davbachman.github.io/NeuralCanvas/course/20-residuals.html) | Preserve and transform contextual representations. |
+| [21. Normalization and all-position training](https://davbachman.github.io/NeuralCanvas/course/21-normalization.html) | Normalize internal features and learn from every target position. |
+| [22. Stacked transformer blocks](https://davbachman.github.io/NeuralCanvas/course/22-stacking.html) | Apply attention to representations contextualized by earlier blocks. |
+| [23. Multiple attention heads](https://davbachman.github.io/NeuralCanvas/course/23-multiple-heads.html) | Complete a transformer with distinct attention distributions. |
+| [24. Instruction tuning](https://davbachman.github.io/NeuralCanvas/course/24-instruction-tuning.html) | Adapt the pretrained generator to answer football-story questions. |
+| [25. Learning from verifiable rewards](https://davbachman.github.io/NeuralCanvas/course/25-rlvr.html) | Adapt the same transformer using rewards from a correctness checker. |
+| [26. Learning from human preferences](https://davbachman.github.io/NeuralCanvas/course/26-rlhf.html) | Fit a preference reward model and use its rewards to adapt the transformer. |
+| [27. SAEs and interpretable features](https://davbachman.github.io/NeuralCanvas/course/27-sparse-autoencoder.html) | Freeze the final policy, train an SAE, and investigate candidate features. |
+| [28. Feature steering](https://davbachman.github.io/NeuralCanvas/course/28-feature-interventions.html) | Use a compatible supplied SAE checkpoint to test controlled interventions. |

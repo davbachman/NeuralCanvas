@@ -20,6 +20,6 @@ solution-producing pilots, and exams belong in the private sibling
 
 Explicit instructor exception (2026-11-11): the frozen student checkpoint for
 the guided steering assignment is public at
-`course/assignments/21-feature-interventions/student/feature-steering.json`,
+`course/assignments/28-feature-interventions/student/feature-steering.json`,
 with an identical deployed copy at `public/models/feature-steering.json`.
 This authorization does not extend to completed discovery/intervention solutions.

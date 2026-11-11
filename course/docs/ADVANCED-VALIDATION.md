@@ -80,7 +80,7 @@ Use the corresponding assignment directory to run another grader suite. No downl
 ```sh
 NEURALCANVAS_ROOT=/path/to/NeuralCanvas PILOT_SEEDS=137,211,307 \
   node scripts/assignments/advanced/pilot.mjs \
-  assignments/09-positional-embeddings/Canvas/stories.json /tmp/story-pilot sentence-mlp memory-1
+  assignments/14-positional-embeddings/Canvas/stories.json /tmp/story-pilot sentence-mlp memory-1
 NEURALCANVAS_ROOT=/path/to/NeuralCanvas PILOT_SEEDS=137,211,307 \
   node scripts/assignments/advanced/pilot.mjs \
   assignments/12-next-character/Canvas/alice.json /tmp/alice-pilot \

@@ -1,74 +1,46 @@
-# Course sequence: 21 assignments
+# Revised course: 28 assignments
 
-Working plan revised for the approved whole-story sequence. Lectures prepare students for independent work
-in Neural Canvas. Assignments 1–6 retain their issued materials. The approved
-football progression now uses one corpus from generation through QA, eliminating
-the separate pretraining homework. Assignment 18 supplies the trained checkpoint,
-Assignment 12 teaches sampling on the bigram model, and Assignment 19 fine-tunes for questions.
-Two interpretability extensions follow the existing sequence. Their placement
-adds one lesson beyond the former 20-meeting outline; instructors choose the
-calendar without renumbering the existing assignments. Both reuse the preserved
-narrative generator, leaving the QA model available for comparison.
+This is the current teaching order. The machine-readable catalog is [sequence.json](../sequence.json). Earlier dated reports retain the numbering and evidence from their original releases.
 
-| Day | Lecture or discussion | Corresponding assignment |
-|---|---|---|
-| 1 — Tuesday | Introduce the app; build linear regressors for its 1D and 2D toy datasets. | MPG: compare one input column, two input columns, then adding a squared feature. Keep the split fixed and compare training and validation error. |
-| 2 | L2 for controlling overfitting; compare training and validation error as model flexibility and penalty strength change. | MPG: compare a linear baseline, an unregularized fifth-degree polynomial, and the same polynomial with L2 (Assignment 2). |
-| 3 | Sigmoid, binary cross-entropy, and classification thresholds. | Breast-cancer diagnostic dataset: compare one- and two-feature logistic classifiers, then explore threshold tradeoffs ([Assignment 3](../assignments/03-classification/description.md)). |
-| 4 | Express a familiar regression as Xw+b using concatenation and matrix Params; extend to logits, softmax, and multiclass cross-entropy. | Rebuild two-feature MPG regression with a matrix, then build an Iris multiclass classifier ([Assignment 4](../assignments/04-matrices/description.md)). |
-| 5 | Compose linear maps; demonstrate that the result is still linear. Introduce nonlinear activations and an MLP. | Concrete compressive strength: compare a linear model with a regression MLP ([Assignment 5](../assignments/05-mlp/description.md)). |
-| 6 | Consolidation exception: classification and MLP decision boundaries require no new lecture. This class is canceled; in a future offering, use the slot for a discussion of accuracy, fairness, and deployment decisions. | Three-class concentric rings (lower outer, upper outer, inner): compare linear and MLP classifiers; handwritten digits as an optional extension ([Assignment 6](../assignments/06-rings/description.md)). |
-| 7 | Word-count vectors, vocabulary fitting and unknown words; transfer from sentiment to football questions. | Guided IMDb classifier, then independent football word-count classifier. Submit reviews.json and stories.json; review reversal is optional ([Assignment 7](../assignments/07-word-counts/description.md)). |
-| 8 | Ordered one-hot inputs versus learned embeddings under a parameter/update budget. | On the same football examples, adapt an eight-unit one-hot MLP to four-dimensional embeddings and 32 hidden units. Ten epochs each, 3,190 versus 3,242 Params ([Assignment 8](../assignments/08-embeddings/description.md)). |
-| 9 | Whole-story token positions, a separate question encoder and token padding masks. | Broaden football stories to person, football-location and possession questions; adapt Assignment 8’s embedding MLP into the 37,417-parameter story/question model and train five epochs. Submit baseline.json and an unchanged-weight football.json evaluation copy (5 points); its 240-question accuracy is the baseline for Assignment 10 and the final capstone ([Assignment 9](../assignments/09-positional-embeddings/description.md)). |
-| 10 | Question-directed cross-attention and compact token selection; assess parameter cost and question-group tradeoffs. | Modify Assignment 9 into the 6,441-parameter attention model and train five epochs, then submit an unchanged-weight copy on the balanced football-location evaluation. Preserve it for Assignment 19 ([Assignment 10](../assignments/10-attention/description.md)). |
-| 11 | Next-word vocabulary logits, cross-entropy and autoregressive generation. | Build a bigram generator on football narratives; feed a chosen token back to generate more text ([Assignment 11](../assignments/11-next-word/description.md)). |
-| 12 | Temperature controls concentration; top-k restricts candidate tokens without changing learned weights. | Use Assignment 11’s bigram model to submit independently constructed temperature, top-k and combined branches plus an unchanged base model; optional generation stays in Neural Canvas ([Assignment 12](../assignments/12-sampling/description.md)). |
-| 13 | A single word loses context; preserve ordered multiword context with an MLP. | Independently extend the bigram model to all 32 input tokens and a 64-unit hidden layer; compare loss and parameter cost ([Assignment 13](../assignments/13-context/description.md)). |
-| 14 | Self-attention shares projections across positions; position embeddings and causal masking. | Build word-level causal attention on the same windows, using substantially fewer parameters than the flattened MLP ([Assignment 14](../assignments/14-self-attention/description.md)). |
-| 15 | Residual paths preserve direct routes; shared nonlinear feed-forward transformations add capacity. | Add the output projection, two residual additions and token-wise MLP ([Assignment 15](../assignments/15-residuals/description.md)). |
-| 16 | Layer normalization controls feature scales; all-position supervision uses more learning targets per window. | Train the normalized final-position model, train an all-position variant, then submit an unchanged-weight final-position evaluation copy. Compare metrics on the same prediction task ([Assignment 16](../assignments/16-normalization/description.md)). |
-| 17 | Depth lets later attention use contextual information from earlier attention. | Build an independent second block and compare with Assignment 16’s all-position one-block model; extra compositional capacity has a cost ([Assignment 17](../assignments/17-stacking/description.md)). |
-| 18 | Multiple heads provide distinct attention distributions at fixed total width and parameter count. | Replace each block’s head with two width-8 heads; retain both successive blocks ([Assignment 18](../assignments/18-multiple-heads/description.md)). |
-| 19 | Adapt a pretrained generative transformer to answer tokens; compare on the same football task. | Reuse Assignment 18’s trained generator, prepare an unchanged-weight QA baseline and fine-tune. Submit earlier.json, pretrained.json, before.json and after.json ([Assignment 19](../assignments/19-qa-finetuning/description.md)). |
-| 20 | Mixed residual coordinates, learned feature representations, reconstruction and activation sparsity. | Freeze multihead.json; build matched unpenalized and sparse autoencoders at the final residual, investigate word/grammar/template feature families and independently isolate a candidate contribution ([Assignment 20](../assignments/20-sparse-autoencoder/description.md)). |
-| 21 | Correlation versus intervention; restoration, bounded effects and controls. | Import the supplied frozen checkpoint; discover the specified feature’s input association, build word-conditioned activation branches, and test directional next-word effects with zero, amplified and ablated interventions ([Assignment 21](../assignments/21-feature-interventions/description.md)). |
+| Assignment | Topic | Learning purpose |
+| --- | --- | --- |
+| 1 | [Predictions, parameters, and loss](../assignments/01-predictions/description.md) | Manually fit a line, inspect residuals, and compare mean squared error. |
+| 2 | [Gradient descent](../assignments/02-gradient-descent/description.md) | Derive regression gradients, follow updates, and investigate learning rate. |
+| 3 | [Multiple features and feature scaling](../assignments/03-features/description.md) | Build regression models on real data with training-fitted scaling. |
+| 4 | [Model flexibility and generalization](../assignments/04-generalization/description.md) | Compare linear and polynomial fits using training and validation data. |
+| 5 | [Regularization](../assignments/05-regularization/description.md) | Investigate how L2 changes fitting and generalization. |
+| 6 | [Binary classification](../assignments/06-classification/description.md) | Connect categorical targets, logits, sigmoid, cross-entropy, and thresholds. |
+| 7 | [Matrix models and multiclass classification](../assignments/07-matrices/description.md) | Express models with matrices and classify multiple categories. |
+| 8 | [Nonlinearity and neural networks](../assignments/08-mlp/description.md) | Construct nonlinear hidden layers for a regression task. |
+| 9 | [Backpropagation](../assignments/09-backpropagation/description.md) | Trace and construct derivatives through a small neural network. |
+| 10 | [Nonlinear classification](../assignments/10-rings/description.md) | Compare linear and MLP boundaries on concentric rings. |
+| 11 | [Convolution and image classification](../assignments/11-convolution/description.md) | Build local receptive fields, shared filters, and pooling for digits. |
+| 12 | [Word-count models](../assignments/12-word-counts/description.md) | Classify text and investigate information lost by discarding order. |
+| 13 | [Learned embeddings](../assignments/13-embeddings/description.md) | Construct compact learned representations and preserve token order. |
+| 14 | [Positions and separate questions](../assignments/14-positional-embeddings/description.md) | Represent whole stories, positions, questions, and padding masks. |
+| 15 | [Cross-attention](../assignments/15-attention/description.md) | Let the question select useful story information. |
+| 16 | [Next-token prediction](../assignments/16-next-word/description.md) | Build a bigram generator and perform autoregressive generation. |
+| 17 | [Temperature and top-k sampling](../assignments/17-sampling/description.md) | Change output selection while keeping learned parameters fixed. |
+| 18 | [Longer context through an MLP](../assignments/18-context/description.md) | Use ordered multiword context to overcome bigram limitations. |
+| 19 | [Causal self-attention](../assignments/19-self-attention/description.md) | Share projections across positions with a causal mask. |
+| 20 | [Residual connections and feed-forward layers](../assignments/20-residuals/description.md) | Preserve and transform contextual representations. |
+| 21 | [Normalization and all-position training](../assignments/21-normalization/description.md) | Normalize internal features and learn from every target position. |
+| 22 | [Stacked transformer blocks](../assignments/22-stacking/description.md) | Apply attention to representations contextualized by earlier blocks. |
+| 23 | [Multiple attention heads](../assignments/23-multiple-heads/description.md) | Complete a transformer with distinct attention distributions. |
+| 24 | [Instruction tuning](../assignments/24-instruction-tuning/description.md) | Adapt the pretrained generator to answer football-story questions. |
+| 25 | [Learning from verifiable rewards](../assignments/25-rlvr/description.md) | Adapt the same transformer using rewards from a correctness checker. |
+| 26 | [Learning from human preferences](../assignments/26-rlhf/description.md) | Fit a preference reward model and use its rewards to adapt the transformer. |
+| 27 | [SAEs and interpretable features](../assignments/27-sparse-autoencoder/description.md) | Freeze the final policy, train an SAE, and investigate candidate features. |
+| 28 | [Feature steering](../assignments/28-feature-interventions/description.md) | Use a compatible supplied SAE checkpoint to test controlled interventions. |
 
-## Teaching and assessment
+## Dependencies and assessment
 
-Every substantial required investigation produces an automatically graded model.
-Generation and interactive prompting are optional. No written explanations,
-screenshots or separate quiz are required. New operations receive guidance;
-familiar wiring and shape decisions become progressively independent.
+Assignments 1–3 develop regression and optimization; assignments 4–5 separate the discovery of overfitting from regularization. Classification follows sigmoid, and explicit backpropagation follows the first nonlinear network. Convolution revisits shared parameter gradients.
 
-Each lesson has a useful advantage or tradeoff to discuss; accuracy need not
-improve at every step. The context MLP improves substantially over a bigram;
-attention shares parameters; normalization improves the tested initializations;
-depth and multiple heads add representational capacity; temperature controls
-probability concentration without learning new weights. Architectural parallelism
-is not a promise of a browser speedup.
+Word counts lead into ordered embeddings, cross-attention, and a separate next-token generation sequence. Preserve the earlier cross-attention football evaluation for the instruction-tuning comparison. Sampling changes distributions without retraining.
 
-Assignments 11–18 share the 25-token football corpus, 32-token contexts and
-room-layout split. Assignment 18 trains ten all-position epochs from fresh
-parameters. QA in Assignment 19 uses five additional answer-only epochs from
-those values, keeping the epoch counter. Both use Adam 0.003 and batch 32.
-WebGL can use a supported GPU; CPU is a fallback. Runtime and epochs are not
-graded. Optional longer training requires checkpoints and may worsen accuracy.
+The final sequence is instruction tuning → verifiable rewards → learned preference rewards → SAE feature discovery → steering. Reward lessons adapt the same transformer. Preserve the final reward-trained parameters before switching datasets for activation analysis. The guided steering checkpoint must contain a transformer and SAE trained against the same parameter state and activation location.
 
-The QA task uses exactly Assignment 10's 240 held-out football questions. Its
-70% overall target replaces the former absolute/per-group 80% requirements.
-Both event orders remain diagnostic. No penalty applies to a strong earlier
-model and the comparison does not establish a pretraining advantage over scratch.
+Every substantial required investigation produces an automatically graded artifact. Inspecting a gradient or a generated sample supports construction; cached metrics, claimed training history, screenshots, and prose are not evidence for credit. Use training-only preprocessing and identify held-out data used for tuning as validation.
 
-Current recipes, thresholds and validation are in
-[NARRATIVE-REVISION.md](NARRATIVE-REVISION.md),
-[STUDENT-CAPSTONE.md](STUDENT-CAPSTONE.md) and each assignment's Instructor/INSTRUCTOR.md.
-Historical Alice, bAbI, two-fact and supplied-checkpoint reports retain their
-original numbering and do not validate current datasets or laptop GPU runtime.
-
-The interpretability extension uses the same narrative data and original split.
-Its sparse autoencoder adds 32 features to a frozen 16-wide residual stream.
-Only the new encoder and decoder learn; unit decoder directions make activation
-sparsity scale meaningful. Feature-linked prediction effects are measured with
-deterministic distributions and controls, without requiring a clean semantic
-interpretation. See [the extension validation](INTERPRETABILITY-EXTENSION.md).
+Exact recipes, measured targets, and validation limits belong in each instructor guide. Browser and hosted Gradescope validation are distinct. Existing historical pilot results do not establish feasibility for a changed recipe.

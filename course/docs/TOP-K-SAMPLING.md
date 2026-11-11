@@ -77,10 +77,10 @@ From the private Coursework root:
 
 ```sh
 .venv/bin/python scripts/assignments/advanced/rebuild-sampling.py
-RELEASE_ASSIGNMENTS=12-sampling .venv/bin/python scripts/assignments/package-advanced.py
+RELEASE_ASSIGNMENTS=17-sampling .venv/bin/python scripts/assignments/package-advanced.py
 OPENBLAS_NUM_THREADS=1 .venv/bin/python scripts/assignments/advanced/validate-early-sampling.py
 NEURALCANVAS_ROOT=/workspace/NeuralCanvas node scripts/assignments/advanced/validate-sampling-engine.mjs
-OPENBLAS_NUM_THREADS=1 .venv/bin/python -m unittest discover -s assignments/12-sampling/source -p test_grader.py -v
+OPENBLAS_NUM_THREADS=1 .venv/bin/python -m unittest discover -s assignments/17-sampling/source -p test_grader.py -v
 PLAYWRIGHT_ROOT=<playwright-package> NEURALCANVAS_ROOT=<app-checkout> APP_URL=<local-app-url> node scripts/assignments/advanced/browser-early-sampling.cjs
 ```
 

@@ -1,0 +1,94 @@
+{
+  "appCommit": "16a9b4d7dae77ab92bbbda8d2f8592d1323fb9f5",
+  "appDirty": true,
+  "reports": [
+    {
+      "part": "mlp",
+      "seed": 137,
+      "epochs": 30,
+      "rate": 0.03,
+      "batchSize": 1,
+      "engine": "trace",
+      "seconds": 26.45,
+      "train": 0.008272924249838392,
+      "validation": 0.055501201607353126,
+      "accuracy": 0.97
+    },
+    {
+      "part": "cnn",
+      "seed": 137,
+      "epochs": 30,
+      "rate": 0.03,
+      "batchSize": 1,
+      "engine": "trace",
+      "seconds": 26.369,
+      "train": 0.08110752260877639,
+      "validation": 0.2602849557826625,
+      "accuracy": 0.92
+    },
+    {
+      "part": "mlp",
+      "seed": 211,
+      "epochs": 30,
+      "rate": 0.03,
+      "batchSize": 1,
+      "engine": "trace",
+      "seconds": 60.89,
+      "train": 0.01034996293552556,
+      "validation": 0.13618912617785053,
+      "accuracy": 0.97
+    },
+    {
+      "part": "cnn",
+      "seed": 211,
+      "epochs": 30,
+      "rate": 0.03,
+      "batchSize": 1,
+      "engine": "trace",
+      "seconds": 44.545,
+      "train": 0.0755535872414595,
+      "validation": 0.24137507197561064,
+      "accuracy": 0.91
+    },
+    {
+      "part": "mlp",
+      "seed": 307,
+      "epochs": 30,
+      "rate": 0.03,
+      "batchSize": 1,
+      "engine": "trace",
+      "seconds": 59.506,
+      "train": 0.010017812902180678,
+      "validation": 0.12040172864535773,
+      "accuracy": 0.95
+    },
+    {
+      "part": "cnn",
+      "seed": 307,
+      "epochs": 30,
+      "rate": 0.03,
+      "batchSize": 1,
+      "engine": "trace",
+      "seconds": 37.715,
+      "train": 0.05976780698410745,
+      "validation": 0.2660181007406508,
+      "accuracy": 0.92
+    }
+  ],
+  "scope": "Actual app engine and independent NumPy grading. Parent app commit recorded with concurrent course/reward work. No hosted Gradescope or deployed-site validation.",
+  "reviewedSourceHashesAfterPilots": {
+    "src/domain/engine.ts": "a01951eadf26fd24a6c123930bab36aaa6fbd4c3b65142da0372e81ae84d29af",
+    "src/domain/datasetTraining.ts": "1d5807aba030a530eebc7cd02df7c9273166866734e6ab2cb4f4e80c8b0db0ea",
+    "src/learning/cnnMath.ts": "8177b4ede38d70c96f95d0be0df38085eff3dd9ba2e444a45916afda7246745f"
+  },
+  "privateRegressionTests": 15,
+  "browser": {
+    "scope": "Real Chromium import/save; backprop forward inspections and full30epoch MLP/CNN Trace SGD training. Graphs imported from independent private construction, not all blocks built by mouse.",
+    "packagedScore": 100,
+    "pageErrors": [],
+    "layoutWidths": [
+      375,
+      1280
+    ]
+  }
+}

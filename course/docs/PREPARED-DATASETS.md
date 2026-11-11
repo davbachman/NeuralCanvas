@@ -72,8 +72,8 @@ From the coursework root:
 .venv/bin/python scripts/assignments/prepared_early.py
 .venv/bin/python scripts/assignments/package-word-counts.py
 .venv/bin/python scripts/assignments/package-embeddings.py
-.venv/bin/python -m unittest discover -s assignments/07-word-counts/source -p test_grader.py -v
-.venv/bin/python -m unittest discover -s assignments/08-embeddings/source -p test_grader.py -v
+.venv/bin/python -m unittest discover -s assignments/12-word-counts/source -p test_grader.py -v
+.venv/bin/python -m unittest discover -s assignments/13-embeddings/source -p test_grader.py -v
 PLAYWRIGHT_ROOT=/path/to/browser-dependencies NEURALCANVAS_ROOT=/path/to/NeuralCanvas APP_URL=http://127.0.0.1:5190/NeuralCanvas/ node scripts/assignments/browser-settings-tables.cjs
 PLAYWRIGHT_ROOT=/path/to/browser-dependencies node scripts/assignments/football/check-handouts.cjs
 .venv/bin/python scripts/assignments/advanced/audit-narratives.py

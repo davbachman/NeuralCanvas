@@ -1,7 +1,10 @@
 # Sparse features and residual interventions
 
-Two assignments append the existing course: [sparse reconstruction](../assignments/20-sparse-autoencoder/description.md)
-and [feature interventions](../assignments/21-feature-interventions/description.md).
+> Historical narrative-only validation. The current final-model assignments and checkpoint are documented in [Post-training interpretability](POSTTRAINING-INTERPRETABILITY.md). The old checkpoint feature indices, CE targets and numerical steering effects below do not validate the revised release.
+
+
+Two assignments append the existing course: [sparse reconstruction](../assignments/27-sparse-autoencoder/description.md)
+and [feature interventions](../assignments/28-feature-interventions/description.md).
 Assignments 1–19, their datasets, numerical targets and release packages remain
 unchanged. In the first assignment, students use their own preserved narrative `multihead.json`, not the
 QA-finetuned checkpoint. The first assignment supplies feature-family examples without a trained model.

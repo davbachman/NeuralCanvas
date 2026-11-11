@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assignment 9: Follow gradients through a neural network · Neural Canvas</title>
+  <style>
+    body { margin: 0 auto; padding: 1.25rem; max-width: 960px; color: #20242c; background: #fff; font-family: sans-serif; line-height: 1.6; }
+    nav { margin-bottom: 1.5rem; }
+    a { color: #244c9b; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Course navigation"><a href="../">Open Neural Canvas</a> · <a href="https://github.com/davbachman/NeuralCanvas#course-assignments">All course assignments</a></nav>
+  <main>
+<h2>Assignment 9: Follow gradients through a neural network</h2>
+<p>Gradient descent needs the derivative of the loss with respect to each parameter. Build a small network in <a href="https://davbachman.github.io/NeuralCanvas/">Neural Canvas</a>, then construct additional canvas branches that calculate a hidden weight's derivative. Extend the network so that one weight is used twice.</p>
+<p><strong>Submit:</strong> <strong>chain.json</strong> and <strong>shared.json</strong>. Each is worth 50 points. Submit saved models only.</p>
+<h3>Use a familiar dataset</h3>
+<p data-library-preset="line-1d" data-library-file="line-1d">Select <strong>Dataset → Details → Browse datasets…</strong>. Choose <strong>Regression → Simple regression examples → Line regression (1D)</strong>, then <strong>Use this dataset</strong>. Keep the default data and split. Set <strong>Output mode → One example</strong>. Use x as input and y as the target.</p>
+<p>This is a calculation investigation, not a fitting contest. Keep the specified parameter values in the files you submit. Use <strong>Run forward</strong> to inspect the branches. In <strong>Train → Training execution</strong>, choose <strong>Trace engine · SGD</strong>; use <strong>Step</strong> to follow forward and backward phases. Stop before the update phase, or restore the prescribed values before saving.</p>
+<h3>Part A: One hidden unit — 50 points</h3>
+<p>Build the following prediction using Arithmetic blocks and one Activation block set to <strong>Tanh</strong>:</p>
+<pre>z = w x + b
+h = tanh(z)
+prediction = v h + c</pre>
+<table style="width:100%;table-layout:fixed;border-collapse:collapse;overflow-wrap:anywhere"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">Scalar Param</th><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">Value</th></tr></thead><tbody><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">w</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">0.8</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">b</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">−0.2</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">v</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">1.1</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">c</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">0.1</td></tr></tbody></table>
+<p>Connect prediction and the Dataset target to <strong>Loss → Mean squared error</strong>, with <strong>Penalty → None</strong>. Use four separate scalar Params. Leave them trainable and unconstrained. A single example has loss L = (prediction − y)².</p>
+<p>Construct a branch that calculates dL/dw from the <em>current connected values</em>. Use Arithmetic blocks, branches from your existing Params and intermediate calculations, and the Dataset's x and y. The local derivatives you need are dL/dprediction = 2(prediction − y), d(tanh z)/dz = 1 − h², and the derivatives of multiplication and addition. Work out how they combine. Arithmetic supports powers such as <strong>x1 ^ 2</strong>.</p>
+<p>Select the w Param after the backward phase and compare its gradient with the value of your derivative branch. Change the selected Dataset row and repeat. These inspections support the submitted construction; no screenshot or written answer is required. Save <strong>chain.json</strong>.</p>
+<h3>Part B: A weight used along two paths — 50 points</h3>
+<p>Extend a copy of your model to two hidden units:</p>
+<pre>h₁ = tanh(w x + b₁)
+h₂ = tanh(w x + b₂)
+prediction = v₁ h₁ + v₂ h₂ + c</pre>
+<p>Keep w = 0.8, b₁ = −0.2, v₁ = 1.1, and c = 0.1. Add b₂ = 0.4 and v₂ = −0.7. Use the <strong>same w Param</strong> in both hidden units: two Params that happen to have equal values are different models.</p>
+<p>Construct three derivative outputs: the contribution to dL/dw through h₁, the contribution through h₂, and the complete dL/dw. Each contribution must use the error of the complete two-unit prediction. Determine how the contributions combine. Keep the three outputs on the canvas and save <strong>shared.json</strong>.</p>
+<p>During the backward phase, inspect the two wires leaving w and the w Param itself. A wire shows its path's contribution; the Param shows the accumulated gradient. This pattern will return when a convolutional filter is reused at many image locations.</p>
+<h3>Grading</h3>
+<table style="width:100%;table-layout:fixed;border-collapse:collapse;overflow-wrap:anywhere"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">File</th><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">Requirements</th><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">Points</th></tr></thead><tbody><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">chain.json</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Correct forward network and fixed scalar values</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">15</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">chain.json</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Connected chain-rule derivative construction</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">35</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">shared.json</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Correct forward network and actual shared w</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">15</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">shared.json</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">First and second path contributions</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">10 each</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">shared.json</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Complete accumulated derivative</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">15</td></tr></tbody></table>
+<p>The grader evaluates your operations on the canonical examples and with perturbed parameters and targets. Copying a displayed gradient into an Input, copying parameter values into a formula, or relying on cached gradients does not implement the derivative. Reference the existing Params and values through wires. Block names and positions do not affect grading.</p>
+<p>Use at most 100 blocks and 200 wires. Allowed operations are Dataset, connected Input/Target aliases, scalar Params, Arithmetic, Add/Multiply, Tanh, and the single MSE Loss. Do not add other learned parameters or feed the target into predictions. The target may enter the derivative calculation. Reopen both saved files with <strong>File → Import</strong> before uploading them.</p>
+<p>Version: backpropagation-09-v1. Dataset: the app's deterministic synthetic line examples.</p>
+  </main>
+</body>
+</html>

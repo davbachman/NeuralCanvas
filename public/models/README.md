@@ -23,5 +23,5 @@ The files are complete editable projects, not screenshots or locked demonstratio
 
 [feature-steering.json](feature-steering.json) is the instructor-supplied frozen
 transformer and SAE for the feature-intervention lesson. It contains no completed
-discovery or steering branches. Follow the [student handout](../course/21-feature-interventions.html)
+discovery or steering branches. Follow the [student handout](../course/28-feature-interventions.html)
 for the guided investigation. Other completed assignment solutions remain private.

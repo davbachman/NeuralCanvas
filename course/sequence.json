@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "assignments": [
+    {
+      "number": 1,
+      "slug": "01-predictions",
+      "title": "Predictions, parameters, and loss",
+      "focus": "Manually fit a line, inspect residuals, and compare mean squared error."
+    },
+    {
+      "number": 2,
+      "slug": "02-gradient-descent",
+      "title": "Gradient descent",
+      "focus": "Derive regression gradients, follow updates, and investigate learning rate."
+    },
+    {
+      "number": 3,
+      "slug": "03-features",
+      "title": "Multiple features and feature scaling",
+      "focus": "Build regression models on real data with training-fitted scaling."
+    },
+    {
+      "number": 4,
+      "slug": "04-generalization",
+      "title": "Model flexibility and generalization",
+      "focus": "Compare linear and polynomial fits using training and validation data."
+    },
+    {
+      "number": 5,
+      "slug": "05-regularization",
+      "title": "Regularization",
+      "focus": "Investigate how L2 changes fitting and generalization."
+    },
+    {
+      "number": 6,
+      "slug": "06-classification",
+      "title": "Binary classification",
+      "focus": "Connect categorical targets, logits, sigmoid, cross-entropy, and thresholds."
+    },
+    {
+      "number": 7,
+      "slug": "07-matrices",
+      "title": "Matrix models and multiclass classification",
+      "focus": "Express models with matrices and classify multiple categories."
+    },
+    {
+      "number": 8,
+      "slug": "08-mlp",
+      "title": "Nonlinearity and neural networks",
+      "focus": "Construct nonlinear hidden layers for a regression task."
+    },
+    {
+      "number": 9,
+      "slug": "09-backpropagation",
+      "title": "Backpropagation",
+      "focus": "Trace and construct derivatives through a small neural network."
+    },
+    {
+      "number": 10,
+      "slug": "10-rings",
+      "title": "Nonlinear classification",
+      "focus": "Compare linear and MLP boundaries on concentric rings."
+    },
+    {
+      "number": 11,
+      "slug": "11-convolution",
+      "title": "Convolution and image classification",
+      "focus": "Build local receptive fields, shared filters, and pooling for digits."
+    },
+    {
+      "number": 12,
+      "slug": "12-word-counts",
+      "title": "Word-count models",
+      "focus": "Classify text and investigate information lost by discarding order."
+    },
+    {
+      "number": 13,
+      "slug": "13-embeddings",
+      "title": "Learned embeddings",
+      "focus": "Construct compact learned representations and preserve token order."
+    },
+    {
+      "number": 14,
+      "slug": "14-positional-embeddings",
+      "title": "Positions and separate questions",
+      "focus": "Represent whole stories, positions, questions, and padding masks."
+    },
+    {
+      "number": 15,
+      "slug": "15-attention",
+      "title": "Cross-attention",
+      "focus": "Let the question select useful story information."
+    },
+    {
+      "number": 16,
+      "slug": "16-next-word",
+      "title": "Next-token prediction",
+      "focus": "Build a bigram generator and perform autoregressive generation."
+    },
+    {
+      "number": 17,
+      "slug": "17-sampling",
+      "title": "Temperature and top-k sampling",
+      "focus": "Change output selection while keeping learned parameters fixed."
+    },
+    {
+      "number": 18,
+      "slug": "18-context",
+      "title": "Longer context through an MLP",
+      "focus": "Use ordered multiword context to overcome bigram limitations."
+    },
+    {
+      "number": 19,
+      "slug": "19-self-attention",
+      "title": "Causal self-attention",
+      "focus": "Share projections across positions with a causal mask."
+    },
+    {
+      "number": 20,
+      "slug": "20-residuals",
+      "title": "Residual connections and feed-forward layers",
+      "focus": "Preserve and transform contextual representations."
+    },
+    {
+      "number": 21,
+      "slug": "21-normalization",
+      "title": "Normalization and all-position training",
+      "focus": "Normalize internal features and learn from every target position."
+    },
+    {
+      "number": 22,
+      "slug": "22-stacking",
+      "title": "Stacked transformer blocks",
+      "focus": "Apply attention to representations contextualized by earlier blocks."
+    },
+    {
+      "number": 23,
+      "slug": "23-multiple-heads",
+      "title": "Multiple attention heads",
+      "focus": "Complete a transformer with distinct attention distributions."
+    },
+    {
+      "number": 24,
+      "slug": "24-instruction-tuning",
+      "title": "Instruction tuning",
+      "focus": "Adapt the pretrained generator to answer football-story questions."
+    },
+    {
+      "number": 25,
+      "slug": "25-rlvr",
+      "title": "Learning from verifiable rewards",
+      "focus": "Adapt the same transformer using rewards from a correctness checker."
+    },
+    {
+      "number": 26,
+      "slug": "26-rlhf",
+      "title": "Learning from human preferences",
+      "focus": "Fit a preference reward model and use its rewards to adapt the transformer."
+    },
+    {
+      "number": 27,
+      "slug": "27-sparse-autoencoder",
+      "title": "SAEs and interpretable features",
+      "focus": "Freeze the final policy, train an SAE, and investigate candidate features."
+    },
+    {
+      "number": 28,
+      "slug": "28-feature-interventions",
+      "title": "Feature steering",
+      "focus": "Use a compatible supplied SAE checkpoint to test controlled interventions."
+    }
+  ],
+  "legacyPaths": {
+    "01-mpg": "03-features",
+    "02-regularization": "05-regularization",
+    "03-classification": "06-classification",
+    "04-matrices": "07-matrices",
+    "05-mlp": "08-mlp",
+    "06-rings": "10-rings",
+    "07-word-counts": "12-word-counts",
+    "08-embeddings": "13-embeddings",
+    "09-positional-embeddings": "14-positional-embeddings",
+    "10-attention": "15-attention",
+    "11-next-word": "16-next-word",
+    "12-sampling": "17-sampling",
+    "13-context": "18-context",
+    "14-self-attention": "19-self-attention",
+    "15-residuals": "20-residuals",
+    "16-normalization": "21-normalization",
+    "17-stacking": "22-stacking",
+    "18-multiple-heads": "23-multiple-heads",
+    "19-qa-finetuning": "24-instruction-tuning",
+    "20-sparse-autoencoder": "27-sparse-autoencoder",
+    "21-feature-interventions": "28-feature-interventions"
+  }
+}

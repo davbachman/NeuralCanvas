@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assignment 26: Learn a reward from human preferences · Neural Canvas</title>
+  <style>
+    body { margin: 0 auto; padding: 1.25rem; max-width: 960px; color: #20242c; background: #fff; font-family: sans-serif; line-height: 1.6; }
+    nav { margin-bottom: 1.5rem; }
+    a { color: #244c9b; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Course navigation"><a href="../">Open Neural Canvas</a> · <a href="https://github.com/davbachman/NeuralCanvas#course-assignments">All course assignments</a></nav>
+  <main>
+<h2>Assignment 26: Learn a reward from human preferences</h2>
+<p>An exact answer checker is available in the football world. In many applications, preferences must instead be elicited from people and approximated by a model. You will supply human comparisons, fit a small reward model, and use its predictions to further adapt your transformer.</p>
+<p><strong>Submit:</strong> <code>rlvr.json</code>, <code>preferences.json</code>, and <code>rlhf.json</code>. Total: 100 points. The final <code>rlhf.json</code> is the transformer checkpoint for the sparse-autoencoder assignment.</p>
+<h3>Start from the reward-trained transformer</h3>
+<p>Import your saved <code>rlvr.json</code>. Preserve that original file unchanged for submission and keep the architecture and learned parameters. In <strong>Train → Reward learning</strong>, select <strong>Reward source for new reference → Human preference comparisons</strong> and click <strong>Capture current model as reward reference</strong>. This deliberately establishes the reward-trained transformer as the new fixed reference and clears the previous reward configuration. Keep <strong>Reference KL strength</strong> at <strong>0.1</strong>.</p>
+<p data-library-preset="football-qa" data-library-file="story-questions.json">Keep <strong>Dataset → Details → Browse datasets… → Text and sequences → Football stories → Answer-token fine-tuning</strong>, its 23-token inputs, 25-token vocabulary, and original split. Use only training contexts for preference fitting.</p>
+<h3>Supply and learn human comparisons</h3>
+<p>Choose a <strong>Training context</strong> in the reward panel. Read the events and question. Select a <strong>Preferred answer</strong> supported by the story and a distinct, false <strong>Rejected answer</strong>, then click <strong>Record human preference</strong>. The judgments are yours; the app does not generate a preference dataset for you.</p>
+<p>Record at least <strong>24 distinct comparisons across 12 or more training contexts</strong>, including at least <strong>three different preferred answer tokens</strong>. On a context you may compare the correct answer with two different rejected answers. Include differing event orders and question types. For a more reliable first fit, spread your contexts across the training list and include all nine possible preferred answers. A useful starting budget is two comparisons on each of 26 varied contexts (52 comparisons). Duplicate comparisons do not count. The specified preference criterion is factual correctness; the grader can check this criterion, although a saved file cannot establish who entered a comparison.</p>
+<p>Click <strong>Fit preference reward model</strong>. The app performs 200 deterministic gradient steps at rate 0.5 on pairwise logistic loss with a small weight penalty. The reward model is a linear scoring model over the <em>frozen reference transformer's candidate probabilities</em>, followed by sigmoid for bounded rewards. Its representation remains fixed during subsequent policy optimization. This small model deliberately makes approximation errors visible; it is not a general language reward model.</p>
+<p>Require comparison loss ≤ <strong>0.68</strong> and agreement with recorded preferences ≥ <strong>60%</strong>. If the fit is poor, check contradictory judgments and broaden the comparisons. Fit again after any edits. Save <code>preferences.json</code> with the transformer parameters still unchanged from the newly captured reference.</p>
+<h3>Optimize using the learned reward</h3>
+<p>Use <strong>Tensor engine · minibatches</strong>, <strong>Adam</strong>, <strong>Exact learning rate → 0.0003</strong>, <strong>32</strong> examples per update, <strong>2</strong> epochs per run, reporting every <strong>1</strong> epoch, <strong>Backend → Tensor CPU</strong>, and <strong>Gradient norm limit (0 = off) → 1</strong>. Click <strong>Optimize policy with rewards</strong>. Keep the comparisons, fitted reward model, and captured reference fixed throughout this stage.</p>
+<p>The policy now maximizes expected <em>learned</em> reward while remaining close to its reference. The exact correctness checker supplies a separate diagnostic; it does not supply this policy's training reward. Compare expected learned reward with expected correctness, then run ordinary <strong>Test → Run inference</strong> for full-vocabulary validation accuracy. Increasing predicted reward need not increase correctness.</p>
+<p>Save <code>rlhf.json</code>. If necessary, return to <code>preferences.json</code> and use a smaller rate or shorter policy run to preserve QA quality. Additional training is optional. This is a bounded RLHF exercise with human-entered preferences and exact finite-action policy optimization; it does not implement PPO.</p>
+<h3>Grading and final checkpoint</h3>
+<table><thead><tr><th>File</th><th>Points</th><th>Requirements</th></tr></thead><tbody><tr><td>rlvr.json</td><td>20</td><td>The preceding completed verifiable-reward policy, with independently checked reward improvement and QA quality.</td></tr><tr><td>preferences.json</td><td>40</td><td>Valid canonical transformer and human-comparison records; captured reference exactly matches submitted rlvr.json; original reference parameters unchanged; comparison loss ≤ 0.68 and agreement ≥ 60%; reference validation accuracy ≥ 65%.</td></tr><tr><td>rlhf.json</td><td>40</td><td>Identical reference, comparisons, and fitted reward model; changed transformer parameters; training objective gain ≥ 0.00001 on the fixed 96-example benchmark; full-vocabulary accuracy ≥ 65% on all 240 validation questions.</td></tr></tbody></table>
+<p>Every score is independently recomputed from submitted operations, parameters, and comparison records. Cached reports and claimed training history are ignored. No written responses are submitted.</p>
+<p>Preserve <code>rlhf.json</code> unchanged. The next assignment freezes this exact transformer and trains a sparse autoencoder on its activations. Any later policy training would change the activation distribution and require renewed SAE validation.</p>
+  </main>
+</body>
+</html>

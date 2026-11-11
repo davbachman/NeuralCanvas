@@ -14,12 +14,12 @@ from handout_markdown import Handout
 COURSE = Path(__file__).resolve().parents[1]
 APP = COURSE.parent
 EARLY_PARTS = {
-    '01-mpg': ['one_feature', 'two_features', 'quadratic'],
-    '02-regularization': ['baseline', 'polynomial', 'regularized'],
-    '03-classification': ['one_feature', 'two_features'],
-    '04-matrices': ['matrix_regression', 'iris'],
-    '05-mlp': ['linear', 'mlp'],
-    '06-rings': ['linear', 'mlp'],
+    '03-features': ['one_feature', 'two_features', 'quadratic'],
+    '05-regularization': ['baseline', 'polynomial', 'regularized'],
+    '06-classification': ['one_feature', 'two_features'],
+    '07-matrices': ['matrix_regression', 'iris'],
+    '08-mlp': ['linear', 'mlp'],
+    '10-rings': ['linear', 'mlp'],
 }
 
 
@@ -30,6 +30,8 @@ def require(condition, message):
 
 def check_templates(value, path):
     if isinstance(value, dict):
+        require(not value.get('rewardLearning'),
+                f'Trained reward-learning state outside the authorized student checkpoint: {path}')
         if value.get('type') in ('weight', 'bias'):
             numbers = value.get('params', {}).get('value', {}).get('data', [])
             require(all(number in (0, 1) for number in numbers),
@@ -44,16 +46,19 @@ def check_templates(value, path):
 def validate():
     # Explicit instructor authorization: one frozen student checkpoint for the
     # guided steering lesson. Completed discovery/intervention models stay private.
-    checkpoint_base = COURSE / 'assignments/21-feature-interventions'
+    checkpoint_base = COURSE / 'assignments/28-feature-interventions'
     checkpoint_config = json.loads((checkpoint_base / 'reference/data.json').read_text())['checkpoint']
     student_checkpoint = checkpoint_base / checkpoint_config['file']
     require(student_checkpoint == checkpoint_base / 'student/feature-steering.json', 'Unexpected trained checkpoint exception')
     require(hashlib.sha256(student_checkpoint.read_bytes()).hexdigest() == checkpoint_config['sha256'], 'Student checkpoint hash mismatch')
     require((APP / 'public/models/feature-steering.json').read_bytes() == student_checkpoint.read_bytes(), 'Deployed checkpoint differs from canonical student asset')
     assignments = sorted(path for path in (COURSE / 'assignments').iterdir() if path.is_dir())
-    require(len(assignments) == 21, 'Expected all 21 current assignments')
-    require([int(path.name[:2]) for path in assignments] == list(range(1, 22)),
-            'Assignments must retain the existing numbering and append new lessons')
+    sequence = json.loads((COURSE / 'sequence.json').read_text())['assignments']
+    require(len(sequence) == 28, 'Expected the approved 28-assignment sequence')
+    require([entry['number'] for entry in sequence] == list(range(1, 29)),
+            'Sequence numbers must be consecutive from 1 through 28')
+    require([path.name for path in assignments] == [entry['slug'] for entry in sequence],
+            'Assignment folders must match sequence.json exactly')
     for path in COURSE.rglob('*'):
         if any(part in ('.venv', '__pycache__', 'node_modules', '.git')
                for part in path.relative_to(COURSE).parts):
@@ -79,8 +84,9 @@ def validate():
         data_file = base / 'reference/data.json'
         data = json.loads(data_file.read_text())
         expected = {'setup.sh', 'run_autograder', 'runner.py', 'grader.py', 'data.json'}
-        if (base / 'source/graph_eval.py').is_file():
-            expected.add('graph_eval.py')
+        for helper in ('graph_eval.py', 'reward_eval.py'):
+            if (base / 'source' / helper).is_file():
+                expected.add(helper)
         with zipfile.ZipFile(package) as archive:
             require(set(archive.namelist()) == expected, f'Unexpected ZIP members: {package}')
             require(len(archive.namelist()) == len(expected), f'Duplicate ZIP members: {package}')
@@ -101,15 +107,15 @@ def validate():
         handout = Handout((base / 'description.html').read_text())
         require(handout.datasets, f'Missing dataset browser choices: {base}')
         for filename in set(handout.datasets):
-            if filename == 'digits-8x8':
-                continue  # The optional image preset has no separate classroom file.
+            if filename in ('digits-8x8', 'line-1d'):
+                continue  # Built-ins have committed engine data rather than library files.
             entries = [entry for entry in library.values() if entry['file'] == filename]
             require(len(entries) == 1, f'Unknown app dataset: {base.name}/{filename}')
             dataset = APP / 'public/datasets' / filename
             require(hashlib.sha256(dataset.read_bytes()).hexdigest() == entries[0]['sha256'],
                     f'App dataset hash mismatch: {dataset}')
             dataset_count += 1
-        parts = EARLY_PARTS.get(base.name) or list(data['parts'])
+        parts = list(data['parts']) if data.get('parts') else EARLY_PARTS[base.name]
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             with zipfile.ZipFile(package) as archive:

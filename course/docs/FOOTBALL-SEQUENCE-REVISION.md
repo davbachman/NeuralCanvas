@@ -209,7 +209,7 @@ Use committed fixtures to package and test without retraining:
 .venv/bin/python scripts/assignments/football/audit-release.py
 .venv/bin/python scripts/assignments/package-word-counts.py
 .venv/bin/python scripts/assignments/package-embeddings.py
-RELEASE_ASSIGNMENTS=09-story-models,10-attention,19-synthesis,20-qa-finetuning \
+RELEASE_ASSIGNMENTS=09-story-models,15-attention,19-synthesis,20-qa-finetuning \
   .venv/bin/python scripts/assignments/package-advanced.py
 ```
 

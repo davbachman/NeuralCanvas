@@ -439,6 +439,7 @@ export function cloneGraph(graph: GraphModel): GraphModel {
   return {
     learningRate: graph.learningRate,
     training: graph.training ? {...graph.training} : undefined,
+    rewardLearning: graph.rewardLearning ? structuredClone(graph.rewardLearning) : undefined,
     view: graph.view ? {
       ...graph.view,
       preservedLayouts: graph.view.preservedLayouts ? structuredClone(graph.view.preservedLayouts) : undefined,

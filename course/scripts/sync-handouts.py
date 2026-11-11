@@ -1,6 +1,7 @@
 """Generate GitHub Markdown and deployed student pages; --check never writes."""
 import argparse
 import html
+import json
 from pathlib import Path
 import re
 import sys
@@ -43,9 +44,11 @@ def render(source):
 
 
 def sync(check=False):
+    sequence = json.loads((COURSE / 'sequence.json').read_text())
     sources = sorted((COURSE / 'assignments').glob('*/description.html'))
-    if len(sources) != 21:
-        raise ValueError(f'Expected 21 handouts, found {len(sources)}')
+    expected = [entry['slug'] for entry in sequence['assignments']]
+    if [source.parent.name for source in sources] != expected:
+        raise ValueError(f'Handouts must match the {len(expected)} assignments in sequence.json')
     for source in sources:
         outputs = {
             source.with_suffix('.md'): markdown(source.read_text()),
@@ -60,6 +63,20 @@ def sync(check=False):
                 target.write_text(expected)
         if not check:
             write_manifest(source.parent)
+    for old, new in sequence['legacyPaths'].items():
+        target = APP / 'public/course' / (old + '.html')
+        destination = new + '.html'
+        redirect = ('<!doctype html>\n<html lang="en"><head><meta charset="utf-8">'
+                    f'<meta http-equiv="refresh" content="0; url={destination}">'
+                    f'<link rel="canonical" href="{destination}">'
+                    '<title>Assignment moved · Neural Canvas</title></head><body>'
+                    f'<p>This assignment has moved to <a href="{destination}">'
+                    'the revised course</a>.</p></body></html>\n')
+        if check:
+            if not target.is_file() or target.read_text() != redirect:
+                raise ValueError(f'Outdated legacy redirect: {target}')
+        else:
+            target.write_text(redirect)
     print(f'{"Checked" if check else "Updated"} all {len(sources)} Markdown descriptions and student pages.')
 
 

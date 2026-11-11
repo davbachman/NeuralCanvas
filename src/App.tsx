@@ -1,4 +1,5 @@
 import { NumberInput } from './components/NumberInput'
+import { RewardLearningPanel } from './components/RewardLearningPanel'
 import { SaveAsDialog } from './components/SaveAsDialog'
 import { initializeTensor, initializerForNode } from './domain/authoring'
 import { useModelGraph } from './hooks/useModelGraph'
@@ -776,6 +777,33 @@ function App({
     && Number.isInteger(reportInterval) && reportInterval >= 1 && reportInterval <= 100000 && validBatchSize
   const canRunEpochs = validRunSettings && blockingIssues.length === 0 && hasLoss && !isTraining
     && (!heldOutSample || graph.nodes.some(node => node.type === 'dataset'))
+
+  const runRewardAction = async (kind:'fit'|'policy'|'evaluate') => {
+    if(trainingController.current||!canRunEpochs)return
+    dismissPendingImports()
+    const controller=new AbortController()
+    trainingController.current=controller
+    const isCurrent=()=>trainingController.current===controller
+    setIsTraining(true);setIsPlaying(false);setInferenceResult(undefined);pushHistory()
+    setTrainingStatus(kind==='fit'?'Fitting preference reward model…':'Evaluating the reference and reward policy…')
+    try{
+      await singleReportQueue.current
+      controller.signal.throwIfAborted()
+      const {fitRewardModel,trainRewardPolicy}=await import('./domain/rewardTraining')
+      const result=kind==='fit'?await fitRewardModel(graph,{signal:controller.signal}):await trainRewardPolicy(graph,{
+        epochs:kind==='evaluate'?0:epochCount,batchSize,reportEvery:reportInterval,shuffle:shuffleEachEpoch,signal:controller.signal,
+        onProgress:(done,total)=>{if(isCurrent())setTrainingStatus(`Reward learning ${done} / ${total} examples`)},
+        onReport:report=>{if(isCurrent())setTrainingStatus(`Reward epoch ${report.epoch}: validation reward ${report.validation.expectedReward.toFixed(4)}, correctness ${report.validation.exactReward.toFixed(4)}`)},
+      })
+      if(!isCurrent())return
+      const evaluated=forwardPass(result)
+      setGraph(current=>({...mergeExecutionGraph(current,evaluated.graph),rewardLearning:result.rewardLearning}))
+      setVisualizationGraph(evaluated.graph);setCurrentLoss(evaluated.loss??null);setTraceSteps([]);setTraceIndex(0);setPhase('edit')
+      if(kind==='policy')setEpoch(value=>value+epochCount)
+      setTrainingStatus(kind==='fit'?'Preference reward model fitted. Save the project before policy optimization.':kind==='evaluate'?'Reward policy evaluated; parameters unchanged.':'Reward optimization completed. Kept final parameters; see the reward report below.')
+    }catch(error){if(isCurrent())setTrainingStatus(controller.signal.aborted?'Reward run stopped; retained parameters from before the run.':error instanceof Error?error.message:String(error))}
+    finally{if(isCurrent()){trainingController.current=null;setIsTraining(false)}}
+  }
 
   const runEpochs = useCallback(async () => {
     if (!canRunEpochs || trainingController.current) return
@@ -1800,6 +1828,7 @@ function App({
               {training.patience > 0 && <label className="run-field">Minimum validation improvement<NumberInput aria-label="Minimum validation improvement" disabled={isTraining} type="number" min="0" step="0.001" value={training.minDelta} onChange={event=>setTraining({minDelta:Number(event.target.value)})}/></label>}
               <p className="run-intro">Tensor runs use padded batches and report at the selected interval.{training.patience > 0 && ' Early stopping checks the held-out validation split every epoch and restores its best checkpoint.'}</p>
             </>}
+          <RewardLearningPanel graph={graph} filename={projectFilename} disabled={isTraining||!canRunEpochs} onChange={applyGraphChange} onRun={kind=>void runRewardAction(kind)}/>
           <details className="training-walkthrough">
             <summary>Step through a lesson</summary>
             <p className="run-intro">Inspect forward computation, gradients, and a single SGD update on the canvas example.</p>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assignment 11: Share features across an image · Neural Canvas</title>
+  <style>
+    body { margin: 0 auto; padding: 1.25rem; max-width: 960px; color: #20242c; background: #fff; font-family: sans-serif; line-height: 1.6; }
+    nav { margin-bottom: 1.5rem; }
+    a { color: #244c9b; }
+    pre { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Course navigation"><a href="../">Open Neural Canvas</a> · <a href="https://github.com/davbachman/NeuralCanvas#course-assignments">All course assignments</a></nav>
+  <main>
+<h2>Assignment 11: Share features across an image</h2>
+<p>A fully connected layer gives each image location its own weights. A convolution instead reuses a small filter across locations. Build both models in <a href="https://davbachman.github.io/NeuralCanvas/">Neural Canvas</a> and compare their predictions and parameter requirements.</p>
+<p><strong>Submit:</strong> <strong>mlp.json</strong> and <strong>cnn.json</strong>, worth 50 points each. Build both models yourself from a blank canvas; do not import the app's trained image example.</p>
+<h3>Choose the data</h3>
+<p data-library-preset="digits-8x8" data-library-file="digits-8x8">Select <strong>Dataset → Details → Browse datasets…</strong>, choose <strong>Images → Handwritten digits</strong>, and click <strong>Use this dataset</strong>. Keep the default split and <strong>Output mode → One example</strong>.</p>
+<table style="width:100%;table-layout:fixed;border-collapse:collapse;overflow-wrap:anywhere"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">Property</th><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">Value</th></tr></thead><tbody><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Input</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">8 × 8 × 1 image, pixels already normalized to 0–1</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Target</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Digit class 0–9, shape [1]</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Training / validation</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">400 / 100 images</td></tr></tbody></table>
+<p>These are UCI 8×8 handwritten digits, not MNIST. The app calls the held-out partition a test set; because you inspect it to compare models, it serves as validation here. Keep the original rows and split. Do not divide the normalized input by 16 again.</p>
+<h3>Part A: An image MLP — 50 points</h3>
+<p>Flatten the image into one row with a Tensor transform set to <strong>Reshape</strong>. Build a 16-unit hidden layer with ReLU and a linear ten-logit output layer. Use separate matrix Params and bias Params for the two layers. Determine all Param shapes from the input, hidden width, and output size. Keep the output shaped as one row of ten logits.</p>
+<p>Connect raw logits and the Dataset target to <strong>Loss → Cross entropy (logits)</strong>. Use no parameter penalty. You may add a Softmax branch for inspection, but feed logits directly to Loss. Train with the settings below and save <strong>mlp.json</strong>.</p>
+<h3>Part B: A convolutional classifier — 50 points</h3>
+<p>Start a fresh model on the same dataset. Add a <strong>Convolution</strong> block with four 3×3 filters, each spanning the image's one channel. Connect a filter Param and a bias Param. This operation uses stride 1 and valid convolution: it adds no border padding.</p>
+<p>Apply ReLU, then <strong>Average pooling</strong>, which averages each 2×2 patch with stride 2. Flatten the pooled result to one row and build a linear ten-logit classifier with a matrix and bias. Determine the intermediate shapes and the classifier's input width. Use the same cross-entropy Loss and target as in your MLP. Train and save <strong>cnn.json</strong>.</p>
+<p>Inspect values and gradients on a filter Param. Each filter weight participates in many local computations, and its gradient accumulates those contributions. Compare the models' parameter counts and validation predictions. A CNN need not outperform the MLP on this small dataset; this construction demonstrates locality and parameter sharing.</p>
+<h3>Initialization and training</h3>
+<p>Initialize each model's first weight tensor with <strong>Xavier</strong>, random seed <strong>137</strong>, and its final classifier matrix with Xavier, seed <strong>139</strong>. Initialize both bias Params with <strong>Zeros</strong>. Keep every Param trainable, with no constraint. Set shapes before initializing.</p>
+<table style="width:100%;table-layout:fixed;border-collapse:collapse;overflow-wrap:anywhere"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">Train control</th><th style="text-align:left;padding:8px;border-bottom:1px solid #ccd2d8">Setting for both models</th></tr></thead><tbody><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Training execution</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Trace engine · SGD</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Learning rate</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">0.03</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Epochs per run</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">30</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Report loss every</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">5</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Examples per update</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">1</td></tr><tr><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">Reshuffle training examples each epoch</td><td style="padding:8px;vertical-align:top;border-bottom:1px solid #e1e5e9">On</td></tr></tbody></table>
+<p>Use the Trace engine for both constructions: the tensor engine does not currently support Convolution or Average pooling. Keep <strong>Loss → Details → Penalty → None</strong>. Run inference on training and held-out data after training. If training is interrupted, continue without randomizing; the epoch count itself is not graded. Optional further training may improve or worsen validation results.</p>
+<h3>Grading</h3>
+<p>Each model earns 15 points for the required architecture, 15 for training cross-entropy at most <strong>0.40</strong>, and 20 for validation cross-entropy at most <strong>0.60</strong> with accuracy at least <strong>85%</strong>. Performance credit requires the assigned architecture and original data. Neither model must beat the other.</p>
+<p>The grader reconstructs predictions from the saved graph and parameters on the canonical images; it ignores cached metrics and claimed training history. Models must have exactly four independent Params. Use at most 100 blocks, 200 wires, and 4,096 total parameter values. Allowed constructions are the specified reshape, matrix/bias, ReLU, convolution/pooling, logits and Loss paths, optional Softmax, and connected aliases. Do not add feature scaling, dropout, penalties, hidden layers, or extra filters.</p>
+<p>Reopen both files with <strong>File → Import</strong> before submitting. No written responses, screenshots, or Python files are required.</p>
+<p>Version: convolution-11-v1. Source: E. Alpaydin and C. Kaynak, Optical Recognition of Handwritten Digits, UCI, <a href="https://doi.org/10.24432/C50P49">DOI 10.24432/C50P49</a>, CC BY 4.0. The app uses a deterministic educational split of 500 records from the distributed dataset; this is not the original writer-independent UCI split.</p>
+  </main>
+</body>
+</html>

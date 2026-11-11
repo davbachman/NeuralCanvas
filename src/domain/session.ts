@@ -1,6 +1,7 @@
 import { INITIALIZERS } from './authoring'
 import {isStandardizationStats} from './standardization'
 import {isTrainingSettings} from './trainingSettings'
+import {isRewardLearning} from './rewardLearning'
 import { cloneGraph } from './engine'
 import { isDatasetKind } from './datasets'
 import { isCustomCsvData } from './customCsv'
@@ -163,7 +164,7 @@ function isRunSettings(value: unknown): boolean {
 }
 
 function isGraphModel(value: unknown): value is GraphModel {
-  if (!isRecord(value) || (value.training !== undefined && !isTrainingSettings(value.training))) return false
+  if (!isRecord(value) || (value.training !== undefined && !isTrainingSettings(value.training)) || (value.rewardLearning !== undefined && !isRewardLearning(value.rewardLearning))) return false
   return (
     Array.isArray(value.nodes) &&
     value.nodes.every(isGraphNode) &&

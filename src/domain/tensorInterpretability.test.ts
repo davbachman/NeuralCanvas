@@ -30,6 +30,33 @@ function autoencoder():GraphModel {
 }
 
 describe('tensor sparse reconstruction',()=>{
+ it('reuses frozen token targets across shuffled batches with identical gradients and invalidates changed inputs or weights',async()=>{
+  const data=prepareTextDocuments([{text:'one two',label:'positive',split:'train'},{text:'two one',label:'negative',split:'train'},{text:'one',label:'positive',split:'test'}],'cache.json',{task:'sentiment',representation:'tokens',maxLength:4,fixedLength:true})
+  const graph=autoencoder(),source=graph.nodes.find(n=>n.id==='data')!
+  source.params={dataset:'custom-text',textData:data,datasetMode:'sample'}
+  graph.nodes.find(n=>n.id==='base')!.params.value={shape:[data.vocabulary.length,2],data:data.vocabulary.flatMap((_,i)=>[i*.2,.1])}
+  graph.nodes.find(n=>n.id==='residual')!.type='embedding'
+  graph.edges.find(e=>e.target==='residual'&&e.inputSlot===0)!.source='base'
+  graph.edges.find(e=>e.target==='residual'&&e.inputSlot===1)!.source='data'
+  graph.nodes.find(n=>n.id==='loss')!.params.lossMaskNodeId=undefined
+  const model=new TensorGraph(graph),fresh=new TensorGraph(graph)
+  try{
+   await model.evaluate(model.examples,3)
+   const a=model.gradients([model.examples[1],model.examples[0]]),b=fresh.gradients([fresh.examples[1],fresh.examples[0]])
+   try{
+    expect((await a.loss.data())[0]).toBeCloseTo((await b.loss.data())[0],7)
+    for(const id of ['encoder','decoder'])expect(Array.from(await a.grads[model.variables.get(id)!.name].data())).toEqual(Array.from(await b.grads[fresh.variables.get(id)!.name].data()))
+   }finally{tf.dispose([a.loss,b.loss,...Object.values(a.grads),...Object.values(b.grads)])}
+   const before=await model.inspectSignal([model.examples[0]],'residual')
+   tf.tidy(()=>model.variables.get('base')!.assign(tf.mul(model.variables.get('base')!,2)))
+   const changed=await model.inspectSignal([model.examples[0]],'residual')
+   changed!.value.data.forEach((n,i)=>expect(n).toBeCloseTo(before!.value.data[i]*2,6))
+   model.examples[0].features[0].data[0]=1
+   const changedInput=await model.inspectSignal([model.examples[0]],'residual')
+   expect(changedInput!.value.data[0]).toBeCloseTo(.4,6)
+   expect(changedInput!.value.data[0]).not.toBeCloseTo(changed!.value.data[0],6)
+  }finally{model.dispose();fresh.dispose()}
+ })
  it('matches Trace masked objectives and gradients and independently reports sparsity',async()=>{
   const graph=autoencoder(),model=new TensorGraph(graph)
   try {

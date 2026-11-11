@@ -230,6 +230,7 @@ export interface GraphViewState {
 }
 
 export interface GraphModel {
+  rewardLearning?: import('./rewardLearning').RewardLearning
   training?: TrainingSettings
   nodes: GraphNode[]
   edges: GraphEdge[]
