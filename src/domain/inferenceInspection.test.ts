@@ -82,6 +82,17 @@ it('replays attention using the original batch padding and masks, including the 
   } finally { model.dispose() }
 })
 
+it.each([undefined, 'cpu'])('marks fixed padding inside feature outputs as excluded (%s)', async backend => {
+  const data = prepareTextDocuments([{ text: 'good bad good', label: 'positive', split: 'train' }, { text: 'good', label: 'positive', split: 'test' }], 'fixed.csv', { task: 'sentiment', representation: 'tokens', maxLength: 4, fixedLength: true })
+  const graph = buildTextModel(data, 'attention', 4)
+  const lookup = graph.nodes.find(node => node.type === 'embedding')!
+  const inspection = new InferenceInspection(graph, 'text-data', 'test', backend)
+  const result = available(await inspection.read(lookup.id, 0, inspection.indices[0]))
+  const [rows, width] = result.value.shape
+  expect(rows).toBe(4)
+  expect(result.value.excluded).toEqual(Array.from({ length: rows * width }, (_, i) => i >= width))
+})
+
 it('supports multidimensional structured-story tensors and multiclass probabilities', async () => {
   const documents = ['train', 'train', 'test', 'test'].map((split, i) => ({ text: 'Mary kitchen garden where', facts: ['Mary kitchen', 'Mary garden'], question: 'where Mary', label: i % 2 ? 'garden' : 'kitchen', split: split as 'train' | 'test' }))
   const data = prepareTextDocuments(documents, 'stories.csv', { task: 'classification', representation: 'facts', maxFacts: 2, factWords: 3 })

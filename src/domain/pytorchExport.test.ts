@@ -8,9 +8,10 @@ import { LESSONS } from '../learning/presets'
 import { createEmptyGraph, createNode } from './examples'
 import { parseCustomCsv } from './customCsv'
 import { datasetExamplesForNode } from './datasets'
-import { forwardPass } from './engine'
+import { backwardPass, forwardPass } from './engine'
 import { evaluateDataset, withDatasetExample } from './datasetTraining'
 import { parameterPenalty } from './regularization'
+import { prepareTextDocuments } from './textData'
 import { generatePyTorchExport } from './pytorchExport'
 import type { GraphModel } from './types'
 
@@ -33,6 +34,27 @@ function customArithmeticGraph(): GraphModel {
     { id: 'prediction', source: arithmetic.id, target: loss.id, inputSlot: 0 },
     { id: 'loss-target', source: target.id, target: loss.id, inputSlot: 1 },
   ] }
+}
+
+function sparseAutoencoderGraph(): GraphModel {
+  const graph = createEmptyGraph()
+  const node = (id: string, type: GraphModel['nodes'][number]['type'], params: GraphModel['nodes'][number]['params'] = {}) => ({ id, type, label: id, params, position: { x: 0, y: 0 } })
+  graph.nodes = [createNode('dataset', 1),
+    node('residual', 'weight', { value: { shape: [3, 2], data: [1, -2, 2, 1, 99, -99] }, trainable: false }),
+    node('stable', 'dropout', { dropoutRate: 0.5, inferenceOnly: true }),
+    node('encoder', 'weight', { value: { shape: [2, 3], data: [0.5, -0.4, 0, 0.2, 0.7, 0] } }),
+    node('encode', 'matmul'), node('features', 'activation', { activation: 'relu' }),
+    node('decoder', 'weight', { value: { shape: [3, 2], data: [1, 0, 0, 1, 1, 0] }, constraint: 'unit-row-norm' }),
+    node('reconstruction', 'matmul'),
+    node('valid', 'input', { value: { shape: [3, 1], data: [1, 1, 0] } }),
+    node('loss', 'loss', { loss: 'mse', targetMode: 'internal', lossMaskNodeId: 'valid', activationPenaltyNodeId: 'features', activationPenaltyStrength: 0.1 }),
+  ]
+  const edge = (source: string, target: string, inputSlot: number) => ({ id: `${source}-${target}`, source, target, inputSlot })
+  graph.edges = [edge('residual', 'stable', 0), edge('stable', 'encode', 0), edge('encoder', 'encode', 1),
+    edge('encode', 'features', 0), edge('features', 'reconstruction', 0), edge('decoder', 'reconstruction', 1),
+    edge('reconstruction', 'loss', 0), edge('stable', 'loss', 1)]
+  graph.learningRate = 0.01
+  return graph
 }
 
 describe('PyTorch export', () => {
@@ -155,12 +177,100 @@ describe('PyTorch export', () => {
     graph.nodes.find(node => node.type === 'arithmetic')!.params.expression = 'x1 * x2'
     graph.nodes.find(node => node.type === 'loss')!.params.loss = 'binary-cross-entropy-with-logits'
     const exported = generatePyTorchExport(graph, { epochs: 0 })
-    const harness = "import sys,json\nns={}\nexec(sys.stdin.read(),ns)\nprint('LOGIT_LOSSES=' + json.dumps([ns['initial_train_loss'],ns['initial_held_out_loss']]))\n"
+    const harness = `import sys,json,math,torch
+ns={}
+exec(sys.stdin.read(),ns)
+print('LOGIT_LOSSES=' + json.dumps([ns['initial_train_loss'],ns['initial_held_out_loss']]))
+features=torch.tensor([-1000.,1000.,0.],requires_grad=True)
+targets=torch.tensor([1.,0.,1.],requires_grad=True)
+prediction,loss,actual=ns['model']([features],targets)
+loss.backward()
+assert math.isclose(float(loss.detach()),(1000.+math.log(2.))/3.,rel_tol=1e-12)
+assert math.isclose(float(ns['model'].p_1.grad),2000./3.,rel_tol=1e-12)
+assert torch.allclose(features.grad,torch.tensor([-1./6.,1./6.,-1./12.]))
+assert targets.grad is None and not actual.requires_grad
+print('LOGIT_GRADIENTS_AND_DETACH_OK')
+`
     const run = runWithDataset(exported, exported.script, harness, csv)
     expect(run.status, run.stderr).toBe(0)
     const actual = JSON.parse(run.stdout.match(/LOGIT_LOSSES=([^\n]+)/)![1])
     expect(actual[0]).toBeCloseTo(evaluateDataset(graph, source.id, 'train').loss, 9)
     expect(actual[1]).toBeCloseTo(evaluateDataset(graph, source.id, 'test').loss, 9)
+    expect(run.stdout).toContain('LOGIT_GRADIENTS_AND_DETACH_OK')
+  }, 30_000)
+
+  it.skipIf(!python)('exports sparse reconstruction gradients, frozen values, padding and row constraints', () => {
+    const graph = sparseAutoencoderGraph()
+    const forward = forwardPass(graph, false)
+    const backward = backwardPass(forward.graph).graph
+    const exported = generatePyTorchExport(graph, { epochs: 0 })
+    const harness = `import sys,json,torch
+ns={}
+exec(sys.stdin.read(),ns)
+model=ns['model']
+row=ns['DATASET']['examples'][0]
+features,target=ns['model_inputs']([row],False)
+model.train()
+_,loss,_=model(features,target)
+loss.backward()
+print('SAE=' + json.dumps({'loss':float(loss.detach()),'data_loss':float(model.data_loss.detach()),'penalty':float(model.activation_penalty.detach()),'gradients':[p.grad.reshape(-1).tolist() if p.grad is not None else None for p in model.parameters()]}))
+before=model.p_1.detach().clone()
+optimizer=torch.optim.SGD([p for p in model.parameters() if p.requires_grad],lr=0.1,weight_decay=0.5)
+optimizer.step()
+model.project_constraints()
+assert torch.equal(model.p_1,before)
+assert torch.allclose(torch.linalg.vector_norm(model.p_3,dim=1),torch.ones(3))
+zero=torch.zeros((2,3))
+ns['project_unit_rows_'](zero)
+assert zero.tolist()==[[1.,0.,0.],[1.,0.,0.]]
+extreme=torch.tensor([[1e308,1e308],[1e-300,1e-300]])
+ns['project_unit_rows_'](extreme)
+assert torch.allclose(torch.linalg.vector_norm(extreme,dim=1),torch.ones(2))
+x=torch.tensor([[0.,1.],[4.,-4.]],requires_grad=True)
+mask=torch.tensor([[1.],[0.]])
+ns['activation_l1'](x,mask).backward()
+assert x.grad.tolist()==[[0.,1.],[0.,0.]]
+assert model.sparsity['tolerance']==0
+print('SAE_INVARIANTS_OK')
+`
+    const run = runWithDataset(exported, exported.script, harness)
+    expect(run.status, run.stderr).toBe(0)
+    const actual = JSON.parse(run.stdout.match(/SAE=([^\n]+)/)![1])
+    expect(actual.loss).toBeCloseTo(forward.loss!, 9)
+    expect(actual.loss).toBeCloseTo(actual.data_loss + actual.penalty, 9)
+    expect(actual.gradients[0]).toBeNull()
+    for (const [index, id] of ['encoder', 'decoder'].entries()) {
+      const expected = backward.nodes.find(node => node.id === id)!.grad!.data
+      expected.forEach((value, coordinate) => expect(actual.gradients[index + 1][coordinate]).toBeCloseTo(value, 9))
+    }
+    expect(run.stdout).toContain('SAE_INVARIANTS_OK')
+  }, 30_000)
+
+  it.skipIf(!python).each(['mse', 'mae'] as const)('excludes intrinsic padding and reports token-weighted internal %s', loss => {
+    const graph = sparseAutoencoderGraph()
+    const dataset = graph.nodes.find(node => node.type === 'dataset')!
+    dataset.params = { dataset: 'custom-text', datasetMode: 'sample', datasetIndex: 0,
+      textData: prepareTextDocuments([
+        { text: 'good', label: 'positive', split: 'train' },
+        { text: 'good film', label: 'positive', split: 'train' },
+        { text: 'bad film', label: 'negative', split: 'test' },
+      ], 'padding.csv', { task: 'sentiment', representation: 'tokens', fixedLength: true, maxLength: 3 }) }
+    graph.nodes.find(node => node.id === 'loss')!.params.loss = loss
+    const exported = generatePyTorchExport(graph, { epochs: 0 })
+    const harness = `import sys,json
+ns={}
+exec(sys.stdin.read(),ns)
+ns['evaluate'](ns['model'],ns['train_rows'])
+print('MASKED=' + json.dumps(ns['model'].evaluation_metrics))
+assert ns['model'].sparsity['tokens']==2
+`
+    const run = runWithDataset(exported, exported.script, harness)
+    expect(run.status, run.stderr).toBe(0)
+    const actual = JSON.parse(run.stdout.match(/MASKED=([^\n]+)/)![1])
+    expect(actual.data_loss).toBeCloseTo(evaluateDataset(graph, dataset.id, 'train').loss!, 9)
+    expect(actual.objective).toBeCloseTo(actual.data_loss + actual.activation_penalty, 9)
+    expect(actual.inactive_features).toBe(2)
+    expect(actual.sparsity_tolerance).toBe(0)
   }, 30_000)
 
   it.skipIf(!python)('matches stable ranking and exact indexed masks in exported Python', () => {

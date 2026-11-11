@@ -1,7 +1,7 @@
 # Teach with Neural Canvas
 
 This directory contains the complete current teaching releases for the
-[19-assignment course](../README.md#course-assignments): student handouts,
+[21-assignment course](../README.md#course-assignments): student handouts,
 ready-to-upload autograders, grader source, instructor notes, rubrics,
 curriculum plans, and validation summaries. No private repository is needed to
 teach the course or rebuild its autograders.
@@ -81,6 +81,7 @@ To rebuild all current uploads from committed data without training:
 .venv/bin/python scripts/assignments/package-word-counts.py
 .venv/bin/python scripts/assignments/package-embeddings.py
 .venv/bin/python scripts/assignments/package-advanced.py
+.venv/bin/python scripts/assignments/package-interpretability.py
 ```
 
 Packaging refreshes the ZIP and `reference/package-sha256.json`. Preserve issued

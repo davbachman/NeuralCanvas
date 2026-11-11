@@ -58,7 +58,7 @@ See the [dataset guide](docs/DATASETS.md) for controls and the [dataset sources]
 
 [Browse the assignment descriptions on GitHub](course/assignments/README.md).
 
-These 19 assignments progress from regression to a transformer question-answering capstone. Students build editable models, select datasets from the browser, and save their work as JSON. Many assignments extend the preceding solution, so keep trained models for later comparisons and fine-tuning. Each link opens the student instructions.
+These 21 assignments progress from regression to transformer question answering, sparse feature reconstruction and controlled residual interventions. Students build editable models, select datasets from the browser, and save their work as JSON. Many assignments extend earlier solutions, so keep trained models for later comparisons and fine-tuning. Each link opens the student instructions.
 
 **Teaching the course:** [Instructor guides, Canvas handouts, Gradescope autograders, sources, and curriculum notes](course/README.md) are included in this repository. Trained solutions and exams remain private.
 
@@ -95,4 +95,6 @@ These 19 assignments progress from regression to a transformer question-answerin
 | [17. Let attention build on attention](https://davbachman.github.io/NeuralCanvas/course/17-stacking.html) | Stack two independently parameterized transformer blocks so later attention can use already contextualized representations. Compare with the trained one-block model. |
 | [18. Give each block two attention patterns](https://davbachman.github.io/NeuralCanvas/course/18-multiple-heads.html) | Give each transformer block two independently learned attention heads while keeping the total feature width fixed. Keep the trained generator for the capstone. |
 | [19. Fine-tune your generator to answer questions](https://davbachman.github.io/NeuralCanvas/course/19-qa-finetuning.html) | Fine-tune the trained generator to predict answer tokens for football-story questions. Compare before and after fine-tuning, and with the earlier cross-attention model, on the common benchmark. |
+| [20. Interpret a transformer with sparse features](https://davbachman.github.io/NeuralCanvas/course/20-sparse-autoencoder.html) | Freeze the preserved narrative generator, compare reconstruction with sparse activation training, and construct a selected feature's contribution. |
+| [21. Test features through residual interventions](https://davbachman.github.io/NeuralCanvas/course/21-feature-interventions.html) | Add and ablate learned decoder directions; verify restoration, prediction effects and controls with bounded interventions. |
 

@@ -1,4 +1,6 @@
 import { NumberInput } from './NumberInput'
+import { normalizeParameterValue } from '../domain/interpretability'
+import { datasetOutputCountForNode, datasetOutputLabelForSlot } from '../domain/datasets'
 import { ArithmeticExpressionInput } from './ArithmeticExpressionInput'
 import {StandardizationInspector} from './StandardizationInspector'
 import { useState } from 'react'
@@ -147,6 +149,13 @@ export function ModelInspector({
               <span>Used in formulas and pseudocode. Clear for automatic naming. Duplicate names get a numeric suffix.</span>
             </label>}
           {operationHelp[node.type] && <p className="coordinate-note">{operationHelp[node.type]}</p>}
+          {parameter && !binding && <fieldset><legend>Parameter training</legend>
+            <label className="inspector-field">Update setting<select aria-label="Parameter update setting" value={node.params.trainable === false ? 'frozen' : 'trainable'} onChange={event => onParams(node.id, { trainable: event.target.value === 'trainable' })}><option value="trainable">Trainable</option><option value="frozen">Frozen</option></select></label>
+            <p>Frozen values stay fixed during training and initialization. Gradients still flow through their calculations.</p>
+            <label className="inspector-field">Norm constraint<select aria-label="Parameter norm constraint" value={node.params.constraint ?? 'none'} disabled={node.params.trainable === false} onChange={event => onParams(node.id, { constraint: event.target.value === 'unit-row-norm' ? 'unit-row-norm' : undefined })}><option value="none">None</option><option value="unit-row-norm" disabled={toTensor(node.params.value).shape.length !== 2}>Unit row norm · matrix directions</option></select></label>
+            {toTensor(node.params.value).shape.length !== 2 && <p>Initialize a matrix shape before choosing a row-norm constraint.</p>}
+            {node.params.constraint && <p>Each matrix row has Euclidean norm 1 after initialization and every update. A zero row becomes [1, 0, …].</p>}
+          </fieldset>}
           {node.type === 'arithmetic' && !node.id.startsWith('inspect:') && <ArithmeticEditor key={node.id} graph={graph} node={node} onParams={onParams}/>}
           {node.type === 'one-hot' && <label className="inspector-field">Vocabulary size<NumberInput aria-label="One-hot vocabulary size" type="number" min="2" max="8192" value={node.params.numClasses ?? 2} onChange={event => onParams(node.id, {numClasses: Number(event.target.value)})}/></label>}
           {node.type === 'argsort' && <label className="inspector-field">Sort order<select aria-label="Argsort order" value={node.params.descending === false ? 'ascending' : 'descending'} onChange={event => onParams(node.id, {descending: event.target.value === 'descending'})}><option value="descending">Descending</option><option value="ascending">Ascending</option></select></label>}
@@ -163,6 +172,17 @@ export function ModelInspector({
               <p>The Loss block shows data loss plus this penalty. Dataset evaluation reports data loss. This is separate from AdamW weight decay; use decay 0 to isolate the penalty.</p>
               {graph.nodes.filter(n=>n.type==='weight'||n.type==='bias').map(n=>{const ids=node.params.regularizationParameterIds??graph.nodes.filter(p=>p.type==='weight').map(p=>p.id);return <label key={n.id} style={{display:'block'}}><input type="checkbox" checked={ids.includes(n.id)} onChange={event=>onParams(node.id,{regularizationParameterIds:event.target.checked?[...ids,n.id]:ids.filter(id=>id!==n.id)})}/>{n.label}</label>})}
             </>}
+          </fieldset>}
+          {isLossNode(node) && <fieldset><legend>Activation objective</legend>
+            <label className="inspector-field">Target source<select aria-label="Loss target source" value={node.params.targetMode ?? 'dataset'} onChange={event => onParams(node.id, { targetMode: event.target.value === 'internal' ? 'internal' : undefined })}><option value="dataset">Dataset target</option><option value="internal">Frozen internal activation</option></select></label>
+            {node.params.targetMode === 'internal' && <p>Use mean squared error. Connect a frozen, deterministic activation to target port 2. Target-side gradients are stopped; the predictor still receives gradients.</p>}
+            <label className="inspector-field">Valid-token mask<select aria-label="Loss valid-token mask" value={node.params.lossMaskNodeId ? `${node.params.lossMaskNodeId}:${node.params.lossMaskSourceSlot ?? 0}` : ''} onChange={event => {
+              const option = event.target.selectedOptions[0]
+              onParams(node.id, { lossMaskNodeId: option.dataset.node || undefined, lossMaskSourceSlot: option.dataset.node ? Number(option.dataset.slot) : undefined })
+            }}><option value="">All valid positions</option>{graph.nodes.filter(candidate => !isLossNode(candidate)).flatMap(candidate => Array.from({ length: candidate.type === 'dataset' ? datasetOutputCountForNode(candidate) : 1 }, (_, slot) => <option key={`${candidate.id}:${slot}`} value={`${candidate.id}:${slot}`} data-node={candidate.id} data-slot={slot}>{candidate.label}{candidate.type === 'dataset' ? ` · ${datasetOutputLabelForSlot(candidate, slot)}` : ''}</option>))}</select></label>
+            <p>Token padding is excluded automatically. An optional fixed binary mask further restricts positions: 1 includes, 0 excludes. Reconstruction averages over valid tokens and coordinates.</p>
+            <label className="inspector-field">Penalized activation<select aria-label="Penalized activation" value={node.params.activationPenaltyNodeId ?? ''} onChange={event => onParams(node.id, { activationPenaltyNodeId: event.target.value || undefined })}><option value="">None</option>{graph.nodes.filter(candidate => !['dataset', 'weight', 'bias', 'loss', 'cross-entropy'].includes(candidate.type)).map(candidate => <option key={candidate.id} value={candidate.id}>{candidate.label} · {candidate.id}</option>)}</select></label>
+            {node.params.activationPenaltyNodeId && <><label className="inspector-field">Activation L1 strength λ<NumberInput aria-label="Activation L1 strength" type="number" min="0" step="0.001" value={node.params.activationPenaltyStrength ?? 0} onChange={event => onParams(node.id, { activationPenaltyStrength: Number(event.target.value) })}/></label><p>λ × mean over valid tokens of the sum of absolute feature activations. This is separate from parameter regularization. The derivative at zero is zero.</p></>}
           </fieldset>}
           {node.type === 'loss' && lossKindForNode(node, graph) === 'binary-cross-entropy-with-logits' && <p className="coordinate-note">Connect raw scores directly. This loss includes sigmoid; use a separate sigmoid only to inspect probabilities.</p>}
           {node.type === 'loss' && lossKindForNode(node, graph) === 'binary-cross-entropy' && <p className="coordinate-note">Legacy probability loss: keep the sigmoid before this block. To use logits, remove that sigmoid connection and choose Binary cross entropy (logits).</p>}
@@ -207,7 +227,7 @@ export function ModelInspector({
               />
             )}
           {node.type === 'standardize' && !node.id.startsWith('inspect:') && <StandardizationInspector key={node.id} graph={graph} node={node} onParams={onParams}/>}
-          {node.type === 'dropout' && !node.id.startsWith('inspect:') && <label className="inspector-field">Dropout probability<NumberInput aria-label="Dropout probability" type="number" min="0" max="0.99" step="0.05" value={node.params.dropoutRate ?? 0.1} onChange={event => onParams(node.id,{dropoutRate:Number(event.target.value)})}/><span>Training drops activations and scales survivors. Evaluation passes them unchanged.</span></label>}
+          {node.type === 'dropout' && !node.id.startsWith('inspect:') && <><label className="inspector-field">Dropout probability<NumberInput aria-label="Dropout probability" type="number" min="0" max="0.99" step="0.05" value={node.params.dropoutRate ?? 0.1} onChange={event => onParams(node.id,{dropoutRate:Number(event.target.value)})}/><span>Training drops activations and scales survivors. Evaluation passes them unchanged.</span></label><label><input type="checkbox" checked={node.params.inferenceOnly ?? false} onChange={event => onParams(node.id, { inferenceOnly: event.target.checked })}/>Always use evaluation mode</label><p>Enable this for stable frozen representations, including during autoencoder training.</p></>}
           {node.type === 'activation' &&
             !binding &&
             !node.id.startsWith('inspect:') && (
@@ -297,6 +317,7 @@ function TensorEditor({
 }) {
   const value = toTensor(node.params.value)
   const isInput = node.type === 'input'
+  const frozen = (node.type === 'weight' || node.type === 'bias') && node.params.trainable === false
   const manualInput = isInput && node.params.inputMode !== 'random'
   const editableData = isInput ? formatInputValues(value) : value.data.map(String).join(', ')
   const [shape, setShape] = useState(value.shape.join(', ')),
@@ -313,8 +334,9 @@ function TensorEditor({
     setData(editableData)
   }
   const initializeShape = () => {
+    if (frozen) return
     try {
-      onValue(node.id, initializeTensor(parseTensorShape(shape), initializer, seed))
+      onValue(node.id, normalizeParameterValue(node, initializeTensor(parseTensorShape(shape), initializer, seed)))
       setError('')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Invalid shape.')
@@ -325,6 +347,7 @@ function TensorEditor({
       className="tensor-editor"
       onSubmit={(event) => {
         event.preventDefault()
+        if (frozen) return
         if (manualInput) {
           try {
             onValue(node.id, parseInputValues(data))
@@ -359,8 +382,12 @@ function TensorEditor({
           )
           return
         }
-        onValue(node.id, { shape: dimensions, data: numbers })
-        setError('')
+        try {
+          onValue(node.id, normalizeParameterValue(node, { shape: dimensions, data: numbers }))
+          setError('')
+        } catch (cause) {
+          setError(cause instanceof Error ? cause.message : 'Invalid parameter values.')
+        }
       }}
     >
       {isInput && <>
@@ -386,7 +413,8 @@ function TensorEditor({
           />
         </label>
         <p className="coordinate-note">{isInput ? 'Choose a shape, initialization method, and seed, then generate fixed input values.' : 'Enter a shape, then initialize its values or enter all values below and apply them.'}</p>
-        <div className="tensor-initializer"><label className="inspector-field">Initialize<select aria-label="Tensor initializer" value={initializer} onChange={event => onParams(node.id, { initializer: event.target.value as Initializer })}>{INITIALIZERS.map(kind => <option key={kind} value={kind}>{kind === 'xavier' ? 'Xavier · matrices' : kind === 'he' ? 'He · ReLU / filters' : kind}</option>)}</select></label><button type="button" onClick={initializeShape}>{isInput ? 'Generate inputs' : 'Initialize tensor'}</button></div>
+        <div className="tensor-initializer"><label className="inspector-field">Initialize<select aria-label="Tensor initializer" value={initializer} onChange={event => onParams(node.id, { initializer: event.target.value as Initializer })}>{INITIALIZERS.map(kind => <option key={kind} value={kind}>{kind === 'xavier' ? 'Xavier · matrices' : kind === 'he' ? 'He · ReLU / filters' : kind}</option>)}</select></label><button type="button" disabled={frozen} onClick={initializeShape}>{isInput ? 'Generate inputs' : 'Initialize tensor'}</button></div>
+        {frozen && <p className="coordinate-note">Unfreeze this parameter before changing or initializing its values.</p>}
         {(node.type === 'weight' || node.type === 'bias') && <p className="coordinate-note">Saved with this block. Train → Randomize parameters uses this method with fresh random draws.</p>}
         <label className="inspector-field">Random seed<NumberInput aria-label="Initializer seed" type="number" min={isInput ? 0 : undefined} max={isInput ? 0xffffffff : undefined} step="1" value={seed} onChange={event => {
           const next = Number(event.target.value)
@@ -407,7 +435,7 @@ function TensorEditor({
           />
         </label>
         {manualInput && <p className="coordinate-note">Enter a number, a comma-separated list, or nested arrays such as [[1, 2], [3, 4]]. Brackets determine matrix and tensor shapes.</p>}
-        <button type="submit" className="inspector-wide">
+        <button type="submit" className="inspector-wide" disabled={frozen}>
           Apply values
         </button>
       </>}

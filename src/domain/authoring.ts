@@ -19,7 +19,7 @@ export function initializeTensor(shape: number[], mode: Initializer, seed = 42):
 export const operationHelp: Partial<Record<NodeType, string>> = {
   'one-hot': 'Integer IDs [tokens] → indicators [tokens, vocabulary]. IDs are discrete; only downstream parameters learn. Maximum 1,048,576 output cells.',
   matmul: 'Left [rows, inner] × right [inner, columns] → [rows, columns]. Use a Param for the right matrix.',
-  weight: 'A trainable scalar or tensor. Use its value as a weight, bias, or other learned quantity.',
+  weight: 'A scalar or tensor parameter. Use its value as a weight, bias, or other learned quantity. Trainable values learn; frozen values stay fixed.',
   arithmetic: 'Type an expression with x1, x2, and so on. Supports +, -, *, /, numeric powers, and parentheses. Inputs are elementwise and can broadcast.',
   'tensor-transform': 'Choose Reshape, Transpose, Slice, or Mean. Set shape, axes, or slice bounds below; gradients follow the selected transform.',
   embedding: 'Port 1: table [vocabulary, width]. Port 2: integer IDs [tokens]. Output: [tokens, width].',

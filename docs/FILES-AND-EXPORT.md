@@ -25,6 +25,14 @@ to export a library dataset. The library has no separate dataset-download action
 
 The generated program is a starting point for experiments outside the visual app. It includes a small training loop when the graph has a loss and emits evaluation results. The current **Train** settings carry over: batch size, reshuffling, epoch count, and reporting interval. At each report it evaluates training and held-out loss without updating parameters on the held-out examples, and plots both curves when Matplotlib is available. It is not a hosted training service or an export of the canvas layout.
 
+Saved projects preserve frozen/trainable settings, decoder row constraints,
+fixed evaluation-mode Dropout and activation-objective selections. Supported
+PyTorch exports preserve these semantics, including detached internal targets,
+valid-token reconstruction and activation penalties. Export currently requires
+Trace/SGD settings; Tensor optimizer programs are explicitly rejected. Fixed-token
+text exports use one example per update. Keep the saved project to resume Tensor
+training in the app. See [internal representations](INTERPRETABILITY.md).
+
 If you only want the guide, choose **Neural Canvas → Reference** in the app's top bar. It opens the GitHub README in a new tab.
 
 Imported text projects also save their vocabulary, tokenization settings, original documents, and fixed document splits. Their Python/notebook exports include `neural-canvas-dataset.json`, with prepared numerical examples and text metadata; keep it beside the export. See [Text curriculum](TEXT-CURRICULUM.md).

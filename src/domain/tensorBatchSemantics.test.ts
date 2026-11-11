@@ -104,7 +104,7 @@ describe('tensor classification metrics',()=>{
     const result=await trainTensorGraph(createModelPreset('playground'),{epochs:1,batchSize:3,settings:{...DEFAULT_TRAINING,engine:'tensor',backend:'cpu',patience:0}})
     expect(result.completed).toBe(1)
     expect(result.reports).toHaveLength(2)
-    expect(result.reports.every(report=>Number.isFinite(report.train.loss)&&report.validation.accuracy>=0&&report.validation.accuracy<=1)).toBe(true)
+    expect(result.reports.every(report=>Number.isFinite(report.train.loss)&&report.validation.accuracy!>=0&&report.validation.accuracy!<=1)).toBe(true)
   })
   it.each([1,2,3])('counts predicted tokens in fixed-length sequence metrics with batch size %i',async batchSize=>{
     const graph=createModelPreset('decoder'),model=new TensorGraph(graph)

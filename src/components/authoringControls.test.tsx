@@ -23,6 +23,49 @@ function InspectorHarness({initial}: {initial:GraphNode}) {
 }
 
 describe('scratch model authoring controls',()=>{
+  it('protects frozen parameter values from initialization and manual submission', () => {
+    const node = createNode('weight', 1)
+    node.params.trainable = false
+    const onValue = vi.fn()
+    render(<ModelInspector {...callbacks} graph={{ nodes: [node], edges: [], learningRate: .01 }} node={node} onValue={onValue}/>)
+    expect(screen.getByLabelText('Parameter update setting')).toHaveValue('frozen')
+    expect(screen.getByRole('button', { name: 'Initialize tensor' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Apply values' })).toBeDisabled()
+    fireEvent.keyDown(screen.getByLabelText('Tensor shape'), { key: 'Enter' })
+    expect(onValue).not.toHaveBeenCalled()
+  })
+
+  it('initializes constrained matrix directions safely even from zero', () => {
+    const node = createNode('weight', 1)
+    node.params.constraint = 'unit-row-norm'
+    node.params.initializer = 'zeros'
+    const onValue = vi.fn()
+    render(<ModelInspector {...callbacks} graph={{ nodes: [node], edges: [], learningRate: .01 }} node={node} onValue={onValue}/>)
+    fireEvent.change(screen.getByLabelText('Tensor shape'), { target: { value: '2, 3' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Initialize tensor' }))
+    expect(onValue).toHaveBeenCalledWith(node.id, tensorValue([2, 3], [1, 0, 0, 1, 0, 0]))
+  })
+
+  it('configures a detached internal target independently of activation sparsity', () => {
+    const node = createNode('loss', 1)
+    render(<InspectorHarness initial={node}/>)
+    fireEvent.change(screen.getByLabelText('Loss target source'), { target: { value: 'internal' } })
+    expect(screen.getByLabelText('Loss target source')).toHaveValue('internal')
+    expect(screen.getByLabelText('Regularization penalty')).toHaveValue('none')
+    expect(screen.getByText(/Target-side gradients are stopped/)).toBeVisible()
+  })
+
+  it('keeps constrained parameter values when a manual edit changes the matrix to a vector', () => {
+    const node = createNode('weight', 1)
+    node.params.constraint = 'unit-row-norm'
+    node.params.value = tensorValue([2, 2], [1, 0, 0, 1])
+    const onValue = vi.fn()
+    render(<ModelInspector {...callbacks} graph={{ nodes: [node], edges: [], learningRate: .01 }} node={node} onValue={onValue}/>)
+    fireEvent.change(screen.getByLabelText('Tensor shape'), { target: { value: '4' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply values' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Unit row norm requires a nonempty matrix')
+    expect(onValue).not.toHaveBeenCalled()
+  })
   it('defaults inputs to manual entry and applies matrix dimensions from brackets', () => {
     const initial = createNode('input', 1), onValue = vi.fn()
     render(<ModelInspector {...callbacks} graph={{ nodes: [initial], edges: [], learningRate: .01 }} node={initial} onValue={onValue}/>)

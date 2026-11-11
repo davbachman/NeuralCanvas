@@ -79,7 +79,7 @@ function operationCode(node: GraphNode, args: string[], graph: GraphModel): stri
     }
     case 'concat': return `torch.cat([${args.map(value => axis === 1 ? `(${value}.reshape(-1, 1) if ${value}.ndim == 1 else ${value})` : value).join(', ')}], dim=${axis})`
     case 'standardize': return `(${a} - ${tensorCode({shape:node.params.standardization!.mean.length===1?[]:[node.params.standardization!.mean.length],data:node.params.standardization!.mean})}) / ${tensorCode({shape:node.params.standardization!.scale.length===1?[]:[node.params.standardization!.scale.length],data:node.params.standardization!.scale})}`
-    case 'dropout': return `F.dropout(${a}, p=${node.params.dropoutRate ?? 0.1}, training=self.training)`
+    case 'dropout': return `F.dropout(${a}, p=${node.params.dropoutRate ?? 0.1}, training=${node.params.inferenceOnly ? 'False' : 'self.training'})`
     case 'softmax': return `torch.softmax(${a}, dim=-1)`
     case 'argsort': return `sort_indices(${a}, descending=${node.params.descending === false ? 'False' : 'True'})`
     case 'index-mask': return `index_mask(${a}, ${b}, exclude=${node.params.indexMaskMode === 'exclude' ? 'True' : 'False'})`
@@ -112,6 +112,59 @@ function notebookCell(source: string, kind: 'code' | 'markdown', id: string) {
     ? { cell_type: 'code', id, metadata: {}, source: source.split('\n').map((line, i, lines) => i < lines.length - 1 ? `${line}\n` : line), execution_count: null, outputs: [] }
     : { cell_type: 'markdown', id, metadata: {}, source: [source] }
 }
+
+const interpretabilityHelpers = `@torch.no_grad()
+def project_unit_rows_(parameter):
+    if parameter.ndim != 2:
+        raise ValueError('Unit row norm requires a matrix')
+    scale = parameter.abs().amax(dim=1, keepdim=True)
+    if not torch.isfinite(scale).all():
+        raise ValueError('Parameter directions must be finite')
+    zero = scale[:, 0] == 0
+    parameter.div_(torch.where(scale > 0, scale, torch.ones_like(scale)))
+    norms = torch.linalg.vector_norm(parameter, dim=1, keepdim=True)
+    parameter.div_(torch.where(norms > 0, norms, torch.ones_like(norms)))
+    parameter[zero] = 0
+    parameter[zero, 0] = 1
+
+def token_rows(value, mask=None):
+    rows = value.reshape(-1, value.shape[-1] if value.ndim else 1)
+    if mask is None:
+        return rows
+    row_shape = tuple(value.shape[:-1])
+    if tuple(mask.shape) not in (row_shape, row_shape + (1,)) or mask.numel() != rows.shape[0] or not torch.isfinite(mask).all() or not ((mask == 0) | (mask == 1)).all():
+        raise ValueError('Loss mask must contain one binary value per token')
+    valid = mask.detach().reshape(-1).bool()
+    if not valid.any():
+        raise ValueError('Loss mask must contain at least one valid token')
+    return rows[valid]
+
+def combined_token_mask(value, mask, token_ids, fixed_length=False):
+    if value.ndim != 2 or value.shape[0] != token_ids.numel():
+        raise ValueError('Internal token reconstruction must preserve the dataset token positions')
+    intrinsic = ((token_ids != 1) if fixed_length else torch.ones_like(token_ids)).reshape(value.shape[:-1]).to(value.dtype)
+    if mask is None:
+        return intrinsic
+    token_rows(value, mask)  # Validate explicit shape and binary entries first.
+    return intrinsic * mask.reshape(intrinsic.shape)
+
+def masked_reconstruction(prediction, target, mask, absolute=False):
+    if prediction.shape != target.shape:
+        raise ValueError('Internal reconstruction prediction and target shapes must match')
+    difference = token_rows(prediction - target.detach(), mask)
+    return difference.abs().mean() if absolute else difference.square().mean()
+
+def activation_l1(value, mask=None):
+    return token_rows(value, mask).abs().sum(dim=-1).mean()
+
+@torch.no_grad()
+def activation_diagnostics(value, mask=None):
+    active = token_rows(value, mask).abs() > 0
+    return {'active_features_per_token': float(active.sum(dim=-1).double().mean()),
+            'inactive_features': int((~active.any(dim=0)).sum()), 'tolerance': 0,
+            'feature_active': active.any(dim=0), 'tokens': active.shape[0], 'active_total': int(active.sum())}
+
+`
 
 /** Compile the executable graph and current weights to a PyTorch program.
  * Dataset examples live in a neighboring file. Visual groups do not change computation. */
@@ -180,7 +233,9 @@ export function generatePyTorchExport(graph: GraphModel, options: PyTorchExportO
   }
   const parameterNodes = graph.nodes.filter(node => node.type === 'weight' || node.type === 'bias')
   const parameters = new Map(parameterNodes.map((node, index) => [node.id, `p_${index + 1}`]))
-  const parameterLines = parameterNodes.map(node => `        self.${parameters.get(node.id)} = nn.Parameter(${tensorCode(node.params.value)})  # ${comment(node.label)}`)
+  const parameterLines = parameterNodes.map(node => `        self.${parameters.get(node.id)} = nn.Parameter(${tensorCode(node.params.value)}, requires_grad=${node.params.trainable === false ? 'False' : 'True'})  # ${comment(node.label)}`)
+  const constrainedParameters = parameterNodes.filter(node => node.params.constraint === 'unit-row-norm' && node.params.trainable !== false)
+  const constraintLines = constrainedParameters.map(node => `        project_unit_rows_(self.${parameters.get(node.id)})`)
   const lossNode = losses[0]
   const penaltyTerms = lossNode && lossNode.params.regularization && lossNode.params.regularization !== 'none'
     ? regularizedParameters(graph, lossNode).map(node => `(self.${parameters.get(node.id)}.${lossNode.params.regularization === 'l1' ? 'abs()' : 'square() * 0.5'}).sum()`)
@@ -192,6 +247,7 @@ export function generatePyTorchExport(graph: GraphModel, options: PyTorchExportO
     const name = names.get(id)!
     const inputs = sortedInputs(graph, node)
     const args = inputs.map(sourceName)
+    if (isLossNode(node)) args[1] = `${args[1]}.detach()`
     const expected = inputArityForNode(node)
     if ((node.type !== 'input' && node.type !== 'target') && inputs.length !== expected) {
       throw new Error(`${node.label} has incomplete inputs.`)
@@ -208,8 +264,28 @@ export function generatePyTorchExport(graph: GraphModel, options: PyTorchExportO
     } else if (node.type === 'input' || node.type === 'target') {
       forwardLines.push(`        ${name} = ${args[0] ?? tensorCode(node.params.value)}`)
     } else {
-      forwardLines.push(`        ${name} = ${operationCode(node, args, graph)}`)
-      if (isLossNode(node) && penaltyTerms.length) forwardLines.push(`        ${name} = ${name} + self.regularization_penalty()`)
+      const explicitMask = isLossNode(node) && node.params.lossMaskNodeId
+        ? sourceName({ source: node.params.lossMaskNodeId, sourceSlot: node.params.lossMaskSourceSlot } as GraphEdge)
+        : 'None'
+      const intrinsicMask = datasetNode.params.textData?.representation === 'tokens'
+      const fixedLengthCode = datasetNode.params.textData?.fixedLength ? 'True' : 'False'
+      const mask = isLossNode(node) && intrinsicMask && (node.params.targetMode === 'internal' || node.params.activationPenaltyNodeId)
+        ? `combined_token_mask(${args[0]}, ${explicitMask}, features[0], fixed_length=${fixedLengthCode})` : explicitMask
+      const expression = isLossNode(node) && (node.params.lossMaskNodeId || node.params.targetMode === 'internal')
+        ? `masked_reconstruction(${args[0]}, ${args[1]}, ${mask}, absolute=${lossKindForNode(node, graph) === 'mae' ? 'True' : 'False'})`
+        : operationCode(node, args, graph)
+      forwardLines.push(`        ${name} = ${expression}`)
+      if (isLossNode(node)) {
+        const activation = node.params.activationPenaltyNodeId ? sourceName({ source: node.params.activationPenaltyNodeId, sourceSlot: 0 } as GraphEdge) : undefined
+        const activationMask = activation && intrinsicMask ? `combined_token_mask(${activation}, ${explicitMask}, features[0], fixed_length=${fixedLengthCode})` : explicitMask
+        forwardLines.push(`        self.data_loss = ${name}`)
+        forwardLines.push(`        self.loss_weight = ${node.params.targetMode === 'internal' || node.params.lossMaskNodeId ? `token_rows(${args[0]}, ${mask}).shape[0]` : '1'}`)
+        forwardLines.push(`        self.activation_penalty = ${activation ? `${node.params.activationPenaltyStrength ?? 0} * activation_l1(${activation}, ${activationMask})` : '0.0'}`)
+        forwardLines.push(`        self.activation_weight = ${activation ? `token_rows(${activation}, ${activationMask}).shape[0]` : '1'}`)
+        forwardLines.push(`        ${name} = ${name} + self.regularization_penalty() + self.activation_penalty`)
+        forwardLines.push(`        self.objective = ${name}`)
+        if (activation) forwardLines.push(`        self.sparsity = activation_diagnostics(${activation}, ${activationMask})`)
+      }
     }
   }
   const predictionEdge = lossNode && sortedInputs(graph, lossNode).find(edge => (edge.inputSlot ?? 0) === 0)
@@ -273,15 +349,21 @@ datasetLoader +
 `    clipped = prediction.clamp(1e-7, 1 - 1e-7)\n` +
 `    probability = prediction + (clipped - prediction).detach()\n` +
 `    return -(target * torch.log(probability) + (1 - target) * torch.log(1 - probability)).mean()\n\n` +
+interpretabilityHelpers +
 `class BuilderModel(nn.Module):\n` +
 `    def __init__(self):\n` +
 `        super().__init__()\n` +
-`${parameterLines.length ? parameterLines.join('\n') : '        pass'}\n\n` +
+`${parameterLines.length ? parameterLines.join('\n') : '        pass'}\n` +
+`        self.sparsity = None\n` +
+`        self.evaluation_metrics = {}\n\n` +
+`    @torch.no_grad()\n` +
+`    def project_constraints(self):\n` +
+`${constraintLines.length ? constraintLines.join('\n') : '        pass'}\n\n` +
 `    def regularization_penalty(self):\n` +
 `        return ${penaltyCode}\n\n` +
 `    def forward(self, features, target):\n` +
 `${forwardLines.join('\n')}\n` +
-`        return ${predictionEdge ? sourceName(predictionEdge) : names.get(outputNode!.id)}, ${lossNode ? names.get(lossNode.id) : 'None'}, ${actualEdge ? sourceName(actualEdge) : 'target'}\n\n` +
+`        return ${predictionEdge ? sourceName(predictionEdge) : names.get(outputNode!.id)}, ${lossNode ? names.get(lossNode.id) : 'None'}, ${actualEdge ? `${sourceName(actualEdge)}.detach()` : 'target'}\n\n` +
 `EVALUATE_FULL_BATCH = ${datasetMode(datasetNode) === 'batch' ? 'True' : 'False'}\n` +
 `BATCH_SIZE = ${batchSize}\n` +
 `BATCH_MODE = EVALUATE_FULL_BATCH or BATCH_SIZE > 1\n` +
@@ -308,21 +390,31 @@ datasetLoader +
 `    if not rows:\n` +
 `        return None, None, []\n` +
 `    model.eval()\n` +
-`    losses, pairs, hits = [], [], []\n` +
+`    losses, penalties, loss_weights, penalty_weights, pairs, hits = [], [], [], [], [], []\n` +
+`    feature_active, active_total, valid_tokens = None, 0, 0\n` +
 `    with torch.no_grad():\n` +
 `        for batch in ([rows] if EVALUATE_FULL_BATCH else [[row] for row in rows]):\n` +
 `            features, target = model_inputs(batch, EVALUATE_FULL_BATCH)\n` +
 `            prediction, loss, actual_target = model(features, target)\n` +
 `            if loss is not None:\n` +
-`                losses.append(float(loss - model.regularization_penalty()))\n` +
+`                losses.append(float(model.data_loss) * model.loss_weight)\n` +
+`                loss_weights.append(model.loss_weight)\n` +
+`                penalties.append(float(model.activation_penalty) * model.activation_weight)\n` +
+`                penalty_weights.append(model.activation_weight)\n` +
+`                if model.sparsity is not None:\n` +
+`                    active = model.sparsity['feature_active']\n` +
+`                    feature_active = active.clone() if feature_active is None else feature_active | active\n` +
+`                    active_total += model.sparsity['active_total']\n` +
+`                    valid_tokens += model.sparsity['tokens']\n` +
+`${lossNode?.params.targetMode === 'internal' ? '            continue  # Residual coordinates are reconstruction targets, not dataset class labels.\n' : ''}` +
 `            actual = actual_target.reshape(-1)\n` +
 `            if prediction.numel() % actual.numel() != 0:\n` +
 `                continue\n` +
 `            scores = prediction.reshape(actual.numel(), -1)\n` +
-`            categorical = ${lossNode && lossKindForNode(lossNode, graph) === 'binary-cross-entropy-with-logits' ? 'True or ' : ''}DATASET['task'] in ('classification', 'binary-classification', 'sequence')\n` +
+`            categorical = ${lossNode?.params.targetMode === 'internal' ? 'False and ' : lossNode && lossKindForNode(lossNode, graph) === 'binary-cross-entropy-with-logits' ? 'True or ' : ''}DATASET['task'] in ('classification', 'binary-classification', 'sequence')\n` +
 `            if categorical and scores.shape[-1] > 1:\n` +
 `                predicted = scores.argmax(dim=-1)\n` +
-`            elif ${lossNode && lossKindForNode(lossNode, graph) === 'binary-cross-entropy-with-logits' ? 'True' : "DATASET['task'] == 'binary-classification'"}:\n` +
+`            elif ${lossNode?.params.targetMode === 'internal' ? 'False' : lossNode && lossKindForNode(lossNode, graph) === 'binary-cross-entropy-with-logits' ? 'True' : "DATASET['task'] == 'binary-classification'"}:\n` +
 `                predicted = (scores[:, 0] >= ${lossNode && lossKindForNode(lossNode, graph) === 'binary-cross-entropy-with-logits' ? '0.0' : '0.5'}).long()\n` +
 `            else:\n` +
 `                predicted = scores[:, 0]\n` +
@@ -331,14 +423,19 @@ datasetLoader +
 `                pairs.append((label, actual[index].item(), value.item()))\n` +
 `                if categorical:\n` +
 `                    hits.append(int(value.item() == actual[index].item()))\n` +
-`    return (sum(losses) / len(losses) if losses else None), (sum(hits) / len(hits) if hits else None), pairs\n\n` +
+`    mean_loss = sum(losses) / sum(loss_weights) if losses else None\n` +
+`    mean_penalty = sum(penalties) / sum(penalty_weights) if penalties else None\n` +
+`    model.evaluation_metrics = {'data_loss': mean_loss, 'activation_penalty': mean_penalty, 'objective': mean_loss + mean_penalty + float(model.regularization_penalty()) if mean_loss is not None else None}\n` +
+`    if feature_active is not None:\n` +
+`        model.evaluation_metrics.update(active_features_per_token=active_total / valid_tokens, inactive_features=int((~feature_active).sum()), sparsity_tolerance=0)\n` +
+`    return model.evaluation_metrics['data_loss'], (sum(hits) / len(hits) if hits else None), pairs\n\n` +
 `model = BuilderModel()\n` +
 `train_rows = [row for row in DATASET['examples'] if row['split'] == 'train']\n` +
 `test_rows = [row for row in DATASET['examples'] if row['split'] == 'test']\n` +
 `if not train_rows:\n` +
 `    raise ValueError('The dataset has no training examples.')\n` +
 `train_loader = DataLoader(train_rows, batch_size=BATCH_SIZE, shuffle=SHUFFLE_EACH_EPOCH, collate_fn=lambda rows: rows, generator=torch.Generator().manual_seed(42))\n` +
-`parameters = list(model.parameters())\n` +
+`parameters = [parameter for parameter in model.parameters() if parameter.requires_grad]\n` +
 `optimizer = torch.optim.SGD(parameters, lr=LEARNING_RATE) if parameters else None\n` +
 `initial_train_loss, _, _ = evaluate(model, train_rows)\n` +
 `initial_held_out_loss, _, _ = evaluate(model, test_rows)\n` +
@@ -353,11 +450,14 @@ datasetLoader +
 `        if optimizer is not None and loss.requires_grad:\n` +
 `            loss.backward()\n` +
 `            optimizer.step()\n` +
+`        model.project_constraints()\n` +
 `    if epoch % REPORT_EVERY == 0 or epoch == TRAIN_EPOCHS:\n` +
 `        train_loss, train_accuracy, _ = evaluate(model, train_rows)\n` +
+`        train_metrics = dict(model.evaluation_metrics)\n` +
 `        held_out_loss, _, _ = evaluate(model, test_rows)\n` +
 `        loss_history.append((epoch, train_loss, held_out_loss))\n` +
 `        print(f'Epoch {epoch}: train loss={train_loss:.6g}' + (f', held-out loss={held_out_loss:.6g}' if held_out_loss is not None else '') + (f', accuracy={train_accuracy:.1%}' if train_accuracy is not None else ''))\n` +
+`${lossNode?.params.activationPenaltyNodeId ? "        print('Training activation penalty={activation_penalty:.6g}, total objective={objective:.6g}, active features/token={active_features_per_token:.6g}, inactive features={inactive_features}, tolerance={sparsity_tolerance}'.format(**train_metrics))\n" : ''}` +
 `try:\n` +
 `    _notebook_shell = get_ipython()\n` +
 `except NameError:\n` +

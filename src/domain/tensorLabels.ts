@@ -1,6 +1,11 @@
 import { datasetOutputValueForSlot } from './datasets'
 import type { GraphModel } from './types'
 
+/** Token labels are generated from the fitted vocabulary, not user block names. */
+export function isPaddingTokenLabel(label: string | undefined): boolean {
+  return label !== undefined && /^\d+: "<pad>"$/.test(label)
+}
+
 /** Labels follow graph connections, not names or coincidentally matching sizes. */
 export function tensorAxisLabels(graph: GraphModel, id: string, slot = 0, visited = new Set<string>()): Array<string[] | undefined> {
   if (visited.has(id)) return []

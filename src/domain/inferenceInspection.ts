@@ -2,7 +2,7 @@ import { createForwardEvaluator, inputArityForNode } from './engine'
 import { withDatasetExample } from './datasetTraining'
 import { datasetExamplesForNode, datasetMode, datasetOutputValueForSlot } from './datasets'
 import { tensorExampleRows } from './tensorExampleRows'
-import { tensorAxisLabels } from './tensorLabels'
+import { isPaddingTokenLabel, tensorAxisLabels } from './tensorLabels'
 import { toTensor } from './tensor'
 import type { GraphModel, TensorValue } from './types'
 
@@ -130,6 +130,9 @@ export class InferenceInspection {
       const length = examples[row].features[1].data.length
       value = { ...value, excluded: value.data.map((_, flat) => value.shape.some((size, axis) => axes[axis] === 'token' && Math.floor(flat / value.shape.slice(axis + 1).reduce((a, b) => a * b, 1)) % size >= (labels[axis]?.length ?? length))) }
     }
+    // Fixed-length examples retain explicit <pad> IDs inside the labelled rows.
+    // Exclude them in both engines, in addition to Tensor's batch-only padding.
+    if (labels.some(axis => axis?.some(isPaddingTokenLabel))) value = { ...value, excluded: value.data.map((_, flat) => Boolean(value.excluded?.[flat]) || value.shape.some((size, axis) => isPaddingTokenLabel(labels[axis]?.[Math.floor(flat / value.shape.slice(axis + 1).reduce((a, b) => a * b, 1)) % size]))) }
     const tokenAxis = axes.includes('token') || labels.some(axis => axis?.some(label => /^\d+: /.test(label)))
     return { status: 'available', value, axes, labels, kind: !dependent ? 'shared' : captured.aggregate ? 'aggregate' : 'example',
       simple: !tokenAxis && (value.shape.length <= 1 || value.shape.length === 2 && value.shape[0] === 1) }

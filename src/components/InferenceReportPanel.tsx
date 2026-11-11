@@ -17,6 +17,7 @@ export function InferenceReportPanel({ metrics, split, task }: { metrics?: Datas
         <strong>{formatNumber(metrics.loss)} <small>loss</small></strong>
         {metrics.accuracy !== undefined && <strong aria-label={`${split === 'train' ? 'Training' : 'Test'} accuracy`}>{(metrics.accuracy * 100).toFixed(1)}% <small>{task === 'sequence' ? 'token' : 'class'} accuracy</small></strong>}
       </div>
+      {metrics.activationPenalty !== undefined && <p aria-label="Activation objective diagnostics">Reconstruction/data loss {formatNumber(metrics.loss)} · Activation L1 {formatNumber(metrics.activationPenalty)} · Total objective {formatNumber(metrics.objective)}<br/>{formatNumber(metrics.activePerToken)} active features/token · {metrics.inactiveFeatures} inactive features. Active means exactly nonzero (tolerance 0); padding is excluded.</p>}
       {rows.length > 0 && <div className="inference-predictions" aria-label={`${split === 'train' ? 'Training' : 'Test'} predictions`}>
         <div className="inference-predictions-heading"><h4>Predictions</h4><span>{rows.length} outputs</span></div>
         <ol className="inference-predictions-list">{rows.slice(page * 25, (page + 1) * 25).map((row, index) => <li key={`${page}-${index}`} className={row.correct === undefined ? '' : row.correct ? 'is-correct' : 'is-incorrect'}>

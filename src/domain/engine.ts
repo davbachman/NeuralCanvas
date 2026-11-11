@@ -1,6 +1,7 @@
 import { hasStoryExperiment } from './textData'
 import {isStandardizationStats, standardize, standardizationShapeMatches} from './standardization'
 import {parameterPenalty,penaltyGradients} from './regularization'
+import { activationObjective, graphAncestors, interpretabilityIssues, normalizeParameterValue, objectiveDependencies, objectiveRows } from './interpretability'
 import { resolveReshape } from './reshape'
 import { arithmeticInputCount, evaluateArithmetic, parseArithmetic } from './arithmetic'
 import { conv2d, conv2dBackward, avgpool2d, avgpool2dBackward } from '../learning/cnnMath'
@@ -233,10 +234,11 @@ export function lossFormulaForNode(node: GraphNode, graph?: GraphModel, targetLa
   const formula = node.type === 'cross-entropy'
     ? `L = mean(−log softmax(${inputs[0]})[${inputs[1]}])`
     : lossFormula(lossKindForNode(node, graph), inputs, Boolean(graph && hasNonScalarIncomingValue(node, graph)))
-  if (!node.params.regularization || node.params.regularization === 'none') return formula
-  return formula + (node.params.regularization === 'l1'
+  const parameter = !node.params.regularization || node.params.regularization === 'none' ? '' : node.params.regularization === 'l1'
     ? ` + ${node.params.regularizationStrength ?? 0} Σ |w|`
-    : ` + ${(node.params.regularizationStrength ?? 0) / 2} Σ w²`)
+    : ` + ${(node.params.regularizationStrength ?? 0) / 2} Σ w²`
+  const activation = node.params.activationPenaltyNodeId ? ` + ${node.params.activationPenaltyStrength ?? 0} mean_valid rows(Σ |h|)` : ''
+  return formula + parameter + activation + (node.params.lossMaskNodeId || node.params.targetMode === 'internal' ? ' (valid rows only; target fixed)' : '')
 }
 
 export function lossOptionsForNode(node: GraphNode, graph?: GraphModel): Array<{ kind: LossKind; label: string }> {
@@ -603,6 +605,7 @@ export function validateGraph(graph: GraphModel, options: { requireLoss?: boolea
   for (const node of graph.nodes) if (isLossNode(node) && ((!['none','l1','l2'].includes(node.params.regularization??'none')) || !Number.isFinite(node.params.regularizationStrength??0) || (node.params.regularizationStrength??0)<0 || node.params.regularizationParameterIds?.some(id=>!graph.nodes.some(n=>n.id===id&&(n.type==='weight'||n.type==='bias'))))) issues.push({code:'invalid-value',nodeId:node.id,message:'Regularization needs a nonnegative finite strength and existing parameter blocks.'})
   for (const node of graph.nodes) if (node.type === 'standardize' && !isStandardizationStats(node.params.standardization)) issues.push({code:'invalid-value',nodeId:node.id,message:'Fit Standardize features on training rows in Details.'})
   for (const node of graph.nodes) if (node.type === 'dropout' && (!Number.isFinite(node.params.dropoutRate ?? 0.1) || (node.params.dropoutRate ?? 0.1) < 0 || (node.params.dropoutRate ?? 0.1) >= 1)) issues.push({code:'invalid-value',nodeId:node.id,message:'Dropout probability must be at least 0 and less than 1.'})
+  issues.push(...interpretabilityIssues(graph))
   issues.push(...validateTensorShapes(graph))
   issues.push(...validateDiscreteInputs(graph))
 
@@ -739,7 +742,8 @@ function outputShapeForNode(node: GraphNode, inputShapes: number[][]): number[] 
 export function topologicalSort(graph: GraphModel): string[] {
   const indegree = new Map(graph.nodes.map((node) => [node.id, 0]))
   const outgoing = new Map<string, string[]>()
-  for (const edge of graph.edges) {
+  const dependencies = [...graph.edges, ...graph.nodes.flatMap(node => objectiveDependencies(node).map(source => ({source,target:node.id})))]
+  for (const edge of dependencies) {
     if (!indegree.has(edge.source) || !indegree.has(edge.target)) continue
     indegree.set(edge.target, (indegree.get(edge.target) ?? 0) + 1)
     outgoing.set(edge.source, [...(outgoing.get(edge.source) ?? []), edge.target])
@@ -779,11 +783,11 @@ export function createForwardEvaluator(graph: GraphModel): (input?: GraphModel) 
   const indexById = new Map(graph.nodes.map((node, index) => [node.id, index]))
   const order = topologicalSort(graph).map(id => indexById.get(id)!)
   const incoming = graph.nodes.map(node => incomingEdges(graph, node.id).map(edge => ({ edge, sourceIndex: indexById.get(edge.source)! })))
-  const nodeTypes = graph.nodes.map(node => ({ id: node.id, type: node.type }))
+  const nodeTypes = graph.nodes.map(node => ({ id: node.id, type: node.type, references:objectiveDependencies(node).join('\0') }))
   const topology = graph.edges.map(edge => [edge.id, edge.source, edge.target, edge.inputSlot ?? 0, edge.sourceSlot ?? 0])
   const edges = graph.edges.map(edge => ({ ...edge, value: undefined, grad: undefined }))
   return (input = graph) => {
-    if (input.nodes.length !== nodeTypes.length || input.nodes.some((node, i) => node.id !== nodeTypes[i].id || node.type !== nodeTypes[i].type) ||
+    if (input.nodes.length !== nodeTypes.length || input.nodes.some((node, i) => node.id !== nodeTypes[i].id || node.type !== nodeTypes[i].type || objectiveDependencies(node).join('\0') !== nodeTypes[i].references) ||
         input.edges.length !== topology.length || input.edges.some((edge, i) => edge.id !== topology[i][0] ||
           edge.source !== topology[i][1] || edge.target !== topology[i][2] || (edge.inputSlot ?? 0) !== topology[i][3] || (edge.sourceSlot ?? 0) !== topology[i][4])) {
       throw new Error('The graph topology changed. Compile a new forward evaluator.')
@@ -795,8 +799,8 @@ export function createForwardEvaluator(graph: GraphModel): (input?: GraphModel) 
         const source = next.nodes[sourceIndex]
         return source.type === 'dataset' ? datasetOutputValueForSlot(source, edge.sourceSlot ?? 0) : source.value!
       })
-      const computed = computeForward(node, inputs, {}, false)
-      node.value = isLossNode(node) ? scalarValue(scalarFromTensor(computed.value) + parameterPenalty(next, node)) : computed.value
+      const computed = computeObjectiveForward(node, inputs, next, {}, false)
+      node.value = computed.value
     }
     const loss = next.nodes.find(isLossNode)?.value
     return { graph: next, steps: [], loss: loss ? scalarFromTensor(loss) : undefined }
@@ -833,11 +837,9 @@ export function forwardPass(graph: GraphModel, trace = true, options: ForwardOpt
   for (const nodeId of order) {
     const node = mustNode(next, nodeId)
     const incoming = incomingEdges(next, nodeId)
-    if (options.allowPartial && (blockedNodes.has(nodeId) || incoming.some(edge => edge.value === undefined))) continue
+    if (options.allowPartial && (blockedNodes.has(nodeId) || incoming.some(edge => edge.value === undefined) || objectiveDependencies(node).some(id => !next.nodes.find(n => n.id === id)?.value))) continue
     const inputValues = incoming.map((edge) => valueForSourceEdge(next, edge))
-    const computed = computeForward(node, inputValues, options)
-
-    if (isLossNode(node)) computed.value = scalarValue(scalarFromTensor(computed.value) + parameterPenalty(next,node))
+    const computed = computeObjectiveForward(node, inputValues, next, options)
     node.value = computed.value
     node.grad = zeroLike(computed.value)
     node.localDerivative = computed.localDerivative
@@ -880,7 +882,7 @@ export function backwardPass(graph: GraphModel): EvaluationResult {
   const lossNode = next.nodes.find(isLossNode)
   if (!lossNode) throw new Error('Cannot run backward pass without a loss node.')
   lossNode.grad = scalarValue(1)
-  for (const {node,value} of penaltyGradients(next,lossNode)) node.grad=addTensorsExact(node.grad!,value)
+  seedObjectiveGradients(next, lossNode)
 
   for (const nodeId of order) {
     const node = mustNode(next, nodeId)
@@ -911,10 +913,10 @@ export function updateParameters(graph: GraphModel, learningRate = graph.learnin
   const updates: ParameterUpdate[] = []
 
   for (const node of next.nodes) {
-    if (node.type !== 'weight' && node.type !== 'bias') continue
+    if ((node.type !== 'weight' && node.type !== 'bias') || node.params.trainable === false) continue
     const oldValue = toTensor(node.params.value)
     const gradient = node.grad ?? zeroLike(oldValue)
-    const newValue = addTensorsExact(oldValue, scaleTensor(gradient, -learningRate))
+    const newValue = normalizeParameterValue(node, addTensorsExact(oldValue, scaleTensor(gradient, -learningRate)))
     node.params.value = newValue
     node.value = newValue
     updates.push({
@@ -961,8 +963,7 @@ export function runTrainingStepFast(graph: GraphModel, learningRate = graph.lear
   const incoming = new Map(order.map(id => [id, incomingEdges(next, id)]))
   for (const id of order) {
     const node = byId.get(id)!
-    const computed = computeForward(node, incoming.get(id)!.map(edge => valueForSourceEdge(next, edge)), {training:true})
-    if (isLossNode(node)) computed.value = scalarValue(scalarFromTensor(computed.value) + parameterPenalty(next,node))
+    const computed = computeObjectiveForward(node, incoming.get(id)!.map(edge => valueForSourceEdge(next, edge)), next, {training:true})
     node.value = computed.value
     node.grad = zeroLike(computed.value)
     node.localDerivative = computed.localDerivative
@@ -971,7 +972,7 @@ export function runTrainingStepFast(graph: GraphModel, learningRate = graph.lear
   const loss = next.nodes.find(isLossNode)
   if (!loss) throw new Error('Training needs a loss.')
   loss.grad = scalarValue(1)
-  for (const {node,value} of penaltyGradients(next,loss)) node.grad=addTensorsExact(node.grad!,value)
+  seedObjectiveGradients(next, loss)
   for (const id of [...order].reverse()) {
     const node = byId.get(id)!
     for (const contribution of computeBackward(node, incoming.get(id)!, next, node.grad!)) {
@@ -980,13 +981,39 @@ export function runTrainingStepFast(graph: GraphModel, learningRate = graph.lear
     }
   }
   for (const node of next.nodes) {
-    if (node.type !== 'weight' && node.type !== 'bias') continue
-    const value = addTensorsExact(toTensor(node.params.value), scaleTensor(node.grad!, -learningRate))
+    if ((node.type !== 'weight' && node.type !== 'bias') || node.params.trainable === false) continue
+    const value = normalizeParameterValue(node, addTensorsExact(toTensor(node.params.value), scaleTensor(node.grad!, -learningRate)))
     if (value.data.some(entry => !Number.isFinite(entry))) throw new Error('Training diverged. Lower the learning rate.')
     node.params.value = value
   }
   // Only parameters are carried to the next update; inspect after a fresh forward pass.
   return { ...next, nodes: next.nodes.map(node => ({...node, value: undefined, grad: undefined, localDerivative: undefined})) }
+}
+
+function seedObjectiveGradients(graph: GraphModel, loss: GraphNode) {
+  for (const {node,value} of penaltyGradients(graph,loss)) node.grad=addTensorsExact(node.grad!,value)
+  const activation = activationObjective(graph, loss)
+  if (activation) {
+    const node = mustNode(graph, loss.params.activationPenaltyNodeId!)
+    node.grad = addTensorsExact(node.grad ?? zeroLike(activation.gradient), activation.gradient)
+  }
+}
+
+function maskedLoss(node: GraphNode, inputs: TensorValue[], graph: GraphModel) {
+  const [prediction,target] = inputs
+  if (prediction.shape.length !== target.shape.length || prediction.shape.some((n,i)=>n!==target.shape[i])) throw Error('Masked reconstruction requires matching prediction and target shapes.')
+  const {width,weights,count} = objectiveRows(graph,node,prediction)
+  const error = subtractTensors(prediction,target), mse = node.params.loss === 'mse'
+  const denominator = count*width
+  const value = error.data.reduce((sum,n,i)=>sum+weights[Math.floor(i/width)]*(mse?n*n:Math.abs(n)),0)/denominator
+  const gradient = tensorValue(prediction.shape,error.data.map((n,i)=>weights[Math.floor(i/width)]*(mse?2*n:Math.sign(n))/denominator))
+  return {value:scalarValue(value),localDerivative:gradient,localDerivatives:[gradient,zeroLike(target)],error}
+}
+
+function computeObjectiveForward(node: GraphNode, inputs: TensorValue[], graph: GraphModel, options: ForwardOptions = {}, derivatives = true) {
+  const computed = isLossNode(node) && (node.params.lossMaskNodeId || node.params.targetMode === 'internal') ? maskedLoss(node,inputs,graph) : computeForward(node,inputs,options,derivatives)
+  if (isLossNode(node)) computed.value = scalarValue(scalarFromTensor(computed.value) + parameterPenalty(graph,node) + (activationObjective(graph,node)?.penalty ?? 0))
+  return computed
 }
 
 function computeForward(
@@ -1008,7 +1035,7 @@ function computeForward(
   if (node.type === 'dropout') {
     if (!derivatives && !options.training) return { value: cloneTensor(inputs[0]), localDerivatives: [] }
     const p = node.params.dropoutRate ?? 0.1
-    const derivative = tensorValue(inputs[0].shape, inputs[0].data.map(() => options.training && p > 0 ? ((options.random ?? Math.random)() < p ? 0 : 1 / (1 - p)) : 1))
+    const derivative = tensorValue(inputs[0].shape, inputs[0].data.map(() => options.training && !node.params.inferenceOnly && p > 0 ? ((options.random ?? Math.random)() < p ? 0 : 1 / (1 - p)) : 1))
     return {value:multiplyTensors(inputs[0],derivative),localDerivative:derivative,localDerivatives:[derivative]}
   }
 
@@ -1178,6 +1205,11 @@ function computeBackward(
   const values = incoming.map((edge) => valueForSourceEdge(graph, edge))
   if (node.type === 'one-hot') return incoming.map((edge, i) => ({ edgeId: edge.id, sourceId: edge.source, gradient: zeroLike(values[i]) }))
 
+  if (isLossNode(node) && (node.params.lossMaskNodeId || node.params.targetMode === 'internal')) {
+    const calculation = maskedLoss(node,values,graph)
+    return incoming.map((edge,index)=>({edgeId:edge.id,sourceId:edge.source,gradient:index===0 ? multiplyTensors(downstreamGrad,calculation.localDerivative) : zeroLike(values[index])}))
+  }
+
   if (TENSOR_OPERATION_TYPES.has(node.type)) {
     const { output, operands } = tensorOperation(node, values, true)
     output.backward(downstreamGrad.data)
@@ -1320,18 +1352,7 @@ function incomingEdges(graph: GraphModel, nodeId: string): GraphEdge[] {
 }
 
 function ancestorsOf(graph: GraphModel, nodeId: string): Set<string> {
-  const ancestors = new Set<string>([nodeId])
-  const stack = [nodeId]
-  while (stack.length > 0) {
-    const current = stack.pop()!
-    for (const edge of graph.edges.filter((candidate) => candidate.target === current)) {
-      if (!ancestors.has(edge.source)) {
-        ancestors.add(edge.source)
-        stack.push(edge.source)
-      }
-    }
-  }
-  return ancestors
+  return graphAncestors(graph, nodeId)
 }
 
 function mustNode(graph: GraphModel, nodeId: string): GraphNode {
@@ -1395,7 +1416,7 @@ function assertValid(graph: GraphModel, requireLoss = false): void {
 
 function forwardStep(node: GraphNode, incoming: GraphEdge[], inputValues: TensorValue[], graph: GraphModel): EvaluationTraceStep {
   const phase = isLossNode(node) ? 'loss' : 'forward'
-  const calculation = calculationForForward(node, inputValues)
+  const calculation = calculationForForward(node, inputValues, graph)
   const isTensorStep = inputValues.some((value) => !isScalarTensor(value))
   return {
     id: `${phase}-${node.id}`,
@@ -1457,7 +1478,7 @@ function updateStep(update: ParameterUpdate): EvaluationTraceStep {
   }
 }
 
-function calculationForForward(node: GraphNode, inputs: TensorValue[]): string {
+function calculationForForward(node: GraphNode, inputs: TensorValue[], graph?: GraphModel): string {
   if (SOURCE_TYPES.has(node.type)) {
     return `${node.label} stores ${formatNumber(node.value)}.`
   }
@@ -1478,11 +1499,16 @@ function calculationForForward(node: GraphNode, inputs: TensorValue[]): string {
     return `${node.params.activation ?? 'identity'}(${formatNumber(inputs[0])}) = ${formatNumber(node.value)}`
   }
   if (TENSOR_OPERATION_TYPES.has(node.type)) return `${node.type === 'tensor-transform' ? selectedTensorTransform(node) : node.type}(${inputs.map((input) => formatShape(input.shape)).join(', ')}) = ${formatNumber(node.value)}`
-  if (isLossNode(node)) return lossCalculationForForward(node, inputs)
+  if (isLossNode(node)) return lossCalculationForForward(node, inputs, graph)
   return `${node.type}(${inputs.map(input => formatNumber(input)).join(', ')}) = ${formatNumber(node.value)}`
 }
 
-function lossCalculationForForward(node: GraphNode, inputs: TensorValue[]): string {
+function lossCalculationForForward(node: GraphNode, inputs: TensorValue[], graph?: GraphModel): string {
+  if (graph && (node.params.targetMode === 'internal' || node.params.lossMaskNodeId || node.params.activationPenaltyNodeId)) {
+    const activation = activationObjective(graph,node)?.penalty ?? 0, parameter = parameterPenalty(graph,node)
+    const total = scalarFromTensor(node.value!)
+    return `Data loss ${formatNumber(total-activation-parameter)} + activation penalty ${formatNumber(activation)} + parameter penalty ${formatNumber(parameter)} = ${formatNumber(total)}; excluded rows contribute zero.`
+  }
   const kind = lossKindForInputs(node, inputs)
   if (kind === 'binary-cross-entropy-with-logits') return `mean binary cross entropy from logits = ${formatNumber(node.value)}; logits ${formatNumber(inputs[0])}, targets ${formatNumber(inputs[1])}`
   if (kind === 'cross-entropy') return `mean negative log likelihood = ${formatNumber(node.value)}; logits ${formatNumber(inputs[0])}, target IDs ${formatNumber(inputs[1])}`
@@ -1529,7 +1555,7 @@ function derivativeFormula(node: GraphNode, graph?: GraphModel): string {
     const penalty = node.params.regularization
     const strength = node.params.regularizationStrength ?? 0
     const extra = penalty === 'l1' ? 'λ sign(w), with sign(0) = 0' : 'λ w'
-    return dataDerivative + (strength > 0 && (penalty === 'l1' || penalty === 'l2') ? `; selected parameter gradients also receive ${extra}.` : '')
+    return dataDerivative + (node.params.targetMode === 'internal' || node.params.lossMaskNodeId ? '; n counts valid coordinates; excluded rows and the target receive zero gradient' : '') + (strength > 0 && (penalty === 'l1' || penalty === 'l2') ? `; selected parameter gradients also receive ${extra}.` : '') + (node.params.activationPenaltyNodeId ? '; selected h receives λ sign(h) / valid tokens, with sign(0) = 0' : '')
   }
   return 'Gradient accumulates here.'
 }
@@ -1551,11 +1577,15 @@ function lossDerivativeFormula(kind: LossKind, inputLabels: string[], isTensor: 
 
 function regularizationPseudocode(node: GraphNode, backward: boolean): string[] {
   const kind = node.params.regularization
-  if (node.type !== 'loss' || !(node.params.regularizationStrength! > 0) || (kind !== 'l1' && kind !== 'l2')) return []
+  if (!isLossNode(node)) return []
+  const lines:string[] = node.params.activationPenaltyNodeId ? [backward
+    ? 'h.grad += lambda_activation * valid_mask * sign(h) / valid_tokens  # sign(0) = 0'
+    : 'loss += lambda_activation * sum(valid_mask * abs(h)) / valid_tokens'] : []
+  if (!(node.params.regularizationStrength! > 0) || (kind !== 'l1' && kind !== 'l2')) return lines
   const expression = backward
     ? `w.grad += lambda * ${kind === 'l1' ? 'sign(w)  # sign(0) = 0' : 'w'}`
     : `loss += lambda * ${kind === 'l1' ? 'sum(abs(w))' : '0.5 * sum(w ** 2)'}`
-  return ['for w in selected_parameters:  # each shared parameter once', `  ${expression}`]
+  return [...lines, 'for w in selected_parameters:  # each shared parameter once', `  ${expression}`]
 }
 
 function pseudocodeForNode(node: GraphNode, graph?: GraphModel): string[] {
@@ -1572,8 +1602,8 @@ function pseudocodeForNode(node: GraphNode, graph?: GraphModel): string[] {
   const lossKind = lossKindForNode(node, graph)
   if (lossKind === 'cross-entropy') return ['loss = mean(cross_entropy_from_logits(logits, target_ids))']
   if (lossKind === 'binary-cross-entropy-with-logits') return ['loss = binary_cross_entropy_with_logits(logits, target)']
-  if (lossKind === 'mse') return ['loss = mean((prediction - target) ** 2)']
-  if (lossKind === 'mae') return ['loss = mean(abs(prediction - target))']
+  if (lossKind === 'mse') return [node.params.targetMode === 'internal' || node.params.lossMaskNodeId ? 'loss = sum(valid_mask * (prediction - target) ** 2) / valid_coordinates' : 'loss = mean((prediction - target) ** 2)']
+  if (lossKind === 'mae') return [node.params.targetMode === 'internal' || node.params.lossMaskNodeId ? 'loss = sum(valid_mask * abs(prediction - target)) / valid_coordinates' : 'loss = mean(abs(prediction - target))']
   if (lossKind === 'binary-cross-entropy') {
     return ['loss = mean(-(target * log(prediction) + (1 - target) * log(1 - prediction)))']
   }

@@ -71,6 +71,6 @@ it('offers logits for new losses while keeping explicit legacy probability model
 })
 it('exports the stable PyTorch logits loss and matching prediction threshold',()=>{
   const script=generatePyTorchExport({...fixture(),training:undefined}).script
-  expect(script).toMatch(/F\.binary_cross_entropy_with_logits\(\*torch\.broadcast_tensors\([^,]+, [^)]+\.to\(dtype=[^)]+\.dtype\)\)\)/)
+  expect(script).toMatch(/F\.binary_cross_entropy_with_logits\(\*torch\.broadcast_tensors\((v_[A-Za-z0-9_]+), v_[A-Za-z0-9_]+\.detach\(\)\.to\(dtype=\1\.dtype\)\)\)/)
   expect(script).toContain('scores[:, 0] >= 0.0')
 })

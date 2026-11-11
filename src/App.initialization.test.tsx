@@ -72,3 +72,22 @@ it('uses all five initialization methods with fresh draws, retaining scalar, mat
     expect(state.epoch).toBe(0)
   }
 })
+
+it('freezes the existing model and preserves its values through randomization and save/import', () => {
+  const graph = oneHotModel(), spy = download()
+  const before = parameterValues(graph)
+  graph.nodes.push({ ...createNode('dropout', 50), id: 'frozen-dropout' })
+  render(<App initialGraph={graph}/>)
+  fireEvent.click(screen.getByRole('tab', { name: 'Train' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Freeze existing parameters' }))
+  expect(screen.getByLabelText('Trainable parameter count')).toHaveTextContent('0')
+  fireEvent.click(screen.getByRole('button', { name: /Randomize parameters/ }))
+  const file = save(spy)
+  const parsed = session.parseProjectStateFile(JSON.stringify(file))
+  expect(parsed.ok).toBe(true)
+  if (!parsed.ok) throw Error(parsed.error)
+  const saved = parsed.file.state.graph
+  expect(parameterValues(saved)).toEqual(before)
+  expect(saved.nodes.filter(node => node.type === 'weight' || node.type === 'bias').every(node => node.params.trainable === false)).toBe(true)
+  expect(saved.nodes.find(node => node.id === 'frozen-dropout')!.params.inferenceOnly).toBe(true)
+})

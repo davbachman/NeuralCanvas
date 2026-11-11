@@ -1,4 +1,5 @@
 import {parameterPenalty} from './regularization'
+import { activationObjective, objectiveRows } from './interpretability'
 import { datasetExamplesForNode, datasetForNode, datasetMode, datasetOutputCountForNode, datasetOutputValueForSlot, datasetTargetSlotForNode } from './datasets'
 import { createForwardEvaluator, forwardPass, isLossNode, lossKindForNode, runTrainingStepFast, validateGraph } from './engine'
 import type { GraphModel, GraphNode } from './types'
@@ -65,7 +66,7 @@ export function predictionNode(graph: GraphModel): GraphNode | undefined {
 }
 
 export interface DatasetPrediction { example: string; actual: string; predicted: string; correct?: boolean }
-export interface DatasetMetrics { loss: number; accuracy?: number; examples: number; predictions: number; rows: DatasetPrediction[] }
+export interface DatasetMetrics { loss: number; objective?:number; activationPenalty?:number; activePerToken?:number; inactiveFeatures?:number; sparsityTolerance?:number; accuracy?: number; examples: number; predictions: number; rows: DatasetPrediction[] }
 
 interface EvaluationOptions { includePredictions?: boolean; signal?: AbortSignal }
 
@@ -77,27 +78,40 @@ function* evaluateDatasetSteps(graph: GraphModel, id: string, split: 'train' | '
   const batch = datasetMode(source) === 'batch'
   const evaluate = createForwardEvaluator(graph)
   const indices = examples.flatMap((example,index)=>example.split === split ? [index] : [])
-  let loss = 0, count = 0, correct = 0, predictions = 0
+  let loss = 0, count = 0, correct = 0, predictions = 0, activationPenalty = 0, active = 0, tokens = 0
+  let featureCounts: number[] | undefined
   const rows: DatasetPrediction[] = []
   for (const index of batch ? indices.slice(0,1) : indices) {
     const result = evaluate(batch ? withDatasetBatch(graph,id,split) : withDatasetExample(graph, id, index))
     if (result.loss === undefined || !Number.isFinite(result.loss)) throw new Error('Connect predictions and dataset targets to a loss before evaluating.')
-    loss += result.loss - parameterPenalty(result.graph)
-    count++
-    if (options.includePredictions === false) { yield; continue }
     const lossNode = result.graph.nodes.find(isLossNode)!
     const output = predictionNode(result.graph)?.value
+    const activation = activationObjective(result.graph, lossNode)
+    const weight = output && (lossNode.params.targetMode === 'internal' || lossNode.params.lossMaskNodeId) ? objectiveRows(result.graph,lossNode,output).count : 1
+    loss += (result.loss - parameterPenalty(result.graph) - (activation?.penalty ?? 0))*weight
+    count += weight
+    if (activation) {
+      activationPenalty += activation.penalty*activation.validTokens
+      active += activation.activePerToken*activation.validTokens
+      tokens += activation.validTokens
+      featureCounts ??= Array(activation.activeCounts.length).fill(0)
+      activation.activeCounts.forEach((n,i) => { featureCounts![i] += n })
+    }
+    if (options.includePredictions === false) { yield; continue }
     const targetEdge = result.graph.edges.find(edge => edge.target === lossNode.id && edge.inputSlot === 1)
     const targetNode = result.graph.nodes.find(node => node.id === targetEdge?.source)
     const target = targetNode?.type === 'dataset' ? datasetOutputValueForSlot(targetNode, targetEdge?.sourceSlot ?? 0) : targetNode?.value
     const binaryLogits = lossKindForNode(lossNode, result.graph) === 'binary-cross-entropy-with-logits'
-    const categorical = binaryLogits || dataset.task.includes('classification') || dataset.task === 'sequence' || lossNode.type === 'cross-entropy' || lossNode.params.loss === 'cross-entropy'
+    const categorical = lossNode.params.targetMode !== 'internal' && (binaryLogits || dataset.task.includes('classification') || dataset.task === 'sequence' || lossNode.type === 'cross-entropy' || lossNode.params.loss === 'cross-entropy')
+    const binary = lossNode.params.targetMode !== 'internal' && (binaryLogits || dataset.task === 'binary-classification')
     const width = output && target ? output.data.length / target.data.length : 0
+    const validRows = lossNode.params.targetMode === 'internal' && output ? objectiveRows(result.graph,lossNode,output) : undefined
     if (output && target && Number.isInteger(width) && width >= 1 && (width === 1 || output.shape.at(-1) === width)) {
       target.data.forEach((actual, row) => {
+        if (validRows && !validRows.weights[Math.floor(row/validRows.width)]) return
         const scores = output.data.slice(row * width, (row + 1) * width)
         const predicted = categorical && width > 1 ? scores.indexOf(Math.max(...scores))
-          : (binaryLogits || dataset.task === 'binary-classification') ? Number(scores[0] >= (binaryLogits ? 0 : .5)) : scores[0]
+          : binary ? Number(scores[0] >= (binaryLogits ? 0 : .5)) : scores[0]
         const scored = categorical && (width > 1 || binaryLogits || dataset.task === 'binary-classification')
         const matched = scored ? predicted === actual : undefined
         if (matched !== undefined) { correct += Number(matched); predictions++ }
@@ -113,7 +127,8 @@ function* evaluateDatasetSteps(graph: GraphModel, id: string, split: 'train' | '
     yield
   }
   if (!count) throw new Error(`This dataset has no ${split} examples.`)
-  return { loss: loss / count, examples: indices.length, predictions, rows, accuracy: predictions ? correct / predictions : undefined }
+  const dataLoss = loss/count, penalty = tokens ? activationPenalty/tokens : 0
+  return { loss: dataLoss, objective:dataLoss+parameterPenalty(graph)+penalty, activationPenalty:penalty, ...(featureCounts ? {activePerToken:active/tokens, inactiveFeatures:featureCounts.filter(n=>n===0).length, sparsityTolerance:0} : {}), examples: indices.length, predictions, rows, accuracy: predictions ? correct / predictions : undefined }
 }
 
 export function evaluateDataset(graph: GraphModel, id: string, split: 'train' | 'test', options: EvaluationOptions = {}): DatasetMetrics {

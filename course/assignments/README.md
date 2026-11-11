@@ -23,3 +23,5 @@ Read the Markdown descriptions on GitHub. Use the HTML versions in Canvas’s HT
 | [Assignment 17: Let attention build on attention](17-stacking/description.md) | [HTML](17-stacking/description.html) | [Instructor guide](17-stacking/Instructor/INSTRUCTOR.md) |
 | [Assignment 18: Give each block two attention patterns](18-multiple-heads/description.md) | [HTML](18-multiple-heads/description.html) | [Instructor guide](18-multiple-heads/Instructor/INSTRUCTOR.md) |
 | [Assignment 19: Fine-tune your generator to answer questions](19-qa-finetuning/description.md) | [HTML](19-qa-finetuning/description.html) | [Instructor guide](19-qa-finetuning/Instructor/INSTRUCTOR.md) |
+| [Assignment 20: Interpret a transformer with sparse features](20-sparse-autoencoder/description.md) | [HTML](20-sparse-autoencoder/description.html) | [Instructor guide](20-sparse-autoencoder/Instructor/INSTRUCTOR.md) |
+| [Assignment 21: Test features through residual interventions](21-feature-interventions/description.md) | [HTML](21-feature-interventions/description.html) | [Instructor guide](21-feature-interventions/Instructor/INSTRUCTOR.md) |

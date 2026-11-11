@@ -244,6 +244,14 @@ function isNodeParams(value: unknown): value is NodeParams {
   if (!isRecord(value)) return false
   return (
     (value.initializer === undefined || INITIALIZERS.includes(value.initializer as Initializer)) &&
+    (value.trainable === undefined || typeof value.trainable === 'boolean') &&
+    (value.constraint === undefined || value.constraint === 'unit-row-norm') &&
+    (value.inferenceOnly === undefined || typeof value.inferenceOnly === 'boolean') &&
+    (value.targetMode === undefined || value.targetMode === 'internal') &&
+    (value.activationPenaltyNodeId === undefined || typeof value.activationPenaltyNodeId === 'string') &&
+    (value.activationPenaltyStrength === undefined || (isFiniteNumber(value.activationPenaltyStrength) && value.activationPenaltyStrength >= 0)) &&
+    (value.lossMaskNodeId === undefined || typeof value.lossMaskNodeId === 'string') &&
+    isOptionalNonNegativeInteger(value.lossMaskSourceSlot) &&
     (value.inputMode === undefined || value.inputMode === 'manual' || value.inputMode === 'random') &&
     (value.inputSeed === undefined || (isOptionalNonNegativeInteger(value.inputSeed) && Number(value.inputSeed) <= 0xffffffff)) &&
     (value.value === undefined || isFiniteNumber(value.value) || isTensorValue(value.value)) &&

@@ -23,6 +23,23 @@ releases and original datasets remain intact. See
 
 ## Current lesson order (2026-10-23)
 
+### Interpretability extension (2026-11-11)
+
+Assignments 20 and 21 append sparse residual reconstruction and controlled
+feature interventions. The original 1–19 numbering, datasets, rubrics and
+releases are preserved. Both extensions use the student's saved multihead.json
+narrative checkpoint; QA fine-tuning does not overwrite this handoff. Students
+build an unpenalized and sparse autoencoder with frozen transformer values,
+unit-norm decoder directions, and an independently constructed feature
+contribution. The next lesson grades zero restoration, bounded amplification,
+feature ablation and controls from saved graph operations. Feature indices are
+student-specific; semantic labels and training-history claims earn no points.
+See [INTERPRETABILITY-EXTENSION.md](INTERPRETABILITY-EXTENSION.md) for evidence,
+the selected recipe, grading targets and validation limits. Earlier dated
+decisions below retain their original numbering and scope.
+
+### Original transformer sequence
+
 Sampling now immediately follows the bigram model: 11 bigram, 12 temperature and top-k sampling,
 13 context MLP, 14 causal self-attention, 15 residuals/FFN, 16 normalization and
 all-position training, 17 stacking, 18 multiple heads, 19 QA fine-tuning.

@@ -73,6 +73,13 @@ export function pasteGraphClipboard(
     }
   })
 
+  for (const node of pastedNodes) {
+    const remap = (id: string) => nodeIdMap.get(id) ?? id
+    if (node.params.activationPenaltyNodeId) node.params.activationPenaltyNodeId = remap(node.params.activationPenaltyNodeId)
+    if (node.params.lossMaskNodeId) node.params.lossMaskNodeId = remap(node.params.lossMaskNodeId)
+    if (node.params.regularizationParameterIds) node.params.regularizationParameterIds = node.params.regularizationParameterIds.map(remap)
+  }
+
   const pastedEdges = source.edges.flatMap((edge) => {
     // A copied neuron keeps its existing inputs, but its output is a new
     // connection point. Reusing external destinations would attach two wires

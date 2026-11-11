@@ -1,11 +1,12 @@
 import { formatNumber } from '../domain/engine'
 import './lossReportPanel.css'
 
-export interface LossReport { epoch: number; loss: number; heldOutLoss?: number }
+export interface LossReport { epoch: number; loss: number; heldOutLoss?: number; activationPenalty?: number; objective?: number; activePerToken?: number; inactiveFeatures?: number }
 
 export function LossReportPanel({ reports, warning }: { reports: LossReport[]; warning?: string }) {
   const download = () => {
-    const data = ['epoch,train_loss,held_out_loss', ...reports.map(report => `${report.epoch},${report.loss},${report.heldOutLoss ?? ''}`)].join('\n')
+    const diagnostics = reports.some(report => report.activationPenalty !== undefined)
+    const data = [`epoch,train_loss,held_out_loss${diagnostics ? ',activation_penalty,total_objective,active_features_per_token,inactive_features' : ''}`, ...reports.map(report => `${report.epoch},${report.loss},${report.heldOutLoss ?? ''}${diagnostics ? `,${report.activationPenalty ?? ''},${report.objective ?? ''},${report.activePerToken ?? ''},${report.inactiveFeatures ?? ''}` : ''}`)].join('\n')
     const url = URL.createObjectURL(new Blob([data], { type: 'text/csv' }))
     const link = document.createElement('a')
     link.href = url
@@ -35,6 +36,7 @@ export function LossReportPanel({ reports, warning }: { reports: LossReport[]; w
     <div className="loss-report-heading"><div><p className="eyebrow">Training record</p><h3>Loss by epoch</h3></div><span>{reports.length} reports</span></div>
     {reports.length ? <>
       <p className="loss-report-note">Loss over the training set{hasHeldOut ? ' and held-out examples' : ''}; the graph above may show one example. Held-out evaluation never updates parameters.</p>
+      {reports.some(report => report.activationPenalty !== undefined) && <p className="loss-report-note">The curves show reconstruction/data loss. Activation L1 and total objective are listed separately. Active means exactly nonzero (tolerance 0); inactive features never activate in the evaluated training set. Padding is excluded.</p>}
       {warning && <p className="loss-report-warning" role="status">{warning}</p>}
       <button type="button" className="loss-report-download" onClick={download}>Download all losses · CSV</button>
       <div className="loss-report-legend"><span className="is-train">Training</span>{hasHeldOut && <span className="is-held-out">Held-out (validation)</span>}</div>
@@ -47,7 +49,7 @@ export function LossReportPanel({ reports, warning }: { reports: LossReport[]; w
       <div className="loss-report-range"><span>Epoch {firstEpoch}</span><span>Epoch {lastEpoch}</span></div>
       {reports.length > shownReports.length && <p className="loss-report-note">Showing the latest {shownReports.length} values below; the chart spans the full run.</p>}
       <div className="loss-report-list" role="list" aria-label="Reported losses">
-        {shownReports.map(report => <div role="listitem" key={report.epoch}><span>Epoch {report.epoch}</span><strong>Train {formatNumber(report.loss)}{report.heldOutLoss !== undefined ? <> · Held-out {formatNumber(report.heldOutLoss)}</> : null}</strong></div>)}
+        {shownReports.map(report => <div role="listitem" key={report.epoch}><span>Epoch {report.epoch}</span><strong>Train {formatNumber(report.loss)}{report.heldOutLoss !== undefined ? <> · Held-out {formatNumber(report.heldOutLoss)}</> : null}{report.activationPenalty !== undefined && <><br/>Activation L1 {formatNumber(report.activationPenalty)} · Total objective {formatNumber(report.objective)}<br/>{formatNumber(report.activePerToken)} active features/token · {report.inactiveFeatures} inactive features</>}</strong></div>)}
       </div>
     </> : <p className="coordinate-note">Run training from the Train tab to record loss here.</p>}
   </section>

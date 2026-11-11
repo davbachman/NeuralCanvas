@@ -13,7 +13,22 @@ export {tf}
 type Axis = 'batch' | 'token' | 'feature'
 type Signal = {value:tf.Tensor; axes:Axis[]}
 type PredictionKind = 'regression' | 'binary' | 'categorical'
-export interface TensorMetrics {loss:number; objective?:number; accuracy:number; examples:number}
+export interface TensorMetrics {loss:number; objective?:number; activationPenalty?:number; activePerToken?:number; inactiveFeatures?:number; sparsityTolerance?:number; accuracy?:number; examples:number}
+const rowConstrainedVariables=new WeakSet<tf.Variable>()
+/** Targets are observations, never an alternative gradient path. */
+const detached=tf.customGrad((input)=>({value:tf.clone(input as tf.Tensor),gradFunc:()=>tf.zerosLike(input as tf.Tensor)}))
+const absoluteZeroGrad=tf.customGrad((input,save)=>{
+  ;(save as (tensors:tf.Tensor[])=>void)([input as tf.Tensor])
+  return {value:tf.abs(input as tf.Tensor),gradFunc:(dy:tf.Tensor,saved:tf.Tensor[])=>tf.mul(dy,tf.sign(saved[0]))}
+})
+function projectRows(value:tf.Tensor):tf.Tensor {
+  const scale=tf.max(tf.abs(value),1,true)
+  const scaled=tf.div(value,tf.where(tf.greater(scale,0),scale,tf.onesLike(scale)))
+  const norm=tf.sqrt(tf.sum(tf.square(scaled),1,true))
+  const unit=tf.div(scaled,tf.where(tf.greater(norm,0),norm,tf.onesLike(norm)))
+  const first=tf.concat([tf.ones([value.shape[0]!,1]),tf.zeros([value.shape[0]!,value.shape[1]!-1])],1)
+  return tf.where(tf.greater(norm,0),unit,first)
+}
 export interface TensorReport {epoch:number; train:TensorMetrics; validation:TensorMetrics; improved:boolean}
 const SUPPORTED = new Set(['argsort','index-mask','standardize','dropout','dataset','weight','bias','input','target','matmul','arithmetic','multiply','add','activation','embedding','one-hot','transpose','tensor-transform','mean','softmax','causal-mask','layer-norm','loss','cross-entropy','concat','reshape','slice'])
 
@@ -114,6 +129,7 @@ export class TensorGraph {
   private order:GraphNode[]
   private inputs = new Map<string,GraphModel['edges']>()
   private dropoutStep = 0
+  private validatedExamples = new WeakSet<DatasetExample>()
   private expressions = new Map<string,ParsedArithmetic>()
   private source:GraphNode
   private lossNode:GraphNode
@@ -146,23 +162,29 @@ export class TensorGraph {
       if(!upstream) break
       targetInput=upstream
     }
-    if(targetInput.source!==this.source.id || (targetInput.sourceSlot??0)!==datasetTargetSlotForNode(this.source)) {
+    if(this.lossNode.params.targetMode!=='internal' && (targetInput.source!==this.source.id || (targetInput.sourceSlot??0)!==datasetTargetSlotForNode(this.source))) {
       throw Error('Tensor training needs the dataset target wired directly, or through Target or Reshape, to Loss.')
     }
     for(const node of this.order) if(node.type==='weight'||node.type==='bias') {
       const value=toTensor(node.params.value)
-      this.variables.set(node.id,tf.tidy(()=>tf.variable(tf.tensor(value.data,value.shape,'float32'))))
+      const variable=tf.tidy(()=>{
+        const tensor=tf.tensor(value.data,value.shape,'float32')
+        return tf.variable(tensor,node.params.trainable!==false)
+      })
+      if(node.params.constraint==='unit-row-norm') rowConstrainedVariables.add(variable)
+      this.variables.set(node.id,variable)
     }
   }
   dispose(){for(const variable of this.variables.values()) variable.dispose()}
   private predictionKind(prediction:tf.Tensor,target:tf.Tensor):PredictionKind {
+    if(this.lossNode.params.targetMode==='internal') return 'regression'
     const task=datasetForNode(this.source).task
     if(lossKindForNode(this.lossNode,this.graph)==='cross-entropy') return 'categorical'
     if(lossKindForNode(this.lossNode,this.graph)==='binary-cross-entropy-with-logits') return 'binary'
     if(task==='binary-classification' && prediction.size===target.size) return 'binary'
     return task.includes('classification') || task==='sequence' ? 'categorical' : 'regression'
   }
-  private execute(rows:DatasetExample[], training = false, capture?: {id:string; slot:number; signal?:Signal}): {loss:tf.Scalar; dataLoss:tf.Scalar; prediction:tf.Tensor; target:tf.Tensor; mask:tf.Tensor} {
+  private execute(rows:DatasetExample[], training = false, capture?: {id:string; slot:number; signal?:Signal}): {loss:tf.Scalar; dataLoss:tf.Scalar; activationPenalty:tf.Scalar; parameterPenalty:tf.Scalar; activeCounts:tf.Tensor; featureHits:tf.Tensor; tokenCount:tf.Scalar; metricWeight:tf.Scalar; prediction:tf.Tensor; target:tf.Tensor; mask:tf.Tensor} {
     const data=this.source.params.textData, count=rows.length
     const generic=!data || data.representation==='facts' || data.representation==='story-question'
     const lengths=rows.map(row=>generic?1:row.features[1].data.length), length=Math.max(...lengths)
@@ -201,7 +223,7 @@ export class TensorGraph {
             :broadcast.values.reduce((x,y)=>kind==='add'?tf.add(x,y):tf.mul(x,y))
           break
         }
-        case 'dropout':value=training && (node.params.dropoutRate ?? 0.1)>0 ? tf.dropout(a,node.params.dropoutRate ?? 0.1,undefined,137 + this.dropoutStep++) : a;break
+        case 'dropout':value=training && !node.params.inferenceOnly && (node.params.dropoutRate ?? 0.1)>0 ? tf.dropout(a,node.params.dropoutRate ?? 0.1,undefined,137 + this.dropoutStep++) : a;break
         case 'activation':value=node.params.activation==='relu'?tf.relu(a):node.params.activation==='sigmoid'?tf.sigmoid(a):node.params.activation==='tanh'?tf.tanh(a):a;break
         case 'transpose': {
           const batch=args[0].axes[0]==='batch', rank=a.rank-Number(batch)
@@ -268,8 +290,37 @@ export class TensorGraph {
       value:tf.tile(outputSignal.value.expandDims(0),[count,...outputSignal.value.shape.map(()=>1)]),
       axes:['batch',...outputSignal.axes],
     }
-    const actualSignal=read(this.inputs.get(this.lossNode.id)![1])
+    const targetInput=read(this.inputs.get(this.lossNode.id)![1])
+    const actualSignal={...targetInput,value:detached(targetInput.value)}
     const prediction=predictionSignal.value,actual=actualSignal.value
+    if((this.lossNode.params.targetMode==='internal' || this.lossNode.params.lossMaskNodeId) && (prediction.rank!==actual.rank || prediction.shape.some((n,i)=>n!==actual.shape[i]))) throw Error('Internal reconstruction requires identical prediction and target shapes.')
+    // Explicit masks apply to rows, never individual feature coordinates. The
+    // implicit token mask excludes batching padding in ordinary text graphs.
+    const rowWeights=(signal:Signal):tf.Tensor=>{
+      if(signal.value.rank<2) throw Error('Masked reconstruction and activation penalties need rows of features.')
+      const shape=signal.value.shape.slice(0,-1)
+      let weights=tf.ones(shape)
+      const reconstructTokens=data?.representation==='tokens' && (this.lossNode.params.targetMode==='internal' || !!this.lossNode.params.activationPenaltyNodeId)
+      if(reconstructTokens && (signal.value.rank!==3 || signal.value.shape[1]!==length)) throw Error('Internal token reconstruction and its sparse features must preserve token rows.')
+      if(reconstructTokens || data?.representation==='tokens' && signal.value.rank===3 && signal.value.shape[1]===length || signal.axes.length===3 && signal.axes[1]==='token') weights=tf.mul(weights,data?.fixedLength && data.representation==='tokens'?tf.notEqual(features[0].value,1).toFloat():mask)
+      if(this.lossNode.params.lossMaskNodeId) {
+        const selected=read({id:'loss-mask',source:this.lossNode.params.lossMaskNodeId,sourceSlot:this.lossNode.params.lossMaskSourceSlot??0,target:this.lossNode.id})
+        if(!selected) throw Error('Loss mask does not refer to an available signal.')
+        let explicit=selected.value
+        const localRank=explicit.rank-Number(selected.axes[0]==='batch')
+        const signalRank=signal.value.rank-Number(signal.axes[0]==='batch')
+        if(localRank===signalRank && explicit.shape.at(-1)===1) explicit=explicit.squeeze([-1])
+        if(selected.axes[0]!=='batch' && signal.axes[0]==='batch') explicit=explicit.expandDims(0)
+        if(explicit.rank!==shape.length || explicit.shape.some((n,i)=>n!==shape[i] && !(i===0 && selected.axes[0]!=='batch' && signal.axes[0]==='batch' && n===1))) throw Error('Loss mask must match feature rows, with an optional final singleton axis.')
+        if(Array.from(explicit.dataSync()).some(n=>n!==0 && n!==1)) throw Error('Loss mask values must be zero or one.')
+        weights=tf.mul(weights,detached(explicit))
+      }
+      const entries=Array.from(weights.dataSync()),perExample=entries.length/count
+      for(let example=0;example<count;example++) if(!entries.slice(example*perExample,(example+1)*perExample).some(n=>n>0)) throw Error('The loss mask needs at least one valid token/example row in each example.')
+      return weights
+    }
+    const masked=this.lossNode.params.targetMode==='internal' || !!this.lossNode.params.lossMaskNodeId
+    let metricWeight=tf.scalar(count)
     let loss:tf.Tensor
     const lossKind=lossKindForNode(this.lossNode,this.graph)
     if(lossKind==='binary-cross-entropy-with-logits') {
@@ -288,16 +339,41 @@ export class TensorGraph {
     } else if(lossKind==='mse' || lossKind==='mae') {
       const {values:[predictions,labels]}=broadcastSignals([predictionSignal,actualSignal])
       const difference=tf.sub(predictions,labels)
-      loss=tf.mean(lossKind==='mse'?tf.square(difference):tf.abs(difference))
+      const errors=lossKind==='mse'?tf.square(difference):absoluteZeroGrad(difference)
+      if(masked) {
+        if(predictions.shape.length!==labels.shape.length || predictions.shape.some((n,i)=>n!==labels.shape[i])) throw Error('Internal reconstruction requires identical prediction and target shapes.')
+        const weights=rowWeights(predictionSignal),valid=tf.sum(weights)
+        metricWeight=valid as tf.Scalar
+        loss=tf.div(tf.sum(tf.mul(errors,weights.expandDims(-1))),tf.maximum(tf.mul(valid,prediction.shape.at(-1)!),1))
+      } else loss=tf.mean(errors)
     }
     else throw Error('Tensor training supports MSE, MAE, binary cross entropy or cross entropy.')
     const dataLoss=loss as tf.Scalar
+    let activationPenalty=tf.scalar(0),activeCounts=tf.scalar(0),featureHits=tf.zeros([0]),tokenCount=tf.scalar(0)
+    if(this.lossNode.params.activationPenaltyNodeId) {
+      const raw=values.get(this.lossNode.params.activationPenaltyNodeId)
+      if(!raw) throw Error('Activation penalty requires an evaluated tensor.')
+      const activation:Signal=raw.axes[0]==='batch'?raw:{value:tf.tile(raw.value.expandDims(0),[count,...raw.value.shape.map(()=>1)]),axes:['batch',...raw.axes]}
+      const weights=rowWeights(activation),valid=tf.sum(weights)
+      tokenCount=valid as tf.Scalar
+      activationPenalty=tf.mul(this.lossNode.params.activationPenaltyStrength??0,tf.div(tf.sum(tf.mul(absoluteZeroGrad(activation.value),weights.expandDims(-1))),tf.maximum(valid,1))) as tf.Scalar
+      loss=tf.add(loss,activationPenalty)
+      // Exact nonzero is deliberate: ReLU creates zeros; small values are not
+      // silently treated as inactive. Aggregate feature hits over the whole split.
+      const active=tf.mul(tf.greater(tf.abs(activation.value),0).toFloat(),weights.expandDims(-1))
+      activeCounts=tf.sum(active) as tf.Scalar
+      featureHits=tf.sum(active,Array.from({length:active.rank-1},(_,i)=>i))
+    }
+    let parameterPenalty=tf.scalar(0)
     if(this.lossNode.params.regularization && this.lossNode.params.regularization!=='none'){
       const selected=regularizedParameters(this.graph,this.lossNode).map(n=>this.variables.get(n.id)!)
-      if(selected.length) loss=tf.add(loss,tf.mul(this.lossNode.params.regularizationStrength??0,tf.addN(selected.map(w=>tf.sum(this.lossNode.params.regularization==='l1'?tf.abs(w):tf.mul(tf.square(w),.5))))))
+      if(selected.length) {
+        parameterPenalty=tf.mul(this.lossNode.params.regularizationStrength??0,tf.addN(selected.map(w=>tf.sum(this.lossNode.params.regularization==='l1'?tf.abs(w):tf.mul(tf.square(w),.5))))) as tf.Scalar
+        loss=tf.add(loss,parameterPenalty)
+      }
     }
     if(capture?.id===this.lossNode.id) capture.signal={value:loss,axes:[]}
-    return {loss:loss as tf.Scalar,dataLoss,prediction,target,mask}
+    return {loss:loss as tf.Scalar,dataLoss,activationPenalty,parameterPenalty,activeCounts,featureHits,tokenCount,metricWeight,prediction,target:actual,mask:masked?rowWeights(predictionSignal):mask}
   }
   /** Read one signal with the same batch/padding semantics as inference. Only
    * that signal escapes tidy; no gradients or optimizer updates are involved. */
@@ -313,7 +389,19 @@ export class TensorGraph {
     finally {value.dispose()}
   }
   gradients(rows:DatasetExample[]) {
-    return tf.tidy(()=>{const result=tf.variableGrads(()=>this.execute(rows,true).loss,[...this.variables.values()]);return {loss:result.value,grads:result.grads}})
+    // Validate externally supplied masks before opening TFJS's gradient tape.
+    // A thrown kernel/validation error inside that tape retains its saved tensors.
+    // Mask ancestors are frozen, so each immutable example needs this only once.
+    if((this.lossNode.params.lossMaskNodeId || this.lossNode.params.targetMode==='internal' || this.lossNode.params.activationPenaltyNodeId) && rows.some(row=>!this.validatedExamples.has(row))) {
+      tf.tidy(()=>{this.execute(rows);return undefined})
+      rows.forEach(row=>this.validatedExamples.add(row))
+    }
+    return tf.tidy(()=>{
+      const variables=[...this.variables.values()].filter(variable=>variable.trainable)
+      if(!variables.length) return {loss:this.execute(rows,true).loss,grads:{}}
+      const result=tf.variableGrads(()=>this.execute(rows,true).loss,variables)
+      return {loss:result.value,grads:result.grads}
+    })
   }
   async inspect(rows:DatasetExample[]) {
     const result=tf.tidy(()=>{const {loss,prediction}=this.execute(rows);return {loss,prediction:tf.clone(prediction)}})
@@ -321,22 +409,30 @@ export class TensorGraph {
     finally {tf.dispose(result)}
   }
   async evaluate(rows:DatasetExample[],batchSize:number,signal?:AbortSignal):Promise<TensorMetrics> {
-    let sum=0,objectives=0,hits=0,total=0
+    let sum=0,parameterSum=0,hits=0,total=0,weight=0,penaltySum=0,activationCount=0,tokenCount=0
+    let featureHits:number[]=[]
     for(let i=0;i<rows.length;i+=batchSize) {
       if(signal?.aborted) throw Error('Training stopped.')
       const batch=rows.slice(i,i+batchSize), result=tf.tidy(()=>{
-        const {loss:objective,dataLoss:loss,prediction,target,mask}=this.execute(batch)
+        const {dataLoss:loss,prediction,target,mask,activationPenalty,parameterPenalty,activeCounts,featureHits,tokenCount,metricWeight}=this.execute(batch)
         const kind=this.predictionKind(prediction,target)
-        const sequence=this.source.params.textData?.task==='language' && this.source.params.textData.targetMode!=='last'
+        const sequence=kind==='categorical' && this.source.params.textData?.task==='language' && this.source.params.textData.targetMode!=='last'
         const correct=kind==='regression'?tf.zeros([batch.length]):kind==='binary'?tf.equal(tf.greaterEqual(prediction,lossKindForNode(this.lossNode,this.graph)==='binary-cross-entropy-with-logits'?0:.5),tf.cast(target.reshape(prediction.shape),'bool')).cast('float32'):tf.mul(tf.equal(tf.argMax(prediction,-1),target.reshape(prediction.shape.slice(0,-1))).cast('float32'),sequence?mask:tf.scalar(1))
-        return {loss,objective,hits:tf.sum(correct),total:sequence?tf.sum(mask):tf.scalar(correct.size)}
+        return {loss,parameterPenalty,activationPenalty,activeCounts,featureHits,tokenCount,metricWeight,hits:tf.sum(correct),total:sequence?tf.sum(mask):tf.scalar(correct.size)}
       })
-      try {const [loss,correct,count,objective]=await Promise.all([result.loss.data(),result.hits.data(),result.total.data(),result.objective.data()]);sum+=loss[0]*batch.length;objectives+=objective[0]*batch.length;hits+=correct[0];total+=count[0]}
-      finally {tf.dispose(result)}
+      try {
+        const [loss,correct,count,parameter,penalty,active,features,tokens,w]=await Promise.all([result.loss.data(),result.hits.data(),result.total.data(),result.parameterPenalty.data(),result.activationPenalty.data(),result.activeCounts.data(),result.featureHits.data(),result.tokenCount.data(),result.metricWeight.data()])
+        sum+=loss[0]*w[0];parameterSum+=parameter[0]*w[0];weight+=w[0];hits+=correct[0];total+=count[0]
+        penaltySum+=penalty[0]*tokens[0];activationCount+=active[0];tokenCount+=tokens[0]
+        if(!featureHits.length) featureHits=Array(features.length).fill(0)
+        features.forEach((n,index)=>{featureHits[index]+=n})
+      } finally {tf.dispose(result)}
       if(i%(batchSize*8)===0) await new Promise(resolve=>setTimeout(resolve,0))
     }
-    if(!rows.length) throw Error('Evaluation needs examples.')
-    return {loss:sum/rows.length,objective:objectives/rows.length,accuracy:hits/total,examples:rows.length}
+    if(!rows.length || !weight) throw Error('Evaluation needs at least one valid example or token.')
+    return {loss:sum/weight,objective:sum/weight+parameterSum/weight+(tokenCount?penaltySum/tokenCount:0),...(this.lossNode.params.targetMode==='internal'?{}:{accuracy:total?hits/total:0}),examples:rows.length,
+      ...(this.lossNode.params.activationPenaltyNodeId?{activationPenalty:tokenCount?penaltySum/tokenCount:0,activePerToken:tokenCount?activationCount/tokenCount:0,inactiveFeatures:featureHits.filter(n=>n===0).length,sparsityTolerance:0}:{}),
+    }
   }
   /** Decode predictions in minibatches without blocking the UI on a traced pass per row. */
   async inference(rows: DatasetExample[], batchSize = 64, signal?:AbortSignal): Promise<DatasetMetrics> {
@@ -344,7 +440,7 @@ export class TensorGraph {
     const dataset = datasetForNode(this.source)
     const predictions: DatasetPrediction[] = []
     const exampleIndices = new Map(this.examples.map((example, index) => [example, index]))
-    let sum = 0, hits = 0, scored = 0
+    let sum = 0, weight = 0, hits = 0, scored = 0
     const display = (value: number, isClass: boolean) => isClass
       ? dataset.classLabels?.[value] ?? dataset.vocabulary?.[value] ?? String(value)
       : Number(value.toPrecision(5)).toString()
@@ -352,15 +448,23 @@ export class TensorGraph {
       if(signal?.aborted) throw signal.reason ?? Error('Evaluation stopped.')
       const batch = rows.slice(offset, offset + batchSize)
       const result = tf.tidy(() => {
-        const { dataLoss, prediction, target } = this.execute(batch)
-        return { loss: dataLoss, prediction: tf.clone(prediction), kind: this.predictionKind(prediction,target) }
+        const { dataLoss, prediction, target, metricWeight, mask } = this.execute(batch)
+        return { loss: dataLoss, prediction: tf.clone(prediction), target:tf.clone(target), metricWeight, mask, kind: this.predictionKind(prediction,target) }
       })
       try {
-        const [loss, values] = await Promise.all([result.loss.data(), result.prediction.data()])
-        sum += loss[0] * batch.length
+        const [loss, values, actualValues, metricWeight, maskValues] = await Promise.all([result.loss.data(), result.prediction.data(), result.target.data(), result.metricWeight.data(), result.mask.data()])
+        sum += loss[0] * metricWeight[0];weight+=metricWeight[0]
         const width = result.kind==='categorical' ? result.prediction.shape.at(-1)! : 1
         const positions = values.length / (batch.length * width)
-        batch.forEach((example, exampleIndex) => example.target.data.forEach((actual, position) => {
+        batch.forEach((example, exampleIndex) => {
+          const internal=this.lossNode.params.targetMode==='internal'
+          const actuals=internal?Array.from(actualValues.slice(exampleIndex*positions,(exampleIndex+1)*positions)):example.target.data
+          actuals.forEach((actual, position) => {
+          if(internal) {
+            const features=result.prediction.shape.at(-1)!
+            const tokensPerExample=positions/features
+            if(maskValues[exampleIndex*tokensPerExample+Math.floor(position/features)]===0) return
+          }
           const start = (exampleIndex * positions + position) * width
           const scores = Array.from(values.slice(start, start + width))
           const isClass = result.kind!=='regression'
@@ -371,15 +475,19 @@ export class TensorGraph {
             actual: display(actual, isClass), predicted: display(predicted, isClass),
             ...(isClass ? { correct: predicted === actual } : {}),
           })
-        }))
+        })})
       } finally { tf.dispose(result) }
       await new Promise(resolve => setTimeout(resolve, 0))
     }
     if(signal?.aborted) throw signal.reason ?? Error('Evaluation stopped.')
-    return { loss: sum / rows.length, examples: rows.length, predictions: scored, rows: predictions, accuracy: scored ? hits / scored : undefined }
+    const diagnostics=this.lossNode.params.targetMode==='internal' || this.lossNode.params.activationPenaltyNodeId
+      ? await this.evaluate(rows,batchSize,signal) : undefined
+    return { loss: sum / Math.max(weight,1), examples: rows.length, predictions: scored, rows: predictions, accuracy: scored ? hits / scored : undefined,
+      ...(diagnostics?{objective:diagnostics.objective,activationPenalty:diagnostics.activationPenalty,activePerToken:diagnostics.activePerToken,inactiveFeatures:diagnostics.inactiveFeatures,sparsityTolerance:diagnostics.sparsityTolerance}:{}),
+    }
   }
   async snapshot():Promise<GraphModel> {
-    const params=new Map<string,TensorValue>(await Promise.all([...this.variables].map(async([id,v]):Promise<[string,TensorValue]>=>[id,{shape:Array.from(v.shape),data:Array.from(await v.data())}])))
+    const params=new Map<string,TensorValue>(await Promise.all([...this.variables].filter(([,v])=>v.trainable).map(async([id,v]):Promise<[string,TensorValue]>=>[id,{shape:Array.from(v.shape),data:Array.from(await v.data())}])))
     if([...params.values()].some(v=>v.data.some(n=>!Number.isFinite(n)))) throw Error('Training diverged; no finite checkpoint available.')
     return {...this.graph,nodes:this.graph.nodes.map(node=>({...node,params:params.has(node.id)?{...node.params,value:params.get(node.id)!}:node.params,value:undefined,grad:undefined,cache:undefined,localDerivative:undefined})),edges:this.graph.edges.map(edge=>({...edge,value:undefined,grad:undefined}))}
   }
@@ -398,11 +506,13 @@ export class TensorOptimizer {
   update(variables:Map<string,tf.Variable>,grads:tf.NamedTensorMap) {
     this.step++
     tf.tidy(()=>{
-      const gradients=[...variables.values()].map(v=>grads[v.name]??tf.zerosLike(v))
+      const trainable=[...variables].filter(([,v])=>v.trainable)
+      if(!trainable.length) return
+      const gradients=trainable.map(([,v])=>grads[v.name]??tf.zerosLike(v))
       const norm=tf.sqrt(tf.addN(gradients.map(g=>tf.sum(tf.square(g)))))
       const scale=this.settings.clipNorm>0?tf.minimum(1,tf.div(this.settings.clipNorm,tf.add(norm,1e-12))):tf.scalar(1)
       let i=0
-      for(const [id,variable] of variables) {
+      for(const [id,variable] of trainable) {
         const g=tf.mul(gradients[i++],scale)
         let update:tf.Tensor=g
         if(this.settings.optimizer!=='sgd') {
@@ -413,7 +523,8 @@ export class TensorOptimizer {
           this.moments.set(id,{m:tf.keep(m),v:tf.keep(v)});previous?.m.dispose();previous?.v.dispose()
         }
         const decay=this.settings.optimizer==='adamw'?this.settings.weightDecay:0
-        variable.assign(tf.sub(tf.mul(variable,1-this.rate*decay),tf.mul(update,this.rate)))
+        const next=tf.sub(tf.mul(variable,1-this.rate*decay),tf.mul(update,this.rate))
+        variable.assign(rowConstrainedVariables.has(variable)?projectRows(next):next)
       }
     })
   }

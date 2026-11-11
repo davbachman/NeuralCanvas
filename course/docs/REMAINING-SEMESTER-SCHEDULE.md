@@ -1,11 +1,14 @@
-# Remaining semester: 20 class days, 19 assignments
+# Course sequence: 21 assignments
 
 Working plan revised for the approved whole-story sequence. Lectures prepare students for independent work
 in Neural Canvas. Assignments 1–6 retain their issued materials. The approved
 football progression now uses one corpus from generation through QA, eliminating
 the separate pretraining homework. Assignment 18 supplies the trained checkpoint,
 Assignment 12 teaches sampling on the bigram model, and Assignment 19 fine-tunes for questions.
-The final class slot is available; this revision adds no replacement assignment.
+Two interpretability extensions follow the existing sequence. Their placement
+adds one lesson beyond the former 20-meeting outline; instructors choose the
+calendar without renumbering the existing assignments. Both reuse the preserved
+narrative generator, leaving the QA model available for comparison.
 
 | Day | Lecture or discussion | Corresponding assignment |
 |---|---|---|
@@ -28,7 +31,8 @@ The final class slot is available; this revision adds no replacement assignment.
 | 17 | Depth lets later attention use contextual information from earlier attention. | Build an independent second block and compare with Assignment 16’s all-position one-block model; extra compositional capacity has a cost ([Assignment 17](../assignments/17-stacking/description.md)). |
 | 18 | Multiple heads provide distinct attention distributions at fixed total width and parameter count. | Replace each block’s head with two width-8 heads; retain both successive blocks ([Assignment 18](../assignments/18-multiple-heads/description.md)). |
 | 19 | Adapt a pretrained generative transformer to answer tokens; compare on the same football task. | Reuse Assignment 18’s trained generator, prepare an unchanged-weight QA baseline and fine-tune. Submit earlier.json, pretrained.json, before.json and after.json ([Assignment 19](../assignments/19-qa-finetuning/description.md)). |
-| 20 | Available class meeting after the assignment consolidation; no new topic assigned here. | No Assignment 20. |
+| 20 | Mixed residual coordinates, learned feature representations, reconstruction and activation sparsity. | Freeze multihead.json; build matched unpenalized and sparse autoencoders at the final residual, then independently isolate one feature contribution ([Assignment 20](../assignments/20-sparse-autoencoder/description.md)). |
+| 21 | Correlation versus intervention; restoration, bounded effects and controls. | Preserve the sparse autoencoder; construct zero, amplified and ablated residual interventions using visible operations ([Assignment 21](../assignments/21-feature-interventions/description.md)). |
 
 ## Teaching and assessment
 
@@ -61,3 +65,10 @@ Current recipes, thresholds and validation are in
 [STUDENT-CAPSTONE.md](STUDENT-CAPSTONE.md) and each assignment's Instructor/INSTRUCTOR.md.
 Historical Alice, bAbI, two-fact and supplied-checkpoint reports retain their
 original numbering and do not validate current datasets or laptop GPU runtime.
+
+The interpretability extension uses the same narrative data and original split.
+Its sparse autoencoder adds 32 features to a frozen 16-wide residual stream.
+Only the new encoder and decoder learn; unit decoder directions make activation
+sparsity scale meaningful. Feature-linked prediction effects are measured with
+deterministic distributions and controls, without requiring a clean semantic
+interpretation. See [the extension validation](INTERPRETABILITY-EXTENSION.md).

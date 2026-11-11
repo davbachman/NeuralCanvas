@@ -1,4 +1,5 @@
 import { NumberInput } from './NumberInput'
+import { FeatureContextInspector } from './FeatureContextInspector'
 import { useEffect, useState } from 'react'
 import { InferenceInspection, type InspectionValue } from '../domain/inferenceInspection'
 import { datasetExampleIndex, datasetExamplesForNode, datasetMode, datasetOutputCountForNode, datasetOutputLabelForSlot, datasetOutputValueForSlot, datasetTargetSlotForNode } from '../domain/datasets'
@@ -262,6 +263,7 @@ function InferenceSignalView({ inspection, id, slot }: { inspection: InferenceIn
     <p className="data-current-note">{table ? 'Rows: original dataset row numbers. Columns: output values.' : value.shape.length ? value.shape.map((size, axis) => `Axis ${axis}: ${result.axes[axis] ?? 'tensor index'} (${size})`).join(' · ') : 'Scalar output.'}</p>
     {value.excluded?.some(Boolean) && <p className="data-current-note">Masked cells are excluded positions or padding from the inference run.</p>}
     <TensorViewer key={`${table ? page : row}:${result.kind}`} value={value} labels={table ? [undefined, result.labels.at(-1)] : result.labels} exampleRows={table ? loaded.rows : undefined}/>
+    {!table && result.kind === 'example' && value.shape.length === 2 && (result.axes[0] === 'token' || result.labels[0]?.some(label => /^\d+: /.test(label))) && <FeatureContextInspector key={`${inspection.runId}:${id}:${slot}`} inspection={inspection} id={id} slot={slot} width={value.shape[1]}/>}
     {table && pages > 1 && <PageControls label="Examples" page={page} pages={pages} onPage={setPage} range={`${page * PAGE_ROWS + 1}–${Math.min(inspection.indices.length, (page + 1) * PAGE_ROWS)} of ${inspection.indices.length}`}/>}
   </>
 }

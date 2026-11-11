@@ -43,7 +43,9 @@ def check_templates(value, path):
 
 def validate():
     assignments = sorted(path for path in (COURSE / 'assignments').iterdir() if path.is_dir())
-    require(len(assignments) == 19, 'Expected all 19 current assignments')
+    require(len(assignments) == 21, 'Expected all 21 current assignments')
+    require([int(path.name[:2]) for path in assignments] == list(range(1, 22)),
+            'Assignments must retain the existing numbering and append new lessons')
     for path in COURSE.rglob('*'):
         if any(part in ('.venv', '__pycache__', 'node_modules', '.git')
                for part in path.relative_to(COURSE).parts):
@@ -117,7 +119,7 @@ def validate():
                         f'Grader subprocess failed: {base.name}/{case}')
         print(f'{base.name}: package, data, manifest, missing/malformed submissions OK', flush=True)
     subprocess.run([sys.executable, str(COURSE / 'scripts/sync-handouts.py'), '--check'], check=True)
-    print(f'Validated 19 public teaching releases and {dataset_count} app dataset references.')
+    print(f'Validated {len(assignments)} public teaching releases and {dataset_count} app dataset references.')
 
 
 if __name__ == '__main__':

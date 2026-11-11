@@ -38,6 +38,19 @@ function projectSnapshot(): ProjectStateSnapshot {
 }
 
 describe('project state files', () => {
+  it('round-trips frozen parameters and internal activation objective settings', () => {
+    const snapshot = projectSnapshot()
+    snapshot.graph.nodes[0].params = { ...snapshot.graph.nodes[0].params, trainable: false, constraint: 'unit-row-norm', inferenceOnly: true, targetMode: 'internal', activationPenaltyNodeId: 'h', activationPenaltyStrength: .01, lossMaskNodeId: 'mask', lossMaskSourceSlot: 2 }
+    const result = parseProjectStateFile(JSON.stringify(createProjectStateFile(snapshot)))
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.file.state.graph.nodes[0].params).toEqual(snapshot.graph.nodes[0].params)
+  })
+
+  it.each([{ trainable: 'false' }, { constraint: 'anything' }, { activationPenaltyStrength: -1 }, { targetMode: 'cached' }, { lossMaskSourceSlot: 1.5 }])('rejects malformed activation settings %j', params => {
+    const file = createProjectStateFile(projectSnapshot())
+    Object.assign(file.state.graph.nodes[0].params, params)
+    expect(parseProjectStateFile(JSON.stringify(file)).ok).toBe(false)
+  })
   it.each([
     ['Assignment 10', 'Assignment 10.json'],
     ['  My model  ', 'My model.json'],

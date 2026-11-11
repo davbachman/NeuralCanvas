@@ -44,8 +44,8 @@ def render(source):
 
 def sync(check=False):
     sources = sorted((COURSE / 'assignments').glob('*/description.html'))
-    if len(sources) != 19:
-        raise ValueError(f'Expected 19 handouts, found {len(sources)}')
+    if len(sources) != 21:
+        raise ValueError(f'Expected 21 handouts, found {len(sources)}')
     for source in sources:
         outputs = {
             source.with_suffix('.md'): markdown(source.read_text()),
@@ -60,7 +60,7 @@ def sync(check=False):
                 target.write_text(expected)
         if not check:
             write_manifest(source.parent)
-    print(f'{"Checked" if check else "Updated"} all 19 Markdown descriptions and student pages.')
+    print(f'{"Checked" if check else "Updated"} all {len(sources)} Markdown descriptions and student pages.')
 
 
 if __name__ == '__main__':

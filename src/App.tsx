@@ -59,6 +59,7 @@ import './unifiedStudio.css'
 import './workspacePanels.css'
 import { CodeOutline, type CodeTarget } from './components/CodeOutline'
 import { ModelInspector } from './components/ModelInspector'
+import { normalizeParameterValue } from './domain/interpretability'
 import { DataInspector } from './components/DataInspector'
 import { isHeldOutSample } from './domain/modelDatasets'
 import { placeCanvasNode } from './domain/nodePlacement'
@@ -332,7 +333,7 @@ function App({
   const problemNodes = useMemo(() => problemNodeIds(modelGraph, blockingIssues), [modelGraph, blockingIssues])
   const hasLoss = graph.nodes.some(isLossNode)
   const trainableParameterCount = useMemo(() => graph.nodes.reduce((count, node) => {
-    if (node.type !== 'weight' && node.type !== 'bias') return count
+    if ((node.type !== 'weight' && node.type !== 'bias') || node.params.trainable === false) return count
     const value = node.params.value
     return count + (typeof value === 'object' ? value.data.length : 1)
   }, 0), [graph.nodes])
@@ -593,7 +594,8 @@ function App({
     const dataset = sourceGraph.nodes.find(node => node.type === 'dataset')
     const hasHeldOut = dataset && datasetExamplesForNode(dataset).some(example => example.split === 'test')
     const options = { signal: controller.signal, includePredictions: false }
-    const loss = dataset ? (await evaluateDatasetAsync(sourceGraph, dataset.id, 'train', options)).loss : forwardPass(sourceGraph).loss
+    const metrics = dataset ? await evaluateDatasetAsync(sourceGraph, dataset.id, 'train', options) : undefined
+    const loss = metrics ? metrics.loss : forwardPass(sourceGraph).loss
     controller.signal.throwIfAborted()
     if (loss === null || loss === undefined || !Number.isFinite(loss)) throw new Error('Training diverged. Lower the learning rate and try again.')
     let heldOutLoss: number | undefined
@@ -609,7 +611,7 @@ function App({
       } else if (heldOutLoss !== undefined) setReportingWarning(undefined)
     }
     controller.signal.throwIfAborted()
-    if (isCurrent()) setLossReports(reports => appendLossReport(reports, { epoch: reportEpoch, loss, heldOutLoss }))
+    if (isCurrent()) setLossReports(reports => appendLossReport(reports, { epoch: reportEpoch, loss, heldOutLoss, ...(metrics ? { activationPenalty: metrics.activationPenalty, objective: metrics.objective, activePerToken: metrics.activePerToken, inactiveFeatures: metrics.inactiveFeatures } : {}) }))
     return loss
   }, [])
 
@@ -818,7 +820,7 @@ function App({
           onBackend:(backend,fallback)=>{if(!isCurrent())return;setTrainingStatus('Training on '+backend);if(fallback)setReportingWarning('Using '+backend+'. '+fallback)},
           onProgress:(done,total)=>{if(isCurrent())setTrainingStatus('Training '+done+' / '+total+' examples')},
           onReport:report=>{if(isCurrent()){
-            checkpointReports=appendLossReport(checkpointReports,{epoch:report.epoch,loss:report.train.loss,heldOutLoss:report.validation.loss})
+            checkpointReports=appendLossReport(checkpointReports,{epoch:report.epoch,loss:report.train.loss,heldOutLoss:report.validation.loss,activationPenalty:report.train.activationPenalty,objective:report.train.objective,activePerToken:report.train.activePerToken,inactiveFeatures:report.train.inactiveFeatures})
             setLossReports(checkpointReports)
           }},
           onCheckpoint:async (checkpoint,report)=>{
@@ -1004,6 +1006,11 @@ function App({
         nodeId = canonical.id
         value = { ...original, data: original.data.map((entry, index) => index === binding.index ? value.data[0] : entry) }
       }
+      const parameter = graph.nodes.find(node => node.id === nodeId)
+      if (parameter && (parameter.type === 'weight' || parameter.type === 'bias')) {
+        if (parameter.params.trainable === false) return
+        value = normalizeParameterValue(parameter, value)
+      }
       pushHistory()
       clearRecordedExecution()
       const next = invalidateGraphResults({
@@ -1156,9 +1163,9 @@ function App({
       const next = {
         ...graph,
         nodes: graph.nodes.map((node) => {
-          if (node.type !== 'weight' && node.type !== 'bias') return node
+          if ((node.type !== 'weight' && node.type !== 'bias') || node.params.trainable === false) return node
           const original = toTensor(node.params.value)
-          const value = initializeTensor(original.shape, initializerForNode(node), Math.floor(Math.random() * 0x100000000))
+          const value = normalizeParameterValue(node, initializeTensor(original.shape, initializerForNode(node), Math.floor(Math.random() * 0x100000000)))
           return { ...node, params: { ...node.params, value }, value }
         }),
       }
@@ -1305,11 +1312,12 @@ function App({
   const updateNodeParams = (nodeId: string, params: NodeParams) =>
     applyGraphChange({
       ...graph,
-      nodes: graph.nodes.map((node) =>
-        node.id === nodeId
-          ? { ...node, params: { ...node.params, ...(('datasetIndex' in params || 'datasetSplit' in params || 'textData' in params) ? {storyExperiment: undefined, datasetValues: undefined} : {}), ...(('textData' in params || 'customCsv' in params || 'trainPercent' in params) ? { datasetLibraryPreset: undefined } : {}), ...params } }
-          : node,
-      ),
+      nodes: graph.nodes.map((node) => {
+        if (node.id !== nodeId) return node
+        const next = { ...node, params: { ...node.params, ...(('datasetIndex' in params || 'datasetSplit' in params || 'textData' in params) ? {storyExperiment: undefined, datasetValues: undefined} : {}), ...(('textData' in params || 'customCsv' in params || 'trainPercent' in params) ? { datasetLibraryPreset: undefined } : {}), ...params } }
+        if ('constraint' in params && next.params.trainable !== false) next.params.value = normalizeParameterValue(next, toTensor(next.params.value))
+        return next
+      }),
     })
   const duplicateSelection = () => {
     const fragment = copyGraphSelection(graph, {
@@ -1752,7 +1760,7 @@ function App({
         </section>
         <section className="panel-section run-panel" role="tabpanel" aria-label="Train controls" hidden={leftTab !== 'train'}>
           <button type="button" className="run-epochs-button primary-button" onClick={() => runCanvasAction(evaluateModel)} disabled={isTraining}>Run forward</button>
-          <div className="run-metrics"><span title="Total scalar values in all Param blocks. Shared blocks are counted once.">Trainable parameters: <strong aria-label="Trainable parameter count">{trainableParameterCount.toLocaleString('en-US')}</strong></span></div>
+          <div className="run-metrics"><span title="Scalar values in trainable Param blocks; frozen values are excluded. Shared blocks are counted once.">Trainable parameters: <strong aria-label="Trainable parameter count">{trainableParameterCount.toLocaleString('en-US')}</strong></span></div>
           <div className="run-section-divider" />
           <p className="eyebrow">Train the model</p>
           {isTraining ? <button type="button" className="run-epochs-button" onClick={() => trainingController.current?.abort()}>Stop training</button>
@@ -1772,6 +1780,8 @@ function App({
           {tensorTraining && <label className="run-field">Exact learning rate<NumberInput aria-label="Exact learning rate" type="number" min="0.000001" step="0.0001" disabled={isTraining} value={graph.learningRate} onChange={event=>updateLearningRate(Number(event.target.value))}/></label>}
           <LearningRateControl value={graph.learningRate} tensorTraining={tensorTraining} disabled={isTraining} onChange={updateLearningRate}/>
           <button type="button" className="run-full-step randomize-button" onClick={() => runCanvasAction(randomizeParameters)} disabled={isTraining}><Shuffle size={15} /> Randomize parameters</button>
+          <button type="button" className="run-full-step" disabled={isTraining} onClick={() => runCanvasAction(() => applyGraphChange({ ...graph, nodes: graph.nodes.map(node => node.type === 'weight' || node.type === 'bias' ? { ...node, params: { ...node.params, trainable: false } } : node.type === 'dropout' ? { ...node, params: { ...node.params, inferenceOnly: true } } : node) }))}>Freeze existing parameters</button>
+          <p className="run-intro">Freeze before adding new trainable parameters. This also fixes existing Dropout blocks in evaluation mode. Change an individual Param's update setting in Details to unfreeze it.</p>
           <div className="run-section-divider" />
           <p className="eyebrow">Training settings</p>
             <label className="run-field">Training execution<select aria-label="Training execution" disabled={isTraining} value={training.engine} onChange={event=>setTraining({engine:event.target.value as TrainingSettings['engine']})}><option value="trace">Trace engine · SGD</option><option value="tensor">Tensor engine · minibatches</option></select></label>

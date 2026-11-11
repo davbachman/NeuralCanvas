@@ -1,6 +1,6 @@
 # Public course materials
 
-This directory is the canonical home for the 19 current assignments, Canvas
+This directory is the canonical home for the 21 current assignments, Canvas
 handouts, Gradescope ZIPs and grader sources, untrained
 templates, instructor guides, packaging helpers, and curriculum/validation
 documentation. Read README.md and the relevant Instructor/INSTRUCTOR.md before changes.
@@ -28,7 +28,7 @@ remain in Git.
 
 Run course commands from this directory. Use Python 3.12 and requirements.txt.
 Run `python scripts/validate-course.py` after changes; it checks package/source
-parity, manifests, app dataset hashes, public artifact boundaries, and all 19
+parity, manifests, app dataset hashes, public artifact boundaries, and all 21
 packaged runners with invalid submissions. Rebuild changed autograders with the
 appropriate `scripts/assignments/package-*.py` command. Full-credit and semantic
 regression tests use private fixtures and run from NeuralCanvas-Coursework.

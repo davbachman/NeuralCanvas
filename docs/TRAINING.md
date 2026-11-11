@@ -39,3 +39,19 @@ If a block is red or a run button is unavailable, select the block for its valid
 Select **Loss → Details → Parameter regularization**. Choose the penalty, strength λ, and parameter checkboxes. L1 adds `λ Σ |w|` to data loss; L2 adds `λ/2 Σ w²`. Each selected shared parameter is counted once. Bias blocks are excluded by default; deselect any generic Param block you use as a bias. L1 adds `λ sign(w)` to the gradient (zero at zero), and L2 adds `λ w`.
 
 The Loss block and trace show the regularized objective. Dataset reports and early stopping use data loss, so you can compare prediction quality across penalty strengths. AdamW weight decay is a separate setting; set it to zero when teaching the effect of these penalties. The [semester pilot](SEMESTER-APP-PILOT.md) provides a small MPG training set where L2 improves held-out prediction.
+
+## Frozen parameters and activation objectives
+
+**Train → Freeze existing parameters** fixes the current Params and puts existing
+Dropout blocks in evaluation mode. Add new Params afterward to train an extension.
+Each Param also has a saved **Details → Parameter training → Update setting**.
+Frozen values stay unchanged during updates, weight decay and initialization;
+gradients still pass through operations using them.
+
+**Loss → Details → Activation objective** separately selects a frozen internal
+target, a valid-token mask and an activation L1 penalty. Reconstruction/data loss,
+activation penalty and total objective are reported separately. The decoder's
+**Unit row norm** constraint prevents a scaling loophole. See
+[Inspecting and intervening on internal representations](INTERPRETABILITY.md)
+for construction, feature-context inspection and the single-Loss save/rewire
+workflow for returning to generation.

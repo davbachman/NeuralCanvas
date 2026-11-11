@@ -104,6 +104,12 @@ export interface Position {
 export type Initializer = 'zeros' | 'ones' | 'xavier' | 'he' | 'uniform'
 
 export interface NodeParams {
+  /** False freezes parameter values, without stopping gradients through their uses. */
+  trainable?: boolean
+  /** Project each rank-two parameter row to unit L2 norm after initialization/update. */
+  constraint?: 'unit-row-norm'
+  /** Disable stochastic dropout even during training (for a frozen reference model). */
+  inferenceOnly?: boolean
   /** Preferred method for initializing or randomizing this parameter. */
   initializer?: Initializer
   /** Input authoring controls; neither mode makes the input trainable. */
@@ -117,6 +123,14 @@ export interface NodeParams {
   regularization?: 'none' | 'l1' | 'l2'
   regularizationStrength?: number
   regularizationParameterIds?: string[]
+  /** Reconstruct a fixed internal signal instead of dataset labels. Targets are detached. */
+  targetMode?: 'internal'
+  /** L1 on the selected signal, averaged over valid rows and summed over features. */
+  activationPenaltyNodeId?: string
+  activationPenaltyStrength?: number
+  /** Optional binary row mask, shared by reconstruction and activation penalty. */
+  lossMaskNodeId?: string
+  lossMaskSourceSlot?: number
   dataset?: DatasetKind
   /** Optional library provenance; data remains embedded and self-contained. */
   datasetLibraryPreset?: string
