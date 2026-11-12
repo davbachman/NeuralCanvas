@@ -10,7 +10,7 @@
 | Modify | Keep the Dataset, word embeddings, loss and Softmax. Replace the final-token input path with a flattened context and hidden MLP; resize the output projection. |
 | Save and keep | **context.json**; use a copy in the next assignment. |
 
-The phrases “liam entered” and “now liam is in the” end with the same token. A bigram model must give them the same next-token distribution. Build a model that can use the **ordered 32-token context**.
+Compare “liam entered kitchen . now liam is in the” with “liam entered garden . now liam is in the”. Both prompts end with “the”, so a bigram model must give them the same next-token distribution. A model with longer memory can use the earlier context to predict “kitchen” or “garden”. Build a model that can use the **ordered 32-token context**.
 
 Use the narrative configuration selected below in your Dataset block. It keeps the same football narratives, **25-token vocabulary**, **32-token input windows** and training/held-out split. There is one target after the final input token. Keep the supplied data and split unchanged. Held-out data is validation during development.
 
